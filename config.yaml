@@ -1,0 +1,29 @@
+# set the location of the input fast5 files
+# place a forward slash (/) at the end of your file path
+fast5_location: /data_files/fast5/
+
+# set the location where you would like all results to be saved
+# place a forward slash (/) at the end of your file path
+results_folder: /results/
+
+# Set this to the location of your alignment reference file for the aligner tool you are using (guppy/minimap/vsearch)
+# place a forward slash (/) at the end of your file path
+alignment_reference_file: /data_files/zymogen_alignment_reference.fasta
+
+# set this variable to the configuration name you would like to use with basecalling
+# additionally, set the number of callers and threads per caller to use with basecalling
+basecall_configuration: dna_r9.4.1_450bps_fast.cfg
+num_callers: 6
+num_threads_per_caller: 6
+
+# set the barcode_kit variable to the name of the barcoding kit you will be using
+barcode_kit: EXP-PBC096
+
+# set the error rate, 3' adapter, and 5' adapter to use with cutadapt (trimming reads)
+trim_error_rate: 0.15
+trim_three_prime_adapter: ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
+trim_five_prime_adapter: TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
+
+# set the match rate for vsearch
+vsearch_match_rate: 0.90
+
