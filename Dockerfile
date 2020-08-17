@@ -34,33 +34,39 @@ COPY --from=guppy_installer /guppy/ /pipeline
 COPY environment.yaml .
 
 # we are doing a series of things here to reduce the final image size that is generated
-# 1) update our package list and install a package needed for guppy, and git to clone the snakemake repo
+
 # 2) create our pipeline environment, and update conda
-# 3) make a symbolic link (`ln -s`) so we are able to use any of the guppy packages in this space
-# 4) move files we need from the github repo
+# 3)
+# 4)
 #   - this includes the Snakefile, configuration file, environment scripts, and python scripts
 # 5) remove the github folder as it is no longer needed
 # 6) remove files that were loaded during the  `apt update && apt install` to reduce image size
 # 7) create a link so we are able to redirect STDOUT from logs onto the screen
+
+# update our package list and install a package needed for guppy, and git to clone the snakemake repo
 RUN apt update && \
     apt install --yes git libidn11 && \
-    git clone --branch snakemake https://github.com/JoshLoecker/ARS && \
-    conda env create -f environment.yaml && \
-    conda update -n base -c defaults conda && \
-    ln -s /pipeline/ont-guppy*/bin/guppy_aligner /usr/local/bin/guppy_aligner && \
+    git clone --branch master https://github.com/JoshLoecker/pipeline && \
+    rm -rf /var/lib/apt/lists/*
+
+# make a symbolic link (`ln -s`) so we are able to use any of the guppy packages in this space
+RUN ln -s /pipeline/ont-guppy*/bin/guppy_aligner /usr/local/bin/guppy_aligner && \
     ln -s /pipeline/ont-guppy*/bin/guppy_barcoder /usr/local/bin/guppy_barcoder && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecall_server /usr/local/bin/guppy_basecall_server && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller /usr/local/bin/guppy_basecaller && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller_1d2 /usr/local/bin/guppy_basecaller_1d2 && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller_supervisor /usr/local/bin/guppy_basecaller_supervisor && \
-    mv /pipeline/ARS/Snakefile /pipeline/ && \
-    mv /pipeline/ARS/config.yaml /pipeline/ && \
-    mv /pipeline/ARS/envs /pipeline/envs/ && \
-    mv /pipeline/ARS/scripts /pipeline/scripts/ && \
-    rm -r /pipeline/ARS/* && \
-    rm -rf /var/lib/apt/lists/* && \
     ln -sf  /dev/stdout /var/
 
+# move files we need from the github repo into our working folder
+RUN mv /pipeline/pipeline/Snakefile /pipeline && \
+    mv /pipeline/pipeline/config.yaml /pipeline && \
+    mv /pipeline/pipeline/envs /pipeline/envs/ && \
+    mv /pipeline/pipeline/scripts /pipeline/scripts/ && \
+    rm -r /pipeline/pipeline/
+
+RUN conda env create -f environment.yaml && \
+    conda update -n base -c defaults conda
 
 # activate our new environment
 SHELL ["conda", "run", "-n", "pipeline", "/bin/bash", "-c"]
