@@ -11,6 +11,7 @@ This project is meant to run using Singularity or Docker
 Two paths are needed with this container: 1) A `results` folder, and 2) A `data_files` folder. These folders can be named as you please, but this guide will use these respective names
 
 It is important to note that under the `data_files` folder, a folder **must** be named `fast5`. If this is not done, guppy_basecaller will not be able to pick up **any** `.fast5` files, even if they are present, as it looks for `.fast5` files under the `fast5` folder. As such, your `data_files` folder structure may look as follows:
+<br>
 ```
 home
 | -- Rob
@@ -25,7 +26,8 @@ home
 				     | -- silva_alignment_file.fasta
 				     | -- some_other_file.txt
 ```
-
+<br>
+<br>
 3. To run the container, execute the following command:
 
 	```
@@ -40,5 +42,5 @@ home
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTkyNDY3NjQzMCwtNTE5NzgxMDM2XX0=
+eyJoaXN0b3J5IjpbMjEwNTcyMTE2MCwtNTE5NzgxMDM2XX0=
 -->
