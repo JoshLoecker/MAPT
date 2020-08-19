@@ -37,13 +37,18 @@ The `results` folder does not need to exist, but it can if you would like. If it
 	-B /path/to/data_files/folder:/data_files/ \
 	pipeline:latest
 	```
-This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound (i.e. `/path/to/results/folder`
+This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound (i.e. `/path/to/results/folder`)
 
 
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
-2. Pull the container by running 
+2. Pull the container by running:
+	`docker pull joshloecker/pipeline:latest`
+3. Run the container using the following command:
+	```
+	
+	```
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTM2MjE2ODU2MiwtMjAwMjA4MjA4OV19
+eyJoaXN0b3J5IjpbLTIxNjM1Mzg4LC0yMDAyMDgyMDg5XX0=
 -->
