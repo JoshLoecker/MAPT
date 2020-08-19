@@ -32,11 +32,12 @@ home
 	
 	a) This will being downloading the Docker container and converting it to a Singularity container
 4. To run the container, execute the following command:
-
- singularity run \
-	-B /path/to/results/folder:/results/ \
+    ```
+    singularity run \
+    -B /path/to/results/folder:/results/ \
 	-B /path/to/data_files/folder:/data_files/ \
 	pipeline:latest
+	```
 This will start the container, and the workflow will begin. 	
 
 
@@ -45,5 +46,5 @@ This will start the container, and the workflow will begin.
 2. Pull the container by running 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTMzODIwNzY3MSwyMTA1NzIxMTYwXX0=
+eyJoaXN0b3J5IjpbLTIwMDIwODIwODldfQ==
 -->
