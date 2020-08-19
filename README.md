@@ -14,7 +14,6 @@ home
 | -- Rob
 	 | -- Projects
 		  | -- run_1
-			   | -- results
 			   | -- data_files
 				    | -- fast5
 					     | -- file_1.fast5
@@ -23,7 +22,7 @@ home
 				     | -- silva_alignment_file.fasta
 				     | -- some_other_file.txt
 ```
-
+The `results` folder does not need to exist, but it can if you would like. If it does not exist, It will be created by Singularity/Docker when starting the container
 
 ### <ins>Singularty</ins>
 1. If you are working on a cluster, Singularity may already be installed; this is the case with SciNet. If Singularity is not installed, follow the instructions: [Install Singularity](https://singularity.lbl.gov/install-linux)
@@ -46,5 +45,5 @@ This will start the container, and the workflow will begin.
 2. Pull the container by running 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwMDIwODIwODldfQ==
+eyJoaXN0b3J5IjpbMTU4ODA1MDYzMiwtMjAwMjA4MjA4OV19
 -->
