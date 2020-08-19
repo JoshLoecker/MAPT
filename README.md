@@ -22,6 +22,10 @@ Two paths are needed with this container: 1) A `results` folder, and 2) A `data_
 
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
+
+
+
+THIS IS SOME TEXT
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTI5NDcyNjAyXX0=
+eyJoaXN0b3J5IjpbMTc3MzI1OTA1N119
 -->
