@@ -37,8 +37,6 @@ The `results` folder does not need to exist, but it can if you would like. If it
 	-B /path/to/data_files/:/data_files/ \
 	pipeline:latest
 	```
-This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound (i.e. `/path/to/results/`)
-
 
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
@@ -51,8 +49,10 @@ This will start the container, and the workflow will begin. Results will be save
 	-v /path/to/data_files/:/data_files/ \
 	pipeline:latest
 	```
-This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
+
+## Results
+Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/path/to/results/`). From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTAwNzMzNzMyLDEzODkzNzU0MzQsMTM0Nz
-Q3ODMzNywtMjAwMjA4MjA4OV19
+eyJoaXN0b3J5IjpbLTEwNDY4NjE2NzEsMTM4OTM3NTQzNCwxMz
+Q3NDc4MzM3LC0yMDAyMDgyMDg5XX0=
 -->
