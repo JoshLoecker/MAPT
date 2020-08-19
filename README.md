@@ -51,8 +51,10 @@ The `results` folder does not need to exist, but it can if you would like. If it
 	```
 
 ## Results
-Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/path/to/results/`). From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`
+Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/path/to/results/`). From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`, etc.
+
+
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEwNDY4NjE2NzEsMTM4OTM3NTQzNCwxMz
+eyJoaXN0b3J5IjpbLTE2MjU1NjgwMjUsMTM4OTM3NTQzNCwxMz
 Q3NDc4MzM3LC0yMDAyMDgyMDg5XX0=
 -->
