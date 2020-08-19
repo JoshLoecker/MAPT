@@ -37,7 +37,7 @@ The `results` folder does not need to exist, but it can if you would like. If it
 	-B /path/to/data_files/:/data_files/ \
 	pipeline:latest
 	```
-This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound (i.e. `/path/to/results/folder`)
+This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound (i.e. `/path/to/results/`)
 
 
 ### <ins>Docker</ins>
@@ -47,11 +47,11 @@ This will start the container, and the workflow will begin. Results will be save
 3. Run the container using the following command:
 	```
 	docker run \
-	-v /path/to/results/folder/:/results/ \
+	-v /path/to/results/:/results/ \
 	-v /path/to/data_files/:/data_files/ \
 	pipeline:latest
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA0MzEyMDk4NiwtMjAwMjA4MjA4OV19
+eyJoaXN0b3J5IjpbLTM4MjcyMDE1NywtMjAwMjA4MjA4OV19
 -->
