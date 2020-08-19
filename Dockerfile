@@ -1,5 +1,7 @@
 # install guppy with the following version number
 FROM alpine:3.6 as guppy_installer
+MAINTAINER joshua.loecker@usda.gov
+
 ARG VERSION_NUMBER=4.0.14
 
 # specify and open a working directory
@@ -21,12 +23,13 @@ RUN apk update && \
 
 # get our conda environment running
 FROM continuumio/miniconda3
+MAINTAINER joshua.loecker@usda.gov
 
 # set a working directory
 WORKDIR /pipeline
 
 # create a volume to store data
-VOLUME ["/results/", "/data_files/"]
+VOLUME ["/results/", "/data_files/", "/alignment_file.fasta"]
 
 # copy the guppy downloader from previous workspace
 # copy our environment file into the container
