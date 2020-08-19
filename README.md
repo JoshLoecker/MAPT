@@ -42,5 +42,5 @@ home
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjEwNTcyMTE2MCwtNTE5NzgxMDM2XX0=
+eyJoaXN0b3J5IjpbMjEwNTcyMTE2MF19
 -->
