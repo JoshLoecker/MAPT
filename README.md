@@ -26,11 +26,11 @@ The `results` folder does not need to exist, but it can if you would like. If it
 
 ### <ins>Singularty</ins>
 1. If you are working on a cluster, Singularity may already be installed; this is the case with SciNet. If Singularity is not installed, follow the instructions: [Install Singularity](https://singularity.lbl.gov/install-linux)
-2. Begin downloading the Pipeline Container by running:    
+2. Begin downloading the Pipeline Container by running:<br>
 	`singularity pull docker://joshloecker/pipeline:latest`
 	
 	a) This will begin downloading the Docker container and converting it to a Singularity container
-3. To run the container, execute the following command:
+4. To run the container, execute the following command:
     ```
     singularity run \
     -B /path/to/results/:/results/ \
@@ -53,6 +53,6 @@ This will start the container, and the workflow will begin. Results will be save
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODU4MjcyNDMsMTM0NzQ3ODMzNywtMjAwMj
-A4MjA4OV19
+eyJoaXN0b3J5IjpbLTEzNzg1MzE2ODgsMTM0NzQ3ODMzNywtMj
+AwMjA4MjA4OV19
 -->
