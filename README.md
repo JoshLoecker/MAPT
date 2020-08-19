@@ -42,7 +42,7 @@ This will start the container, and the workflow will begin. Results will be save
 
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
-2. Pull the container by running:
+2. Pull the container by running:<br>
 	`docker pull joshloecker/pipeline:latest`
 3. Run the container using the following command:
 	```
@@ -53,6 +53,6 @@ This will start the container, and the workflow will begin. Results will be save
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzNzg1MzE2ODgsMTM0NzQ3ODMzNywtMj
-AwMjA4MjA4OV19
+eyJoaXN0b3J5IjpbMTM4OTM3NTQzNCwxMzQ3NDc4MzM3LC0yMD
+AyMDgyMDg5XX0=
 -->
