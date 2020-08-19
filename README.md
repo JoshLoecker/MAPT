@@ -30,17 +30,16 @@ home
 <br>
 3. To run the container, execute the following command:
 
-	```
 	singularity run \
 	-B /path/to/results/folder:/results/ \
 	-B /path/to/data_files/folder:/data_files/ \
 	pipeline:latest
-	```
+	
 
 
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjEwNTcyMTE2MF19
+eyJoaXN0b3J5IjpbLTg0MTE4NDQzMiwyMTA1NzIxMTYwXX0=
 -->
