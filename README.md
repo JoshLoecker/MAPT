@@ -33,8 +33,8 @@ The `results` folder does not need to exist, but it can if you would like. If it
 3. To run the container, execute the following command:
     ```
     singularity run \
-    -B /path/to/results/folder:/results/ \
-	-B /path/to/data_files/folder:/data_files/ \
+    -B /path/to/results/:/results/ \
+	-B /path/to/data_files/:/data_files/ \
 	pipeline:latest
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound (i.e. `/path/to/results/folder`)
@@ -46,9 +46,12 @@ This will start the container, and the workflow will begin. Results will be save
 	`docker pull joshloecker/pipeline:latest`
 3. Run the container using the following command:
 	```
-	
+	docker run \
+	-v /path/to/results/folder/:/results/ \
+	-v /path/to/data_files/:/data_files/ \
+	pipeline:latest
 	```
-
+This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIxNjM1Mzg4LC0yMDAyMDgyMDg5XX0=
+eyJoaXN0b3J5IjpbMjA0MzEyMDk4NiwtMjAwMjA4MjA4OV19
 -->
