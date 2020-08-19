@@ -12,7 +12,7 @@ It is important to note that under the `data_files` folder, a folder **must** be
 ```
 home
 | -- Rob
-	 | -- Projects
+    | -- Projects
 		  | -- run_1
 			   | -- data_files
 				    | -- fast5
@@ -53,5 +53,6 @@ This will start the container, and the workflow will begin. Results will be save
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTM4MjcyMDE1NywtMjAwMjA4MjA4OV19
+eyJoaXN0b3J5IjpbLTExMjcyNzM1OTUsLTIwMDIwODIwODldfQ
+==
 -->
