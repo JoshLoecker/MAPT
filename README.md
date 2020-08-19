@@ -14,7 +14,7 @@ home
 | -- Rob
     | -- Projects
         | -- run_1
-		    | -- data_files
+            | -- data_files
                 | -- fast5
                     | -- file_1.fast5
                     | -- file_2.fast5
@@ -53,5 +53,5 @@ This will start the container, and the workflow will begin. Results will be save
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2MTA0NDMxLC0yMDAyMDgyMDg5XX0=
+eyJoaXN0b3J5IjpbMTUxODcyMjI1LC0yMDAyMDgyMDg5XX0=
 -->
