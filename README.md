@@ -20,7 +20,7 @@ home
                     | -- file_2.fast5
                     | -- file_3.fast5
                 | -- silva_alignment_file.fasta
-				| -- some_other_file.txt
+                | -- some_other_file.txt
 ```
 The `results` folder does not need to exist, but it can if you would like. If it does not exist, It will be created by Singularity/Docker when starting the container
 
@@ -53,5 +53,5 @@ This will start the container, and the workflow will begin. Results will be save
 	```
 This will start the container, and the workflow will begin. Results will be saved to the `results` folder you bound in Step 3 (i.e. `/path/to/results`)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTUxODcyMjI1LC0yMDAyMDgyMDg5XX0=
+eyJoaXN0b3J5IjpbMTM0NzQ3ODMzNywtMjAwMjA4MjA4OV19
 -->
