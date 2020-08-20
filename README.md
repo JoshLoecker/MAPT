@@ -47,13 +47,11 @@ The `results` folder does not need to exist, but it can if you would like. If it
     ```
 
 ## Known Errors
- This pipeline is not 100% complete, as the ability to bind an alignment file needs to be added.
-
- If you experience any errors, contact joshua.loecker@usda.gov for assistance
+If you experience any errors, contact joshua.loecker@usda.gov for assistance
 
 
 ## Results
- Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/path/to/results/`). From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`, etc.
+Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/path/to/results/`). From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`, etc.
 <!--stackedit_data:
 eyJoaXN0b3J5IjpbOTIyMDg4NzE1XX0=
 -->
