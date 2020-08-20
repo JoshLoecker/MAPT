@@ -28,21 +28,23 @@ The `results` folder does not need to exist, but it can if you would like. If it
 4. To run the container, execute the following command:
     ```
     singularity run \
-    -B /path/to/results/:/results/ \
-	-B /path/to/data_files/:/data_files/ \
-	pipeline:latest
+    --bind /path/to/results/:/results/ \
+    --bind /path/to/data_files/:/data_files/ \
+    --bind /path/to/alignment_file.fasta:/alignment_file.fasta \
+    pipeline:latest
 	```
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
 2. Pull the container by executing the following command in a terminal window:<br>
 	`docker pull joshloecker/pipeline:latest`
 3. Run the container using the following command:
-	```
-	docker run \
-	-v /path/to/results/:/results/ \
-	-v /path/to/data_files/:/data_files/ \
- 	pipeline:latest
- 	```
+    ```
+    docker run \
+    -v /path/to/results/:/results/ \
+    -v /path/to/data_files/:/data_files/ \
+    --mount type=bind,source=/path/to/alignment_file.fasta,target=/alignment_file.fasta \
+    pipeline:latest
+    ```
 
 ## Known Errors
  This pipeline is not 100% complete, as the ability to bind an alignment file needs to be added.
