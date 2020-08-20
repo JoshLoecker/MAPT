@@ -21,11 +21,11 @@ home
 The `results` folder does not need to exist, but it can if you would like. If it does not exist, It will be created by Singularity/Docker when starting the container
 ### <ins>Singularty</ins>
 1. If you are working on a cluster, Singularity may already be installed; this is the case with SciNet. If Singularity is not installed, follow the instructions: [Install Singularity](https://singularity.lbl.gov/install-linux)
-2a. If you would like to pull the CPU version of the pipeline, executing the following command in a terminal window:<br>
+2. If you would like to pull the CPU version of the pipeline, executing the following command in a terminal window:<br>
 	`singularity pull docker://joshloecker/pipeline_cpu:latest`
-2b. The GPU version of the pipeline can be obtained by executing this command in a terminal window:<br>
+3. The GPU version of the pipeline can be obtained by executing this command in a terminal window:<br>
 	`singularity pull docker://joshloecker/pipeline_gpu:latest`
-3. To run the container, execute the following command:
+4. To run the container, execute the following command:
     ```
     singularity run \
     --bind /path/to/results/:/results/ \
