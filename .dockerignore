@@ -1,6 +1,6 @@
 venv/
 .snakemake/
-results
+results/
 data_files/
 .idea/
 PipelineVisual.svg

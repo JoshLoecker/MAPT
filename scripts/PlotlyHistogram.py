@@ -25,7 +25,7 @@ data_frame_remove_unclassified.drop( data_frame_remove_unclassified.tail(1).inde
 # get the average reads with and without the unclassified reads
 try:
     average_reads_with_unclassified = int(np.average(data_frame['reads']))
-    average_reads_without_classified = int(np.average(data_frame_remove_unclassified['reads']))
+    average_reads_without_unclassified = int(np.average(data_frame_remove_unclassified['reads']))
 except (ZeroDivisionError, ValueError):
     average_reads_with_unclassified = "ERROR: No data in .csv file"
     average_reads_without_unclassified = "ERROR: No data in .csv file"
