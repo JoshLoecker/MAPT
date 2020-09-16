@@ -69,7 +69,9 @@ RUN mv /pipeline/pipeline/Snakefile /pipeline && \
     rm -r /pipeline/pipeline/
 
 RUN conda env create -f environment.yaml && \
-    conda update -n base -c defaults conda
+    conda update -n base -c defaults conda && \
+    pip install IsoCon && \
+    pip install isONclust
 
 # activate our new environment
 SHELL ["conda", "run", "-n", "pipeline", "/bin/bash", "-c"]

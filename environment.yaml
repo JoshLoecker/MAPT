@@ -13,3 +13,4 @@ dependencies:
   - seqkit=0.13.*
   - cutadapt=2.*
   - plotly=4.8.*
+  - seaborn=0.10.*

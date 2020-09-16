@@ -115,6 +115,7 @@ rule all:
         vsearch_aligner,  #............................................ VSearch Aligner
         id_reads,
         IsoCon,
+        config['results_folder'] + "clusters/",
         nanoplot_basecall,  #................................................... NanoPlot
         nanoplot_barcode_classified,
         nanoplot_barcode_unclassified,
@@ -301,10 +302,13 @@ rule filtering:
         rules.cutadapt.output[0]
     output:
         config['results_folder'] + "filter/{barcode}.filter.fastq"
+    params:
+        min_length = config['filtering_min'],
+        max_length = config['filtering_max']
     shell:
         r"""
         touch {output}
-        NanoFilt {input} > {output}
+        NanoFilt --length {params.min_length} --maxlength {params.max_length} {input} > {output}
         """
 
 
@@ -344,6 +348,22 @@ checkpoint isONclustClusterFastq:
     shell:
         r"""
         isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv --fastq {input.merge_filter_reads} --outfolder {output} --N 1
+        """
+
+
+def spoa_input(wildcards):
+    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
+    return expand(checkpoint_output + "{file_number}.fastq",
+                  file_number=glob_wildcards(config['results_folder'] + "isONclust/cluster_fastq/{file_number}.fastq").file_number)
+rule spoa:
+    input:
+        spoa_input
+    output:
+        temp_output = temp(directory(config['results_folder'] + "clusters/.temp")),
+        output_directory = config['results_folder'] + "clusters/"
+    script:
+        """
+        echo done
         """
 
 
@@ -418,6 +438,8 @@ rule fq2fa:
         seqkit fq2fa {input} > {output}
         """
 
+
+
 rule vsearch_aligner:
     input:
         rules.fq2fa.output
@@ -433,6 +455,7 @@ rule vsearch_aligner:
         --db {params.alignment_reference} \
         --quiet
         """
+
 
 
 rule id_reads:
