@@ -1,4 +1,9 @@
 # Pipeline
+
+## Naming
+I would like to name this project as it has been my first, and most in-depth, project to date.
+Due to the nature of this project revolving around mapping noisy reads (hopefully) down to the species level, the following name seemed appropriate: Microbial Automated Processing Tool, or MAPT for short.
+
 ## Installation and Running
 This project is meant to run using Singularity or Docker
 ### <ins>Folder Setup</ins>
