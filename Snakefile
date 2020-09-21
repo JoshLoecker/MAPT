@@ -20,14 +20,14 @@ def return_barcode_numbers(path: str):
     return barcode_numbers
 def barcode_merge_files(wildcards):
     barcode_checkpoint = checkpoints.barcode.get(**wildcards).output[0]
-    barcodes = set()  # a set is like a list, but only stores unique values
+    barcodes = set()  # a set is like a list but only stores unique values
     for folder in os.listdir(barcode_checkpoint):
         full_path = os.path.join(barcode_checkpoint, folder)
         if Path(full_path).is_dir():
             barcodes.add(folder)
 
-    merge_files = [config['results_folder'] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
-    return merge_files
+    return_merged_files = [config['results_folder'] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
+    return return_merged_files
 def nanoqc_basecall_data(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/nanoqc/basecall/"
@@ -46,6 +46,9 @@ def filtering(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
                   barcode=return_barcode_numbers(checkpoint_output))
+def merge_filtering(wildcards):
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    return config['results_folder'] + ".temp/merge.filtering.files.fastq"
 def isONclust_pipeline(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return config['results_folder'] + "isONclust/pipeline"
@@ -72,6 +75,9 @@ def vsearch_aligner(wildcards):
 def id_reads(wildcards):
     checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
     return config['results_folder'] + "id_reads.tsv"
+def spoa(wildcards):
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    return config['results_folder'] + "clusters/"
 def nanoplot_basecall(wildcards):
     checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/nanoplot/basecall/"
@@ -102,28 +108,29 @@ FAST5_FILES = glob_wildcards(config['fast5_location'] + "{fast5_file}.fast5").fa
 
 rule all:
     input:
-        barcode_merge_files,  #......................................... Basecall, barcode, and merge files in a checkpoint
-        nanoqc_basecall_data,  #....................................... NanoQC after basecall
-        nanoqc_barcode_classified,  #.................................. NanoQC classified barcodes
-        nanoqc_barcode_unclassified,  #................................ NanoQC unclassified barcodes
-        cutadapt,  #................................................... Trim (Cutadapt)
-        filtering,  #................................................... NanoFilt
-        isONclust_pipeline,
-        isONclust_cluster_fastq,  # ................................................. Clustering reads
-        guppy_aligner,  #.............................................. Guppy Aligner
-        minimap_aligner,  #............................................ MiniMap Aligner
-        vsearch_aligner,  #............................................ VSearch Aligner
-        id_reads,
-        IsoCon,
-        config['results_folder'] + "clusters/",
-        nanoplot_basecall,  #................................................... NanoPlot
-        nanoplot_barcode_classified,
-        nanoplot_barcode_unclassified,
-        plotly_histogram_barcode,  #................................... Plotly barcode histogram
-        plotly_histogram_cutadapt,  #.................................. Plotly cutadapt histogram
-        plotly_histogram_filtering,  #................................. Plotly filtering histogram
-        plotly_histogram_mapping,  #................................... Plotly mapping histogram
-        plotly_box_whisker  #.......................................... Plotly box and whisker plot
+        barcode_merge_files,                    # basecall, barcode, and merge files in a checkpoint
+        nanoqc_basecall_data,                   # nanoqc after basecall
+        nanoqc_barcode_classified,              # nanoqc classified barcodes
+        nanoqc_barcode_unclassified,            # nanoqc unclassified barcodes
+        cutadapt,                               # cutadapt on merged files
+        filtering,                              # nanofilt on cutadapt files
+        merge_filtering,                        # merge files from filtering
+        isONclust_pipeline,                     # cluster reads
+        isONclust_cluster_fastq,                # clustering reads
+        guppy_aligner,                          # guppy
+        minimap_aligner,                        # minimap
+        vsearch_aligner,                       # vsearch
+        #id_reads,                              # id reads through python script
+        IsoCon,                                # get consensus sequence
+        #spoa,                                  # partial order alignment
+        nanoplot_basecall,                      # nanoplot for basecall files
+        nanoplot_barcode_classified,            # nanoplot for classified barcode files
+        nanoplot_barcode_unclassified,          # nanoplot for unclassified barcode files
+        plotly_histogram_barcode,               # plotly barcode histogram
+        plotly_histogram_cutadapt,              # plotly cutadapt histogram
+        plotly_histogram_filtering,             # plotly filtering histogram
+        plotly_histogram_mapping,               # plotly mapping histogram
+        plotly_box_whisker                      # plotly box and whisker plot
 
 
 
@@ -160,14 +167,11 @@ checkpoint barcode:
         barcode_kit = config['barcode_kit']
     shell:
         r"""
-        echo Barcoding
-        
         guppy_barcoder \
         -i {input} \
         -s {output} \
         --barcode_kits {params.barcode_kit} \
-        --recursive \
-        --quiet       
+        --recursive 
         """
 
 
@@ -301,10 +305,10 @@ rule filtering:
     input:
         rules.cutadapt.output[0]
     output:
-        config['results_folder'] + "filter/{barcode}.filter.fastq"
+        barcode_files = config['results_folder'] + "filter/{barcode}.filter.fastq"
     params:
         min_length = config['filtering_min'],
-        max_length = config['filtering_max']
+        max_length = config['filtering_max'],
     shell:
         r"""
         touch {output}
@@ -312,26 +316,26 @@ rule filtering:
         """
 
 
-def merge_filtering_reads_input(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
-                  barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode)
-rule merge_filtering_reads:
+
+rule merge_filtering_files:
     input:
-        # merge_filtering_reads_input
-        expand(rules.filtering.output[0],
-               barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode)
+         expand(rules.filtering.output[0],
+                barcode=glob_wildcards(rules.filtering.output[0]).barcode)
     output:
-        temp(config['results_folder'] + ".temp/filter.merged.temp.fastq")
+        config['results_folder'] + ".temp/merge.filtering.files.fastq"
     shell:
         r"""
         for file in {input}; do
             cat "$file" >> {output}
         done
         """
+
+
+
+
 rule isOnClustPipeline:
     input:
-        rules.merge_filtering_reads.output[0]
+        rules.merge_filtering_files.output[0]
     output:
         directory(config['results_folder'] + "isONclust/pipeline")
     shell:
@@ -339,15 +343,18 @@ rule isOnClustPipeline:
         # create a .tsv file
         isONclust --ont --fastq {input} --outfolder {output}
         """
+
+
+
 checkpoint isONclustClusterFastq:
     input:
         pipeline_output = rules.isOnClustPipeline.output[0],
-        merge_filter_reads = rules.merge_filtering_reads.output[0]
+        merged_filtering_reads = rules.merge_filtering_files.output[0]
     output:
         directory(config['results_folder'] + "isONclust/cluster_fastq/")
     shell:
         r"""
-        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv --fastq {input.merge_filter_reads} --outfolder {output} --N 1
+        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv --fastq {input.merged_filtering_reads} --outfolder {output} --N 1
         """
 
 
@@ -476,12 +483,12 @@ rule id_reads:
 
 rule IsoCon:
     input:
-        rules.merge_filtering_reads.output[0]
+        merged_filter_files = rules.merge_filtering_files.output[0]
     output:
         directory(config['results_folder'] + "IsoCon/")
     shell:
         r"""
-        IsoCon pipeline -fl_reads {input} -outfolder {output}
+        IsoCon pipeline -fl_reads {input.merged_filter_files} -outfolder {output}
         """
 
 

@@ -1,20 +1,20 @@
 # set the location of the input fast5 files
 # place a forward slash (/) at the end of your file path
-fast5_location: /Volumes/Elements/ARS/DataFiles/fast5/
+fast5_location: /Users/joshl/PycharmProjects/pipeline/data/fast5/
 
 # set the location where you would like all results to be saved
 # place a forward slash (/) at the end of your file path
-results_folder: /Volumes/Elements/ARS/results/
+results_folder: /Users/joshl/PycharmProjects/pipeline/results/
 
 # Set this to the location of your alignment reference file for the aligner tool you are using (guppy/minimap/vsearch)
 # place a forward slash (/) at the end of your file path
-alignment_reference_file: /Volumes/Elements/ARS/DataFiles/zymogen_alignment_reference.fasta
+alignment_reference_file: /Users/joshl/PycharmProjects/pipeline/data/zymogen_alignment_reference.fasta
 
 # set this variable to the configuration name you would like to use with basecalling
 # additionally, set the number of callers and threads per caller to use with basecalling
 basecall_configuration: dna_r9.4.1_450bps_fast.cfg
-num_callers: 6
-num_threads_per_caller: 6
+num_callers: 1
+num_threads_per_caller: 12
 
 # set the barcode_kit variable to the name of the barcoding kit you will be using
 barcode_kit: EXP-PBC096

@@ -1,9 +1,5 @@
-venv/
-.snakemake/
-results/
-data_files/
-.idea/
-PipelineVisual.svg
-makeSVG
-README.md
-.git
+/venv/
+/.snakemake/
+/.idea/
+/data/
+/results
