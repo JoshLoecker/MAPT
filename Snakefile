@@ -74,7 +74,7 @@ def id_reads(wildcards):
     return config['results_folder'] + "id_reads.tsv"
 def spoa(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "clusters/"
+    return config['results_folder'] + "spoa/"
 def nanoplot_basecall(wildcards):
     checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/nanoplot/basecall/"
@@ -118,7 +118,7 @@ rule all:
         vsearch_aligner,                       # vsearch
         #id_reads,                              # id reads through python script
         IsoCon,                                # get consensus sequence
-        #spoa,                                  # partial order alignment
+        spoa,                                  # partial order alignment
         nanoplot_basecall,                      # nanoplot for basecall files
         nanoplot_barcode_classified,            # nanoplot for classified barcode files
         nanoplot_barcode_unclassified,          # nanoplot for unclassified barcode files
@@ -323,7 +323,6 @@ def merge_filtering_input(wildcards):
 rule merge_filtering_files:
     input:
         merge_filtering_input
-        # expand(rules.filtering.output[0], barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode)
     output:
         config['results_folder'] + ".temp/merge.filtering.files.fastq"
     shell:
@@ -344,9 +343,12 @@ rule isOnClustPipeline:
     shell:
         r"""
         # create a .tsv file
-        isONclust --ont --fastq {input} --outfolder {output}
+        
+        isONclust --ont \
+        --fastq {input} \
+        --aligned_threshold 0.95 \
+        --outfolder {output}
         """
-
 
 
 checkpoint isONclustClusterFastq:
@@ -354,27 +356,32 @@ checkpoint isONclustClusterFastq:
         pipeline_output = rules.isOnClustPipeline.output[0],
         merged_filtering_reads = rules.merge_filtering_files.output[0]
     output:
-        directory(config['results_folder'] + "isONclust/cluster_fastq/")
+        cluster_output = directory(config['results_folder'] + "isONclust/cluster_fastq/"),
+        rule_complete = config['results_folder'] + ".temp/isONclustClusterFastqComplete"
     shell:
         r"""
-        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv --fastq {input.merged_filtering_reads} --outfolder {output} --N 1
+        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv --fastq {input.merged_filtering_reads} --outfolder {output.cluster_output} --N 1
+        touch {output.rule_complete}
         """
 
 
+
 def spoa_input(wildcards):
-    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
-    return expand(checkpoint_output + "{file_number}.fastq",
-                  file_number=glob_wildcards(config['results_folder'] + "isONclust/cluster_fastq/{file_number}.fastq").file_number)
+    checkpoint_output = rules.isONclustClusterFastq.output
+    file_names = set()
+    for item in os.listdir(checkpoint_output[0]):
+        if ".fastq" in item:
+            file_names.add(item)
+    return expand(checkpoint_output[0] + "{file_name}", file_name=file_names)
 rule spoa:
     input:
         spoa_input
     output:
-        temp_output = temp(directory(config['results_folder'] + "clusters/.temp")),
-        output_directory = config['results_folder'] + "clusters/"
-    script:
-        """
-        echo done
-        """
+        temp_output = temp(directory(config['results_folder'] + ".temp/spoa")),
+        output_directory = config['results_folder'] + "spoa/"
+    run:
+        for item in input:
+            print(f"RUN: {item}")
 
 
 
