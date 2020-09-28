@@ -46,9 +46,6 @@ def filtering(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
                   barcode=return_barcode_numbers(checkpoint_output))
-def merge_filtering(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + ".temp/merge.filtering.files.fastq"
 def isONclust_pipeline(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return config['results_folder'] + "isONclust/pipeline"
@@ -114,7 +111,6 @@ rule all:
         nanoqc_barcode_unclassified,            # nanoqc unclassified barcodes
         cutadapt,                               # cutadapt on merged files
         filtering,                              # nanofilt on cutadapt files
-        merge_filtering,                        # merge files from filtering
         isONclust_pipeline,                     # cluster reads
         isONclust_cluster_fastq,                # clustering reads
         guppy_aligner,                          # guppy
@@ -162,16 +158,19 @@ checkpoint barcode:
     input:
         rules.basecall.output[0]
     output:
-        directory(config['results_folder'] + ".temp/barcodeTempOutput/")
+        output_directory = directory(config['results_folder'] + ".temp/barcodeTempOutput/"),
+        barcode_complete_file = config['results_folder'] + ".temp/barcodingDone"
     params:
         barcode_kit = config['barcode_kit']
     shell:
         r"""
         guppy_barcoder \
         -i {input} \
-        -s {output} \
+        -s {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
         --recursive 
+        
+        touch {output.barcode_complete_file}
         """
 
 
@@ -316,11 +315,15 @@ rule filtering:
         """
 
 
-
+def merge_filtering_input(wildcards):
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output
+    files = return_barcode_numbers(checkpoint_output[0])
+    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
+                  barcode=files)
 rule merge_filtering_files:
     input:
-         expand(rules.filtering.output[0],
-                barcode=glob_wildcards(rules.filtering.output[0]).barcode)
+        merge_filtering_input
+        # expand(rules.filtering.output[0], barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode)
     output:
         config['results_folder'] + ".temp/merge.filtering.files.fastq"
     shell:
