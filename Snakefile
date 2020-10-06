@@ -74,7 +74,7 @@ def id_reads(wildcards):
     return config['results_folder'] + "id_reads.tsv"
 def spoa(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "spoa/"
+    return config['results_folder'] + "spoa"
 def nanoplot_basecall(wildcards):
     checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/nanoplot/basecall/"
@@ -366,22 +366,57 @@ checkpoint isONclustClusterFastq:
 
 
 
-def spoa_input(wildcards):
+def temp_spoa_input(wildcards):
     checkpoint_output = rules.isONclustClusterFastq.output
     file_names = set()
     for item in os.listdir(checkpoint_output[0]):
         if ".fastq" in item:
             file_names.add(item)
     return expand(checkpoint_output[0] + "{file_name}", file_name=file_names)
+rule temp_spoa:
+    input:
+        temp_spoa_input
+    output:
+        temp_output = temp(directory(config['results_folder'] + ".temp/spoa/consensus"))
+    shell:
+        r"""
+            # find total number of files in input
+            total_files=0
+            current_file=1
+            
+            # make our temporary output folder
+            mkdir -p {output.temp_output}
+            
+            for file in {input}; do
+                total_files=$((total_files + 1))
+            done
+            
+            # perform spoa; store results in temp folder
+            for file in {input}; do
+                
+                echo "spoa working on file $current_file / $total_files" 
+                fastq_to_fasta="${{file%.fastq}}.fasta"
+                fastq_to_fasta="$(basename -- $fastq_to_fasta)"
+                
+                temp_output={output.temp_output}/$fastq_to_fasta
+                touch "$temp_output"
+                spoa "$file" -r 0 > "$temp_output"
+                
+                current_file=$((current_file + 1))
+            done            
+        """
 rule spoa:
     input:
-        spoa_input
+        rules.temp_spoa.output[0]
     output:
-        temp_output = temp(directory(config['results_folder'] + ".temp/spoa")),
-        output_directory = config['results_folder'] + "spoa/"
-    run:
-        for item in input:
-            print(f"RUN: {item}")
+        directory(config['results_folder'] + "spoa")
+    shell:
+        r"""
+            for file in {input}/*.fasta; do
+                top_line=">cluster_$(basename $file .fasta)"
+                sed -i "1s/.*/$vv/" $file
+            done
+        """
 
 
 
