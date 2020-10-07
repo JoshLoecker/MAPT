@@ -371,7 +371,7 @@ checkpoint isONclustClusterFastq:
 
 
 def temp_spoa_input(wildcards):
-    checkpoint_output = rules.isONclustClusterFastq.output
+    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
     file_names = set()
     for item in os.listdir(checkpoint_output[0]):
         if ".fastq" in item:
@@ -384,30 +384,18 @@ rule temp_spoa:
         temp_output = temp(directory(config['results_folder'] + ".temp/spoa"))
     shell:
         r"""
-            # find total number of files in input
-            total_files=0
-            current_file=1
-            
             # make our temporary output folder
-            mkdir -p {output.temp_output}
+            mkdir -p {output.temp_output}     
             
             for file in {input}; do
-                total_files=$((total_files + 1))
-            done
-            
-            # perform spoa; store results in temp folder
-            for file in {input}; do
-                
-                echo "spoa working on file $current_file / $total_files" 
                 fastq_to_fasta="${{file%.fastq}}.fasta"
                 fastq_to_fasta="$(basename -- $fastq_to_fasta)"
                 
-                temp_output={output.temp_output}/$fastq_to_fasta
+                temp_output={output.temp_output}/"$fastq_to_fasta"
                 touch "$temp_output"
                 spoa "$file" -r 0 > "$temp_output"
-                
-                current_file=$((current_file + 1))
-            done            
+            done
+            
         """
 rule spoa:
     input:
@@ -484,8 +472,6 @@ rule minimap_aligner_from_filtering:
         {params.alignment_reference} \
         {input} > {output}
         """
-
-# I believe minimap_aligner_from_spoa function above will be called before spoa.output is ready
 rule minimap_aligner_from_spoa:
     input:
         rules.spoa.output[0]
