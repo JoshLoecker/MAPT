@@ -60,11 +60,14 @@ def guppy_aligner(wildcards):
     return expand(
         config['results_folder'] + "alignment/guppy/sam_files/{barcode}.guppy.sam",
                barcode=return_barcode_numbers(checkpoint_output))
-def minimap_aligner(wildcards):
+def minimap_aligner_from_filtering(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(
-        config['results_folder'] + "alignment/minimap/{barcode}.minimap.sam",
+        config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
         barcode=return_barcode_numbers(checkpoint_output))
+def minimap_aligner_from_spoa(wildcards):
+    #checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
+    return config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
 def vsearch_aligner(wildcards):
     checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
     return expand(config['results_folder'] + "alignment/vsearch/vsearch.{file_number}.tsv",
@@ -74,7 +77,7 @@ def id_reads(wildcards):
     return config['results_folder'] + "id_reads.tsv"
 def spoa(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "spoa/consensus_sequences.fasta"
+    return config['results_folder'] + "spoa/consensus.sequences.fasta"
 def nanoplot_basecall(wildcards):
     checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/nanoplot/basecall/"
@@ -114,7 +117,8 @@ rule all:
         isONclust_pipeline,                     # cluster reads
         isONclust_cluster_fastq,                # clustering reads
         guppy_aligner,                          # guppy
-        minimap_aligner,                        # minimap
+        minimap_aligner_from_filtering,         # minimap from filtering
+        minimap_aligner_from_spoa,          # minimap from spoa clustering
         vsearch_aligner,                       # vsearch
         #id_reads,                              # id reads through python script
         IsoCon,                                # get consensus sequence
@@ -409,7 +413,7 @@ rule spoa:
     input:
         rules.temp_spoa.output[0]
     output:
-        config['results_folder'] + "spoa/consensus_sequences.fasta"
+        config['results_folder'] + "spoa/consensus.sequences.fasta"
     shell:
         r"""
             for file in {input}/*.fasta; do
@@ -461,11 +465,14 @@ rule guppy_aligner:
         rm -rf $temp_input
         rm -rf $temp_output
         """
-rule minimap_aligner:
+
+
+
+rule minimap_aligner_from_filtering:
     input:
         rules.filtering.output[0]
     output:
-        config['results_folder'] + "alignment/minimap/{barcode}.minimap.sam"
+        config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
         alignment_reference = config['alignment_reference_file']
     shell:
@@ -477,6 +484,25 @@ rule minimap_aligner:
         {params.alignment_reference} \
         {input} > {output}
         """
+
+# I believe minimap_aligner_from_spoa function above will be called before spoa.output is ready
+rule minimap_aligner_from_spoa:
+    input:
+        rules.spoa.output[0]
+    output:
+        config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
+    params:
+        alignment_reference = config['alignment_reference_file']
+    shell:
+        r"""
+        touch {output}
+        
+        minimap2 \
+        -ax map-ont \
+        {params.alignment_reference} \
+        {input} > {output}
+        """
+
 
 
 def get_isONclust_clustering_fastq_files(wildcards):
