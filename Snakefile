@@ -74,7 +74,10 @@ def vsearch_aligner(wildcards):
                   file_number=glob_wildcards(config['results_folder'] + "isONclust/cluster_fastq/{file_number}.fastq").file_number)
 def id_reads(wildcards):
     checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
-    return config['results_folder'] + "id_reads.tsv"
+    return [config['results_folder'] + "id_reads/id_reads.tsv",
+            config['results_folder'] + "id_reads/mapped_seq_id.csv",
+            config['results_folder'] + "id_reads/minimap_output.csv",
+            config['results_folder'] + "id_reads/mapped_consensus.csv"]
 def spoa(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return config['results_folder'] + "spoa/consensus.sequences.fasta"
@@ -120,7 +123,7 @@ rule all:
         minimap_aligner_from_filtering,         # minimap from filtering
         minimap_aligner_from_spoa,          # minimap from spoa clustering
         vsearch_aligner,                       # vsearch
-        #id_reads,                              # id reads through python script
+        id_reads,                              # id reads through python script
         IsoCon,                                # get consensus sequence
         spoa,                                  # partial order alignment
         nanoplot_basecall,                      # nanoplot for basecall files
@@ -343,7 +346,7 @@ rule isOnClustPipeline:
     input:
         rules.merge_filtering_files.output[0]
     output:
-        directory(config['results_folder'] + "isONclust/pipeline")
+        directory(config['results_folder'] + "isONclust/pipeline/")
     shell:
         r"""
         # create a .tsv file
@@ -522,16 +525,21 @@ rule vsearch_aligner:
         """
 
 
-
+def id_reads_clutering_input(wildcards):
+    return rules.isOnClustPipeline.output[0] + "final_clusters.tsv"
 rule id_reads:
     input:
         filtering = expand(rules.filtering.output[0],
                            barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode),
-        clustering = rules.isOnClustPipeline.output[0],
-        vsearch = expand(rules.vsearch_aligner.output[0],
-                         file_number=glob_wildcards(config['results_folder'] + "alignment/vsearch/vsearch.{file_number}.uc").file_number)
+        clustering = id_reads_clutering_input,
+        minimap = expand(rules.minimap_aligner_from_filtering.output[0],
+                         barcode=glob_wildcards(config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam").barcode)
     output:
-        config['results_folder'] + "id_reads.tsv"
+        id_reads_tsc = config['results_folder'] + "id_reads/id_reads.tsv",
+        mapped_seq_id_csv = config['results_folder'] + "id_reads/mapped_seq_id.csv",
+        minimap_output = config['results_folder'] + "id_reads/minimap_output.csv",
+        mapped_consensus_csv = config['results_folder'] + "id_reads/mapped_consensus.csv"
+
     params:
         results_folder = config['results_folder']
     script:

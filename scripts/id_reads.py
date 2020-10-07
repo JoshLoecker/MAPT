@@ -14,11 +14,6 @@ import re  # string stuff
 # from matplotlib import pyplot as plt
 
 
-HOME = "/home/pme_ars/ARS/U_drive/ARS/Methods Test/isON"
-# SUBDIR = 'zymo_full'
-SUBDIR = sys.argv[1]  # path to consensus sequences
-
-
 def get_tag(tag_list, tag):
     """
     Extract the value of a SAM tag
@@ -142,8 +137,8 @@ def extract_cluster(x, style='isONclust'):
 
 
 # load reads-by-clusters info
-clusters = os.path.join(HOME, "clusters", "final_clusters.tsv")
-clusters = pd.read_csv(clusters, sep='\t')
+clusters = snakemake.input.clustering
+clusters = pd.read_csv(clusters, sep='\t', engine="python")
 
 clusters.columns = ('cluster', 'read_id')
 
@@ -154,12 +149,11 @@ clusters['barcode'] = [i.split('_')[0] for i in clusters['barcode']]
 clusters['read_id'] = [i.split('_')[0] for i in clusters['read_id']]
 
 # load minimap output (aligned consensus sequences)
-mapping = os.path.join(HOME, 'mapped', SUBDIR, 'mapped_isonclust.sam')
+mapping = snakemake.input.minimap
 mapping = pysam.AlignmentFile(mapping, 'r')
 mapping = sam_to_DataFrame(mapping, primary_only=True)
 
 # reformat alignment output
-
 mapping['cluster'] = mapping['name'].apply(extract_cluster, style='spoa')
 
 has_de = mapping['tags'].str.contains('de')
@@ -174,10 +168,9 @@ mapping['seq_length'] = mapping['seq'].apply(len)
 
 mapping['ref_id'] = [i.split('_1')[0] for i in mapping['ref_name']]
 
-mapping.to_csv(os.path.join(HOME, 'mapped', SUBDIR, 'minimap_output.csv'))
+mapping.to_csv(snakemake.output.minimap_output)
 
 # merge mapping and clusters info
-
 out = pd.merge(clusters, mapping, how='left', on='cluster')
 
 replace_names = {
@@ -212,7 +205,8 @@ out['barcode'] = sub_ls('barcode', '', out['barcode'])
 out['tags'] = out['tags'].apply(collapse_tags)
 
 # export alignment to csv for each sequence table for downstream.
-file_out = os.path.join(HOME, 'mapped', SUBDIR, 'mapped_seq_id.csv')  # This is the file we're really interested in.
+# This is the file we're really interested in.
+file_out = snakemake.output.mapped_seq_id_csv
 out.to_csv(file_out, index=False)
 
 # summarize the minimap output and export to csv
@@ -224,5 +218,5 @@ keep = ['cluster',
         'tags']
 out_uniques = out.groupby(by=keep).size().reset_index(name='n_reads')
 
-file_out = os.path.join(HOME, 'mapped', SUBDIR, 'mapped_consensus.csv')
+file_out = snakemake.output.mapped_consensus_csv
 out_uniques.to_csv(file_out, index=False)
