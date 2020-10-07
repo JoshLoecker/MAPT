@@ -74,7 +74,7 @@ def id_reads(wildcards):
     return config['results_folder'] + "id_reads.tsv"
 def spoa(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "spoa"
+    return config['results_folder'] + "spoa/consensus_sequences.fasta"
 def nanoplot_basecall(wildcards):
     checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/nanoplot/basecall/"
@@ -377,7 +377,7 @@ rule temp_spoa:
     input:
         temp_spoa_input
     output:
-        temp_output = temp(directory(config['results_folder'] + ".temp/spoa/consensus"))
+        temp_output = temp(directory(config['results_folder'] + ".temp/spoa"))
     shell:
         r"""
             # find total number of files in input
@@ -409,13 +409,14 @@ rule spoa:
     input:
         rules.temp_spoa.output[0]
     output:
-        directory(config['results_folder'] + "spoa")
+        config['results_folder'] + "spoa/consensus_sequences.fasta"
     shell:
         r"""
             for file in {input}/*.fasta; do
                 top_line=">cluster_$(basename $file .fasta)"
-                sed -i "1s/.*/$vv/" $file
+                sed -i '' -e "1s/.*/$top_line/" "$file"
             done
+            cat {input}/*.fasta > {output}
         """
 
 
