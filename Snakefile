@@ -74,7 +74,7 @@ def vsearch_aligner(wildcards):
                   file_number=glob_wildcards(config['results_folder'] + "isONclust/cluster_fastq/{file_number}.fastq").file_number)
 def id_reads(wildcards):
     checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
-    return [config['results_folder'] + "id_reads/id_reads.tsv",
+    return [#config['results_folder'] + "id_reads/id_reads.tsv",
             config['results_folder'] + "id_reads/mapped_seq_id.csv",
             config['results_folder'] + "id_reads/minimap_output.csv",
             config['results_folder'] + "id_reads/mapped_consensus.csv"]
@@ -505,9 +505,6 @@ rule fq2fa:
         r"""
         seqkit fq2fa {input} > {output}
         """
-
-
-
 rule vsearch_aligner:
     input:
         rules.fq2fa.output
@@ -525,17 +522,16 @@ rule vsearch_aligner:
         """
 
 
-def id_reads_clutering_input(wildcards):
+def id_reads_clustering_input(wildcards):
     return rules.isOnClustPipeline.output[0] + "final_clusters.tsv"
 rule id_reads:
     input:
         filtering = expand(rules.filtering.output[0],
                            barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode),
-        clustering = id_reads_clutering_input,
-        minimap = expand(rules.minimap_aligner_from_filtering.output[0],
-                         barcode=glob_wildcards(config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam").barcode)
+        clustering = id_reads_clustering_input,
+        minimap = rules.minimap_aligner_from_spoa.output[0]
     output:
-        id_reads_tsc = config['results_folder'] + "id_reads/id_reads.tsv",
+        #id_reads_tsc = config['results_folder'] + "id_reads/id_reads.tsv",
         mapped_seq_id_csv = config['results_folder'] + "id_reads/mapped_seq_id.csv",
         minimap_output = config['results_folder'] + "id_reads/minimap_output.csv",
         mapped_consensus_csv = config['results_folder'] + "id_reads/mapped_consensus.csv"

@@ -1,3 +1,5 @@
+# This is the original id_reads file. It has been adapted for snakemake in id_reads.py
+
 # -*- coding: utf-8 -*-
 """
 """
@@ -12,6 +14,11 @@ import re  # string stuff
 
 # import seaborn as sns
 # from matplotlib import pyplot as plt
+
+
+HOME = "/home/pme_ars/ARS/U_drive/ARS/Methods Test/isON"
+# SUBDIR = 'zymo_full'
+SUBDIR = sys.argv[1]  # path to consensus sequences
 
 
 def get_tag(tag_list, tag):
@@ -29,7 +36,7 @@ def get_tag(tag_list, tag):
 
     if has_tag:
         out = [i.split(':')[2] for i in tag_list if tag in str(i)]
-        return out[0]
+        return (out[0])
 
 
 def sam_to_DataFrame(samfile, primary_only=True):
@@ -43,8 +50,8 @@ def sam_to_DataFrame(samfile, primary_only=True):
     returns:
         pd.DataFrame
     """
-    out = [i.to_dict() for i in samfile.fetch(until_eof=True)]
 
+    out = [i.to_dict() for i in samfile.fetch(until_eof=True)]
     out = pd.DataFrame(out)
 
     num_cols = ['flag',
@@ -59,15 +66,15 @@ def sam_to_DataFrame(samfile, primary_only=True):
         tt = out['tags'].apply(get_tag, tag='tp') == 'P'
         out = out[tt]
 
-    return out
+    return (out)
 
 
 def fc(DataFrame, n=0):
     """
     View pd.DataFrame.iloc[n, ]
     """
-    out = DataFrame.iloc[n, ]
-    return out
+    out = DataFrame.iloc[n,]
+    return (out)
 
 
 def sub_ls(pattern, replacement, string_list):
@@ -83,7 +90,7 @@ def sub_ls(pattern, replacement, string_list):
         list (of strings)
     """
     out = [re.sub(pattern, replacement, i) for i in string_list]
-    return out
+    return (out)
 
 
 def collapse_tags(x, sep='; '):
@@ -105,13 +112,13 @@ def collapse_tags(x, sep='; '):
             rr = False
         else:
             rr = True
-        return rr
+        return (rr)
 
     if not _is_iterable(x):
         out = x
     else:
         out = sep.join(x)
-    return out
+    return (out)
 
 
 def extract_cluster(x, style='isONclust'):
@@ -123,7 +130,7 @@ def extract_cluster(x, style='isONclust'):
         style: str. Specify the program that created x. spoa or isONclust.
 
     returns:
-        cluster number from x.
+        cluster nubmer from x.
     """
     if style == 'isONclust':
         out = x.split(':')[1]
@@ -133,12 +140,13 @@ def extract_cluster(x, style='isONclust'):
     else:
         raise ValueError("Style must be 'isONclust' (default) or 'spoa'")
 
-    return int(out)
+    return (int(out))
 
 
 # load reads-by-clusters info
-clusters = snakemake.input.clustering
-clusters = pd.read_csv(clusters, sep='\t', engine="python")
+clusters = os.path.join(HOME, "clusters", "final_clusters.tsv")
+clusters = pd.read_csv(clusters, sep='\t')
+
 clusters.columns = ('cluster', 'read_id')
 
 # format
@@ -148,11 +156,12 @@ clusters['barcode'] = [i.split('_')[0] for i in clusters['barcode']]
 clusters['read_id'] = [i.split('_')[0] for i in clusters['read_id']]
 
 # load minimap output (aligned consensus sequences)
-mapping = snakemake.input.minimap
+mapping = os.path.join(HOME, 'mapped', SUBDIR, 'mapped_isonclust.sam')
 mapping = pysam.AlignmentFile(mapping, 'r')
 mapping = sam_to_DataFrame(mapping, primary_only=True)
 
 # reformat alignment output
+
 mapping['cluster'] = mapping['name'].apply(extract_cluster, style='spoa')
 
 has_de = mapping['tags'].str.contains('de')
@@ -167,15 +176,16 @@ mapping['seq_length'] = mapping['seq'].apply(len)
 
 mapping['ref_id'] = [i.split('_1')[0] for i in mapping['ref_name']]
 
-mapping.to_csv(snakemake.output.minimap_output)
+mapping.to_csv(os.path.join(HOME, 'mapped', SUBDIR, 'minimap_output.csv'))
 
 # merge mapping and clusters info
+
 out = pd.merge(clusters, mapping, how='left', on='cluster')
 
 replace_names = {
     'read_id'    : 'seq_id',
     'flag'       : 'bit_flag',
-    'map_quality': 'quality'}
+    'map_quality': 'quality' }
 
 for i in replace_names.keys():
     out.columns = sub_ls(i, replace_names[i], out.columns)
@@ -204,8 +214,7 @@ out['barcode'] = sub_ls('barcode', '', out['barcode'])
 out['tags'] = out['tags'].apply(collapse_tags)
 
 # export alignment to csv for each sequence table for downstream.
-# This is the file we're really interested in.
-file_out = snakemake.output.mapped_seq_id_csv
+file_out = os.path.join(HOME, 'mapped', SUBDIR, 'mapped_seq_id.csv')  # This is the file we're really interested in.
 out.to_csv(file_out, index=False)
 
 # summarize the minimap output and export to csv
@@ -217,5 +226,5 @@ keep = ['cluster',
         'tags']
 out_uniques = out.groupby(by=keep).size().reset_index(name='n_reads')
 
-file_out = snakemake.output.mapped_consensus_csv
+file_out = os.path.join(HOME, 'mapped', SUBDIR, 'mapped_consensus.csv')
 out_uniques.to_csv(file_out, index=False)
