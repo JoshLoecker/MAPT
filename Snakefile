@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import glob
+from multiprocessing import cpu_count
 configfile: "config.yaml"
 
 def return_barcode_numbers(path: str):
@@ -106,8 +107,6 @@ def plotly_box_whisker(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return config['results_folder'] + "visuals/plotly/plotly.box.whisker.html"
 FAST5_FILES = glob_wildcards(config['fast5_location'] + "{fast5_file}.fast5").fast5_file
-
-
 
 rule all:
     input:
@@ -341,12 +340,14 @@ rule merge_filtering_files:
 
 
 
-"""
+
 rule isONcorrect:
     input:
     output:
     shell:
-"""
+        r"""
+        
+        """
 
 
 rule isOnClustPipeline:
