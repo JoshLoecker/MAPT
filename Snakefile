@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import glob
+from multiprocessing import cpu_count
 configfile: "config.yaml"
 
 def return_barcode_numbers(path: str):
@@ -141,7 +142,7 @@ checkpoint barcode:
     input:
         rules.basecall.output[0]
     output:
-        directory(config['results_folder'] + ".temp/barcodeTempOutput/")
+        temp(directory(config['results_folder'] + ".temp/barcodeTempOutput/"))
     params:
         barcode_kit = config['barcode_kit']
     shell:
