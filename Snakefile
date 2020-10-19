@@ -153,8 +153,7 @@ checkpoint barcode:
         -i {input} \
         -s {output} \
         --barcode_kits {params.barcode_kit} \
-        --recursive \
-        --quiet       
+        --recursive
         """
 
 
@@ -186,7 +185,7 @@ rule collate_basecall_fastq_files:
     input:
         config['results_folder'] + "basecall"
     output:
-        config['results_folder'] + ".temp/basecall.temp.merged.files.fastq"
+        temp(config['results_folder'] + ".temp/basecall.temp.merged.files.fastq")
     shell:
         r"""        
         # concatenate each file in the params directory to the output file
@@ -198,8 +197,8 @@ rule create_classified_unclassified_file:
     input:
         create_classified_unclassified_input
     output:
-        classified = config['results_folder'] + ".temp/barcode.classified.merged.temp.fastq",
-        unclassified = config['results_folder'] + ".temp/barcode.unclassified.merged.temp.fastq"
+        classified = temp(config['results_folder'] + ".temp/barcode.classified.merged.temp.fastq"),
+        unclassified = temp(config['results_folder'] + ".temp/barcode.unclassified.merged.temp.fastq")
     shell:
         r"""
         touch {output.classified}

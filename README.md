@@ -93,7 +93,7 @@ it may be ran again.
 
 ## Known Errors
 Deleting files from the `.temp` folder will cause the pipeline to regenerate 
-these files, along with any output downstream
+these files, along with any output downstream.
 If you experience any errors, contact joshua.loecker@usda.gov for assistance
 
 <!--stackedit_data:
