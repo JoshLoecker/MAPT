@@ -2,7 +2,8 @@
 ## Installation and Running
 This project is meant to run using Singularity or Docker
 ### <ins>Folder Setup</ins>
-Two paths are needed with this container: 1) A `results` folder, and 2) A `data_files` folder. These folders can be named as you please, but this guide will use these respective names
+Two paths are needed with this container: 1) A `results` folder, and 2) A `data_files` folder. These folders can be named as you please, but this guide will use these respective names.
+
 It is important to note that under the `data_files` folder, a folder **must** be named `fast5`. If this is not done, guppy_basecaller will not be able to pick up **any** `.fast5` files, even if they are present, as it looks for `.fast5` files under the `fast5` folder. As such, your `data_files` folder structure may look as follows:
 <br>
 ```
@@ -32,7 +33,11 @@ The `results` folder does not need to exist, but it can if you would like. If it
     --bind /path/to/data_files/:/data_files/ \
     --bind /path/to/alignment_file.fasta:/alignment_file.fasta \
     pipeline:latest
-	```
+    ```
+    
+    **Note:** The folders on the right side of the colon (results, data_files), cannot be changed. If they are changed, the pipeline will not work correctly
+	
+	
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your system. If it is not, follow the instructions: [Install Docker](https://docs.docker.com/get-docker/)
 2. Pull the container by executing the following command in a terminal window:<br>
@@ -45,6 +50,8 @@ The `results` folder does not need to exist, but it can if you would like. If it
     --mount type=bind,source=/path/to/alignment_file.fasta,target=/alignment_file.fasta \
     pipeline:latest
     ```
+    
+    **Note:** The folders on the right side of the colon (results, data_files), cannot be changed. If they are changed, the pipeline will not work correctly
 
 
 ## Results
