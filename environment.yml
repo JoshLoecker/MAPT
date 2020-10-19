@@ -19,3 +19,4 @@ dependencies:
         - IsoCon=0.3.*
         - isONclust=0.*
         - networkx=2.3
+        - isONcorrect=0.6.*

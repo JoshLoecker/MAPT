@@ -48,7 +48,7 @@ def filtering(wildcards):
                   barcode=return_barcode_numbers(checkpoint_output))
 def isONclust_pipeline(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "isONclust/pipeline"
+    return config['results_folder'] + "isONclust/pipeline/"
 def isONclust_cluster_fastq(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return config['results_folder'] + "isONclust/cluster_fastq/"
@@ -341,6 +341,13 @@ rule merge_filtering_files:
 
 
 
+"""
+rule isONcorrect:
+    input:
+    output:
+    shell:
+"""
+
 
 rule isOnClustPipeline:
     input:
@@ -554,7 +561,16 @@ rule IsoCon:
         """
 
 
-
+def count_reads_filtering_input(wildcards):
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output
+    files = return_barcode_numbers(checkpoint_output[0])
+    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
+                  barcode=files)
+def count_reads_mapping_input(wildcards):
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output
+    files = return_barcode_numbers(checkpoint_output[0])
+    return expand(config['results_folder'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv",
+                  barcode=files)
 rule count_reads_barcode:
     input:
         expand(rules.merge_files.output[0],
@@ -577,8 +593,7 @@ rule count_reads_cutadapt:
         "scripts/CountReads.py"
 rule count_reads_filtering:
     input:
-        expand(rules.filtering.output[0],
-               barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode)
+        count_reads_filtering_input
     output:
         config['results_folder'] + "count_reads/count.reads.filter.csv"
     params:
@@ -587,8 +602,7 @@ rule count_reads_filtering:
         "scripts/CountReads.py"
 rule count_reads_mapping:
     input:
-        expand(rules.guppy_aligner.output.alignment_summary,
-               barcode=glob_wildcards(config['results_folder'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv").barcode)
+        count_reads_mapping_input
     output:
         config['results_folder'] + "count_reads/count.reads.mapping.csv"
     params:
