@@ -53,8 +53,12 @@ following command in a terminal window:<br>
     --bind "${results}":/results/ \
     --bind "${data}":/data_files/ \
     --bind "${data}/${alignment_name}:/alignment_file.fasta \
-    pipeline:latest
+    pipeline_cpu:latest
 	```
+   
+    If you downloaded the GPU version of the pipeline, the last line
+    (`pipeline_cpu:latest`) needs to be changed to `pipeline_gpu:latest`
+   
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your 
 system. If it is not, follow the instructions: 

@@ -11,12 +11,11 @@ WORKDIR $INSTALL_DIR
 # download and install guppy
 RUN apk update && \
     apk add wget && \
+    echo "" && \
     echo Downloading ont-guppy && \
-    #
     # switch the comment on the two lines below to use GPU instead of CPU
-    wget --quiet --show-progress --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
+    wget --quiet --show-progress --progress=bar:force --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz  && \
     # wget --quiet --show-progress --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz && \
-    #
     tar -xf ont-guppy*.tar.gz && \
     rm ont-guppy*.tar.gz && \
     rm -rf /var/cache/apk/*
