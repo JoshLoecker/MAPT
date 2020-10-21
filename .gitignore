@@ -1,6 +1,5 @@
-venv/
-.snakemake/
-results
-data_files/
-.idea/
-data/
+/venv/
+/.snakemake/
+/.idea/
+/data/
+/results/

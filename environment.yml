@@ -1,4 +1,4 @@
-name: pipeline
+name: snakemake
 channels:
   - conda-forge
   - bioconda
@@ -13,3 +13,10 @@ dependencies:
   - seqkit=0.13.*
   - cutadapt=2.*
   - plotly=4.8.*
+  - spoa=4.*
+  - seaborn=0.10.*
+  - pip:
+        - IsoCon=0.3.*
+        - isONclust=0.*
+        - networkx=2.3
+        - isONcorrect=0.6.*
