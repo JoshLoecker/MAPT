@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import glob
 from multiprocessing import cpu_count
-configfile: "config.yaml"
+configfile: "config.yml"
 
 def return_barcode_numbers(path: str):
     """

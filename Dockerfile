@@ -14,8 +14,8 @@ RUN apk update && \
     echo Downloading ont-guppy && \
     #
     # switch the comment on the two lines below to use GPU instead of CPU
-    wget --quiet --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
-    # wget --quiet --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz && \
+    wget --quiet --show-progress --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
+    # wget --quiet --show-progress --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz && \
     #
     tar -xf ont-guppy*.tar.gz && \
     rm ont-guppy*.tar.gz && \
@@ -34,7 +34,7 @@ VOLUME ["/results/", "/data/", "/alignment_file.fasta"]
 # copy the guppy downloader from previous workspace
 # copy our environment file into the container
 COPY --from=guppy_installer /guppy/ /pipeline
-COPY environment.yaml .
+COPY environment.yml .
 
 # we are doing a series of things here to reduce the final image size that is generated
 
@@ -59,11 +59,11 @@ RUN apt update && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller_supervisor /usr/local/bin/guppy_basecaller_supervisor && \
     ln -sf  /dev/stdout /var/ && \
     mv /pipeline/pipeline/Snakefile /pipeline && \
-    mv /pipeline/pipeline/config.yaml /pipeline && \
+    mv /pipeline/pipeline/config.yml /pipeline && \
     mv /pipeline/pipeline/envs /pipeline/envs/ && \
     mv /pipeline/pipeline/scripts /pipeline/scripts/ && \
     rm -r /pipeline/pipeline/ && \
-    conda env create -f environment.yaml && \
+    conda env create -f environment.yml && \
     conda update -n base -c defaults conda
 
 # activate our new environment
