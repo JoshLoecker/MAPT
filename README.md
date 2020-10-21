@@ -41,12 +41,18 @@ following command in a terminal window:<br>
 3. The GPU version of the pipeline can be obtained by executing this command in
  a terminal window:<br>
 	`singularity pull docker://joshloecker/pipeline_gpu:latest`
-4. To run the container, execute the following command:
+4. Then, set up a few environment variables:
+    ```
+    results="/path/to/results"
+    data="/path/to/data"
+    alignment_name="name_of_alignment_file.fasta"
+    ```
+5. To run the container, execute the following command:
     ```
     singularity run \
-    --bind /path/to/results/:/results/ \
-    --bind /path/to/data_files/:/data_files/ \
-    --bind /path/to/alignment_file.fasta:/alignment_file.fasta \
+    --bind "${results}":/results/ \
+    --bind "${data}":/data_files/ \
+    --bind "${data}/${alignment_name}:/alignment_file.fasta \
     pipeline:latest
 	```
 ### <ins>Docker</ins>
@@ -56,14 +62,25 @@ system. If it is not, follow the instructions:
 2. Pull the container by executing the following command in a terminal 
 window:<br>
 	`docker pull joshloecker/pipeline:latest`
-3. Run the container using the following command:
+3. To start, set up a few variables in the terminal
+    ```
+    results="/path/to/results"
+    data="/path/to/data"
+    alignment_name="name_of_alignment_file.fasta"
+   ```
+
+4. Then, run the container using the following command. This can safely be copied
+and pasted, assuming step 3 has been done
     ```
     docker run \
-    -v /path/to/results/:/results/ \
-    -v /path/to/data_files/:/data_files/ \
-    --mount type=bind,source=/path/to/alignment_file.fasta,target=/alignment_file.fasta \
-    pipeline:latest
+    --mount 'type=bind,source="${results}",target=/results/' \
+    --mount 'type=bind,source="${data}":/data/,readonly' \
+    --mount 'type=bind,source="${data}/${alignment_name}",target=/alignment_file.fasta,readonly' \
+    joshloecker/pipeline_cpu:latest
     ```
+   If you are using the GPU version of the pipeline, the final line 
+   (`joshloecker/pipeline_cpu:latest`) should be changed to 
+   `joshloecker/pipeline_gpu:latest`
 
 ## Workflow
 The following workflow will be completed, relatively in this order

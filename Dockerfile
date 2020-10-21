@@ -29,7 +29,7 @@ MAINTAINER joshua.loecker@usda.gov
 WORKDIR /pipeline
 
 # create a volume to store data
-VOLUME ["/results/", "/data_files/", "/alignment_file.fasta"]
+VOLUME ["/results/", "/data/", "/alignment_file.fasta"]
 
 # copy the guppy downloader from previous workspace
 # copy our environment file into the container
@@ -50,28 +50,21 @@ COPY environment.yaml .
 RUN apt update && \
     apt install --yes git libidn11 && \
     git clone --branch master https://github.com/JoshLoecker/pipeline && \
-    rm -rf /var/lib/apt/lists/*
-
-# make a symbolic link (`ln -s`) so we are able to use any of the guppy packages in this space
-RUN ln -s /pipeline/ont-guppy*/bin/guppy_aligner /usr/local/bin/guppy_aligner && \
+    rm -rf /var/lib/apt/lists/* && \
+    ln -s /pipeline/ont-guppy*/bin/guppy_aligner /usr/local/bin/guppy_aligner && \
     ln -s /pipeline/ont-guppy*/bin/guppy_barcoder /usr/local/bin/guppy_barcoder && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecall_server /usr/local/bin/guppy_basecall_server && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller /usr/local/bin/guppy_basecaller && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller_1d2 /usr/local/bin/guppy_basecaller_1d2 && \
     ln -s /pipeline/ont-guppy*/bin/guppy_basecaller_supervisor /usr/local/bin/guppy_basecaller_supervisor && \
-    ln -sf  /dev/stdout /var/
-
-# move files we need from the github repo into our working folder
-RUN mv /pipeline/pipeline/Snakefile /pipeline && \
+    ln -sf  /dev/stdout /var/ && \
+    mv /pipeline/pipeline/Snakefile /pipeline && \
     mv /pipeline/pipeline/config.yaml /pipeline && \
     mv /pipeline/pipeline/envs /pipeline/envs/ && \
     mv /pipeline/pipeline/scripts /pipeline/scripts/ && \
-    rm -r /pipeline/pipeline/
-
-RUN conda env create -f environment.yaml && \
-    conda update -n base -c defaults conda && \
-    pip install IsoCon && \
-    pip install isONclust
+    rm -r /pipeline/pipeline/ && \
+    conda env create -f environment.yaml && \
+    conda update -n base -c defaults conda
 
 # activate our new environment
 SHELL ["conda", "run", "-n", "pipeline", "/bin/bash", "-c"]
