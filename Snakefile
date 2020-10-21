@@ -340,16 +340,6 @@ rule merge_filtering_files:
 
 
 
-
-rule isONcorrect:
-    input:
-    output:
-    shell:
-        r"""
-        
-        """
-
-
 rule isOnClustPipeline:
     input:
         rules.merge_filtering_files.output[0]
