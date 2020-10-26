@@ -1,4 +1,4 @@
-name: snakemake
+name: pipeline
 channels:
   - conda-forge
   - bioconda

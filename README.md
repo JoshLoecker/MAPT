@@ -61,22 +61,20 @@ following command in a terminal window:<br>
    
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your 
-system. If it is not, follow the instructions: 
-[Install Docker](https://docs.docker.com/get-docker/)
-2. Pull the container by executing the following command in a terminal 
-window:<br>
-	`docker pull joshloecker/pipeline:latest`
-3. To start, set up a few variables in the terminal
+system by running `docker --version`. If `Docker version . . .` does not appear,
+[install docker here](https://docs.docker.com/get-docker/)  
+2. To start, set up a few variables in the terminal
     ```
     results="/path/to/results"
     data="/path/to/data"
     alignment_name="name_of_alignment_file.fasta"
    ```
 
-4. Then, run the container using the following command. This can safely be copied
-and pasted, assuming step 3 has been done
+3. Then, run the container using the following command. This can safely be copied
+and pasted, assuming the previous step has been completed
     ```
     docker run \
+    --name=pipeline \
     --mount 'type=bind,source="${results}",target=/results/' \
     --mount 'type=bind,source="${data}":/data/,readonly' \
     --mount 'type=bind,source="${data}/${alignment_name}",target=/alignment_file.fasta,readonly' \
@@ -85,6 +83,8 @@ and pasted, assuming step 3 has been done
    If you are using the GPU version of the pipeline, the final line 
    (`joshloecker/pipeline_cpu:latest`) should be changed to 
    `joshloecker/pipeline_gpu:latest`
+   
+This will download and run the container
 
 ## Workflow
 The following workflow will be completed, relatively in this order
@@ -115,7 +115,7 @@ it may be ran again.
 ## Known Errors
 Deleting files from the `.temp` folder will cause the pipeline to regenerate 
 these files, along with any output downstream.
-If you experience any errors, contact joshua.loecker@usda.gov for assistance
+If you experience any errors, contact [joshua.loecker@usda.gov](mailto:joshua.loecker@usda.gov) for assistance
 
 <!--stackedit_data:
 eyJoaXN0b3J5IjpbOTIyMDg4NzE1XX0=

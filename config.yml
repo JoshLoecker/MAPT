@@ -1,6 +1,6 @@
 # set the location of the input fast5 files
 # place a forward slash (/) at the end of your file path
-fast5_location: /data_files/fast5/
+fast5_location: /data/fast5/
 
 # set the location where you would like all results to be saved
 # place a forward slash (/) at the end of your file path
@@ -8,7 +8,7 @@ results_folder: /results/
 
 # Set this to the location of your alignment reference file for the aligner tool you are using (guppy/minimap/vsearch)
 # place a forward slash (/) at the end of your file path
-alignment_reference_file: /alignment_file.fasta
+alignment_reference_file: "${FILE_NAME}"
 
 # set this variable to the configuration name you would like to use with basecalling
 # additionally, set the number of callers and threads per caller to use with basecalling
