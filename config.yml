@@ -8,7 +8,7 @@ results_folder: /results/
 
 # Set this to the location of your alignment reference file for the aligner tool you are using (guppy/minimap/vsearch)
 # place a forward slash (/) at the end of your file path
-alignment_reference_file: "${FILE_NAME}"
+alignment_reference_file: /data/${alignment_name}
 
 # set this variable to the configuration name you would like to use with basecalling
 # additionally, set the number of callers and threads per caller to use with basecalling

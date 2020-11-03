@@ -6,21 +6,23 @@ ARG VERSION_NUMBER=4.2.2
 
 # specify and open a working directory
 ARG INSTALL_DIR=/guppy
-WORKDIR = ${INSTALL_DIR}
 
 #ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz /guppy
 # download and install guppy
-RUN apk update && \
-    apk add wget curl && \
+RUN mkdir ${INSTALL_DIR} && \
+    cd ${INSTALL_DIR} && \
+    apk update && \
+    apk add wget && \
     echo "" && \
     echo Downloading ont-guppy && \
     # switch the comment on the two lines below to use GPU instead of CPU
-    curl -L -o guppy.tar.gz https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
-    # wget --quiet --show-progress --progress=bar:force --no-check-certificate -O guppy.tar.gz https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
+    # curl -L -o guppy.tar.gz https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
+    wget --quiet --show-progress --progress=bar:force --no-check-certificate -O guppy.tar.gz https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz && \
     # wget --quiet --show-progress --no-check-certificate https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz && \
+    echo Done && \
     tar -xf guppy.tar.gz && \
     rm guppy.tar.gz && \
-    apk delete wget && \
+    apk del wget && \
     rm -rf /var/cache/apk/*
 
 # get our conda environment running
@@ -29,6 +31,7 @@ MAINTAINER joshua.loecker@usda.gov
 
 # set a working directory
 WORKDIR /pipeline
+ENV alignment_name=${alignment_name}
 
 # create a volume to store data
 VOLUME ["/results/", "/data/", "/alignment_file.fasta"]

@@ -1,0 +1,378 @@
+docker run -it \
+--name=pipeline \
+--mount type=bind,source="${results}",target=/results/ \
+--mount type=bind,source="${data}",target=/data/,readonly \
+-e "${alignment_name}" \
+joshloecker/pipeline_cpu:latest
+ERROR conda.cli.main_run:execute(34): Subprocess for 'conda run ['snakemake', '-j', 'all']' command failed.  (See above for error)
+Basecalling
+ONT Guppy basecalling software version 4.2.2+effbaf8
+config file:        /pipeline/ont-guppy-cpu/data/dna_r9.4.1_450bps_fast.cfg
+model file:         /pipeline/ont-guppy-cpu/data/template_r9.4.1_450bps_fast.jsn
+input path:         /data/fast5/
+save path:          /results/basecall/
+chunk size:         2000
+chunks per runner:  160
+records per file:   4000
+num basecallers:    1
+cpu mode:           ON
+threads per caller: 12
+
+Found 1 fast5 files to process.
+Init time: 339 ms
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Caller time: 137689 ms, Samples called: 62893658, samples/s: 456781
+Finishing up any open output files.
+Basecalling completed successfully.
+
+ONT Guppy barcoding software version 4.2.2+effbaf8
+input path:         /results/basecall/
+save path:          /results/.temp/barcodeTempOutput/
+arrangement files:  barcode_arrs_pcr96.cfg
+lamp arr. files:    barcode_arrs_lamp8.cfg barcode_arrs_lamp96.cfg
+min. score front:   60
+min. score rear:    60
+
+
+Found 1 fastq files.
+
+0%   10   20   30   40   50   60   70   80   90   100%
+|----|----|----|----|----|----|----|----|----|----|
+***************************************************
+Done in 5640 ms.
+
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 6
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	barcode
+	1	basecall
+	1	isONclustClusterFastq
+	1	isOnClustPipeline
+	1	merge_filtering_files
+	1	minimap_aligner_from_spoa
+	1	spoa
+	1	temp_spoa
+	9
+
+[Tue Nov  3 01:57:00 2020]
+checkpoint basecall:
+    input: /data/fast5/
+    output: /results/basecall/
+    jobid: 4
+Downstream jobs will be updated after completion.
+
+Updating job 1 (barcode).
+Updating job 0 (all).
+[Tue Nov  3 01:59:20 2020]
+Finished job 4.
+1 of 11 steps (9%) done
+
+[Tue Nov  3 01:59:20 2020]
+checkpoint barcode:
+    input: /results/basecall/
+    output: /results/.temp/barcodeTempOutput/, /results/.temp/barcodingDone
+    jobid: 10
+Downstream jobs will be updated after completion.
+
+Updating job 7 (merge_filtering_files).
+Updating job 12 (collate_basecall_fastq_files).
+Updating job 9 (all).
+[Tue Nov  3 01:59:30 2020]
+Finished job 10.
+2 of 410 steps (0.49%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/unclassified/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/unclassified.merged.fastq
+    jobid: 38
+    wildcards: barcode=unclassified
+
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode56/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode56.merged.fastq
+    jobid: 40
+    wildcards: barcode=barcode56
+
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode08/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode08.merged.fastq
+    jobid: 75
+    wildcards: barcode=barcode08
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 38.
+3 of 410 steps (0.73%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule create_classified_unclassified_file:
+    input: /results/.temp/barcodeTempOutput/barcode01/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode02/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode03/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode04/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode05/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode06/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode07/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode08/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode09/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode10/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode11/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode12/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode13/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode14/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode15/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode16/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode17/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode18/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode20/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode21/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode22/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode23/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode24/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode25/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode26/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode27/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode28/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode29/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode31/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode32/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode33/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode35/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode36/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode37/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode38/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode39/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode40/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode41/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode42/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode45/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode46/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode47/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode49/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode50/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode51/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode52/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode53/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode54/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode55/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode56/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode57/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode58/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode59/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode60/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode61/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode62/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode63/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode64/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode65/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode66/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode67/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode69/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode70/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode76/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode77/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode78/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode79/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode81/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode82/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode83/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode89/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode90/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode91/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode92/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode93/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode95/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/unclassified/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/.temp/barcode.classified.merged.temp.fastq, /results/.temp/barcode.unclassified.merged.temp.fastq
+    jobid: 409
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 40.
+4 of 410 steps (0.98%) done
+[Tue Nov  3 01:59:30 2020]
+Finished job 75.
+5 of 410 steps (1%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode20/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode20.merged.fastq
+    jobid: 41
+    wildcards: barcode=barcode20
+
+
+[Tue Nov  3 01:59:30 2020]
+rule collate_basecall_fastq_files:
+    input: /results/.temp/barcodeTempOutput/barcode01/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode02/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode03/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode04/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode05/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode06/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode07/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode08/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode09/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode10/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode11/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode12/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode13/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode14/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode15/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode16/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode17/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode18/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode20/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode21/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode22/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode23/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode24/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode25/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode26/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode27/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode28/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode29/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode31/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode32/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode33/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode35/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode36/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode37/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode38/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode39/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode40/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode41/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode42/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode45/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode46/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode47/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode49/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode50/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode51/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode52/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode53/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode54/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode55/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode56/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode57/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode58/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode59/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode60/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode61/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode62/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode63/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode64/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode65/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode66/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode67/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode69/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode70/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode76/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode77/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode78/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode79/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode81/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode82/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode83/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode89/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode90/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode91/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode92/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode93/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/barcode95/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq, /results/.temp/barcodeTempOutput/unclassified/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/.temp/basecall.temp.merged.files.fastq
+    jobid: 408
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 41.
+6 of 410 steps (1%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/unclassified.merged.fastq
+    output: /results/cutadapt/unclassified.cutadapt.fastq
+    jobid: 117
+    wildcards: barcode=unclassified
+
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/barcode56.merged.fastq
+    output: /results/cutadapt/barcode56.cutadapt.fastq
+    jobid: 119
+    wildcards: barcode=barcode56
+
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/barcode08.merged.fastq
+    output: /results/cutadapt/barcode08.cutadapt.fastq
+    jobid: 154
+    wildcards: barcode=barcode08
+
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/barcode20.merged.fastq
+    output: /results/cutadapt/barcode20.cutadapt.fastq
+    jobid: 120
+    wildcards: barcode=barcode20
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 119.
+7 of 410 steps (2%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode52/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode52.merged.fastq
+    jobid: 26
+    wildcards: barcode=barcode52
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 120.
+8 of 410 steps (2%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode11/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode11.merged.fastq
+    jobid: 62
+    wildcards: barcode=barcode11
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 26.
+9 of 410 steps (2%) done
+[Tue Nov  3 01:59:30 2020]
+Finished job 62.
+10 of 410 steps (2%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/barcode52.merged.fastq
+    output: /results/cutadapt/barcode52.cutadapt.fastq
+    jobid: 105
+    wildcards: barcode=barcode52
+
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/barcode11.merged.fastq
+    output: /results/cutadapt/barcode11.cutadapt.fastq
+    jobid: 141
+    wildcards: barcode=barcode11
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 154.
+11 of 410 steps (3%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode50/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode50.merged.fastq
+    jobid: 55
+    wildcards: barcode=barcode50
+
+[Tue Nov  3 01:59:30 2020]
+Finished job 55.
+12 of 410 steps (3%) done
+
+[Tue Nov  3 01:59:30 2020]
+rule cutadapt:
+    input: /results/barcode/barcode50.merged.fastq
+    output: /results/cutadapt/barcode50.cutadapt.fastq
+    jobid: 134
+    wildcards: barcode=barcode50
+
+[Tue Nov  3 01:59:31 2020]
+Finished job 117.
+13 of 410 steps (3%) done
+
+[Tue Nov  3 01:59:31 2020]
+rule filtering:
+    input: /results/cutadapt/unclassified.cutadapt.fastq
+    output: /results/filter/unclassified.filter.fastq
+    jobid: 194
+    wildcards: barcode=unclassified
+
+[Tue Nov  3 01:59:31 2020]
+Finished job 105.
+14 of 410 steps (3%) done
+
+[Tue Nov  3 01:59:31 2020]
+rule merge_files:
+    input: /results/.temp/barcodeTempOutput/barcode07/fastq_runid_67a0761ea992f55d7000e748e88761780ca1bb60_0.fastq
+    output: /results/barcode/barcode07.merged.fastq
+    jobid: 54
+    wildcards: barcode=barcode07
+
+[Tue Nov  3 01:59:31 2020]
+Finished job 141.
+15 of 410 steps (4%) done
+[Tue Nov  3 01:59:31 2020]
+Finished job 134.
+16 of 410 steps (4%) done
+[Tue Nov  3 01:59:31 2020]
+Finished job 409.
+17 of 410 steps (4%) done
+
+[Tue Nov  3 01:59:31 2020]
+rule filtering:
+    input: /results/cutadapt/barcode08.cutadapt.fastq
+    output: /results/filter/barcode08.filter.fastq
+    jobid: 231
+    wildcards: barcode=barcode08
+
+[Tue Nov  3 01:59:31 2020]
+Finished job 54.
+18 of 410 steps (4%) done
+
+[Tue Nov  3 01:59:31 2020]
+rule NanoQCBarcode:
+    input: /results/.temp/barcode.classified.merged.temp.fastq, /results/.temp/barcode.unclassified.merged.temp.fastq
+    output: /results/visuals/nanoqc/barcode/classified, /results/visuals/nanoqc/barcode/unclassified
+    jobid: 92
+
+[Tue Nov  3 01:59:31 2020]
+Finished job 408.
+19 of 410 steps (5%) done
+
+[Tue Nov  3 01:59:31 2020]
+rule NanoPlotBarcode:
+    input: /results/.temp/barcode.classified.merged.temp.fastq, /results/.temp/barcode.unclassified.merged.temp.fastq
+    output: /results/visuals/nanoplot/barcode/classified, /results/visuals/nanoplot/barcode/unclassified
+    jobid: 402
+
+
+[Tue Nov  3 01:59:31 2020]
+rule NanoPlotBasecall:
+    input: /results/.temp/basecall.temp.merged.files.fastq
+    output: /results/visuals/nanoplot/basecall/
+    jobid: 11
+
+
+[Tue Nov  3 01:59:31 2020]
+rule NanoQCBasecall:
+    input: /results/.temp/basecall.temp.merged.files.fastq
+    output: /results/visuals/nanoqc/basecall/
+    jobid: 91
+
+[Tue Nov  3 01:59:32 2020]
+Finished job 231.
+20 of 410 steps (5%) done
+
+[Tue Nov  3 01:59:32 2020]
+rule cutadapt:
+    input: /results/barcode/barcode07.merged.fastq
+    output: /results/cutadapt/barcode07.cutadapt.fastq
+    jobid: 133
+    wildcards: barcode=barcode07
+
+[Tue Nov  3 01:59:33 2020]
+Finished job 194.
+21 of 410 steps (5%) done
+
+[Tue Nov  3 01:59:33 2020]
+rule minimap_aligner_from_filtering:
+    input: /results/filter/unclassified.filter.fastq
+    output: /results/alignment/minimap/from_filtering/unclassified.minimap.sam
+    jobid: 348
+    wildcards: barcode=unclassified
+
+WildcardError in line 460 of /pipeline/Snakefile:
+Wildcards in params cannot be determined from output files. Note that you have to use a function to deactivate automatic wildcard expansion in params strings, e.g., `lambda wildcards: '{test}'`. Also see https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules:
+'FILE_NAME'
+  File "/opt/conda/envs/pipeline/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 115, in run_jobs
+  File "/opt/conda/envs/pipeline/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 402, in run
+  File "/opt/conda/envs/pipeline/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 203, in _run
+  File "/opt/conda/envs/pipeline/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 131, in _run
+  File "/opt/conda/envs/pipeline/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 137, in printjob
+[Tue Nov  3 01:59:33 2020]
+Finished job 133.
+22 of 410 steps (5%) done
+[Tue Nov  3 01:59:36 2020]
+Finished job 91.
+23 of 410 steps (6%) done
+[Tue Nov  3 01:59:38 2020]
+Finished job 92.
+24 of 410 steps (6%) done
+/opt/conda/envs/pipeline/lib/python3.7/_collections_abc.py:702: MatplotlibDeprecationWarning: The global colormaps dictionary is no longer considered public API.
+  return len(self._mapping)
+/opt/conda/envs/pipeline/lib/python3.7/_collections_abc.py:720: MatplotlibDeprecationWarning: The global colormaps dictionary is no longer considered public API.
+  yield from self._mapping
+/opt/conda/envs/pipeline/lib/python3.7/_collections_abc.py:702: MatplotlibDeprecationWarning: The global colormaps dictionary is no longer considered public API.
+  return len(self._mapping)
+/opt/conda/envs/pipeline/lib/python3.7/_collections_abc.py:720: MatplotlibDeprecationWarning: The global colormaps dictionary is no longer considered public API.
+  yield from self._mapping
+Removing temporary output file /results/.temp/basecall.temp.merged.files.fastq.
+[Tue Nov  3 01:59:43 2020]
+Finished job 11.
+25 of 410 steps (6%) done
+/opt/conda/envs/pipeline/lib/python3.7/_collections_abc.py:702: MatplotlibDeprecationWarning: The global colormaps dictionary is no longer considered public API.
+  return len(self._mapping)
+/opt/conda/envs/pipeline/lib/python3.7/_collections_abc.py:720: MatplotlibDeprecationWarning: The global colormaps dictionary is no longer considered public API.
+  yield from self._mapping
+Removing temporary output file /results/.temp/barcode.unclassified.merged.temp.fastq.
+Removing temporary output file /results/.temp/barcode.classified.merged.temp.fastq.
+[Tue Nov  3 01:59:49 2020]
+Finished job 402.
+26 of 410 steps (6%) done

@@ -2,4 +2,6 @@
 /.snakemake/
 /.idea/
 /data/
-/results
+/results/
+/.git/
+/.snakemake/

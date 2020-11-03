@@ -3,6 +3,8 @@ from pathlib import Path
 import glob
 from multiprocessing import cpu_count
 configfile: "config.yml"
+envvars:
+    "${alignment_name}"
 
 def return_barcode_numbers(path: str):
     """
@@ -463,14 +465,14 @@ rule minimap_aligner_from_filtering:
     output:
         config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference = config['alignment_reference_file']
+        alignment_reference_file = config['alignment_reference_file']
     shell:
         r"""
         touch {output}
         
         minimap2 \
         -ax map-ont \
-        {params.alignment_reference} \
+        {params.alignment_reference_file} \
         {input} > {output}
         """
 rule minimap_aligner_from_spoa:
