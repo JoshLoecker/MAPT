@@ -1,0 +1,11 @@
+version: "3"
+services:
+  pipeline:
+    image: joshloecker/pipeline_cpu:latest
+    container_name: pipeline
+    volumes:
+      - /Volumes/Elements/pipeline_test/results:/results/
+      - /Volumes/Elements/pipeline_test/data:/data/
+    environment:
+      - alignment_name="zymogen_alignment_reference.fasta"
+    restart: unless-stopped

@@ -3,8 +3,6 @@ from pathlib import Path
 import glob
 from multiprocessing import cpu_count
 configfile: "config.yml"
-envvars:
-    "${alignment_name}"
 
 def return_barcode_numbers(path: str):
     """
@@ -374,6 +372,7 @@ checkpoint isONclustClusterFastq:
 
 
 def temp_spoa_input(wildcards):
+    print("ENTERING TEMP SPOA")
     checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
     file_names = set()
     for item in os.listdir(checkpoint_output[0]):
