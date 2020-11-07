@@ -2,8 +2,9 @@ import os
 from pathlib import Path
 import glob
 from multiprocessing import cpu_count
-configfile: "config.yml"
-
+configfile: "config.yaml"
+alignment_name = os.getenv("alignment_name")
+print(alignment_name)
 def return_barcode_numbers(path: str):
     """
     This function will return a list of barcode numbers under the directory passed in
@@ -70,11 +71,11 @@ def minimap_aligner_from_spoa(wildcards):
     #checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
     return config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
 def vsearch_aligner(wildcards):
-    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
+    isOnclustComplete = rules.isONclustClusterFastq.output.rule_complete
     return expand(config['results_folder'] + "alignment/vsearch/vsearch.{file_number}.tsv",
                   file_number=glob_wildcards(config['results_folder'] + "isONclust/cluster_fastq/{file_number}.fastq").file_number)
 def id_reads(wildcards):
-    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
+    checkpoint_output = rules.isONclustClusterFastq.output.rule_complete
     return [#config['results_folder'] + "id_reads/id_reads.tsv",
             config['results_folder'] + "id_reads/mapped_seq_id.csv",
             config['results_folder'] + "id_reads/minimap_output.csv",
@@ -356,7 +357,7 @@ rule isOnClustPipeline:
         """
 
 
-checkpoint isONclustClusterFastq:
+rule isONclustClusterFastq:
     input:
         pipeline_output = rules.isOnClustPipeline.output[0],
         merged_filtering_reads = rules.merge_filtering_files.output[0]
@@ -372,7 +373,6 @@ checkpoint isONclustClusterFastq:
 
 
 def temp_spoa_input(wildcards):
-    print("ENTERING TEMP SPOA")
     checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
     file_names = set()
     for item in os.listdir(checkpoint_output[0]):
@@ -381,7 +381,9 @@ def temp_spoa_input(wildcards):
     return expand(checkpoint_output[0] + "{file_name}", file_name=file_names)
 rule temp_spoa:
     input:
-        temp_spoa_input
+        # temp_spoa_input
+        complete_rule = rules.isONclustClusterFastq.output.rule_complete,
+        cluster_data = glob.glob(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq")
     output:
         temp_output = temp(directory(config['results_folder'] + ".temp/spoa"))
     shell:
@@ -389,7 +391,7 @@ rule temp_spoa:
             # make our temporary output folder
             mkdir -p {output.temp_output}     
             
-            for file in {input}; do
+            for file in {input.cluster_data}; do
                 fastq_to_fasta="${{file%.fastq}}.fasta"
                 fastq_to_fasta="$(basename -- $fastq_to_fasta)"
                 
@@ -397,7 +399,6 @@ rule temp_spoa:
                 touch "$temp_output"
                 spoa "$file" -r 0 > "$temp_output"
             done
-            
         """
 rule spoa:
     input:
@@ -425,7 +426,7 @@ rule guppy_aligner:
     params:
         barcode = "{barcode}",
         temp_dir = config['results_folder'] + ".temp/guppy",
-        alignment_reference = config['alignment_reference_file']
+        alignment_reference = f"/data/" + str(alignment_name)
     shell:
         r"""
         # move input files to our temp folder
@@ -464,14 +465,13 @@ rule minimap_aligner_from_filtering:
     output:
         config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference_file = config['alignment_reference_file']
+        alignment_reference = "/data/" + str(alignment_name)
     shell:
         r"""
         touch {output}
-        
         minimap2 \
         -ax map-ont \
-        {params.alignment_reference_file} \
+        {params.alignment_reference} \
         {input} > {output}
         """
 rule minimap_aligner_from_spoa:
@@ -480,7 +480,7 @@ rule minimap_aligner_from_spoa:
     output:
         config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
     params:
-        alignment_reference = config['alignment_reference_file']
+        alignment_reference = "/data/" + str(alignment_name)
     shell:
         r"""
         touch {output}
@@ -510,7 +510,7 @@ rule vsearch_aligner:
     output:
         config['results_folder'] + "alignment/vsearch/vsearch.{file_number}.tsv"
     params:
-        alignment_reference = config['alignment_reference_file']
+        alignment_reference = f"/data/" + str(alignment_name)
     shell:
         r"""
         vsearch \
@@ -521,13 +521,11 @@ rule vsearch_aligner:
         """
 
 
-def id_reads_clustering_input(wildcards):
-    return rules.isOnClustPipeline.output[0] + "final_clusters.tsv"
 rule id_reads:
     input:
         filtering = expand(rules.filtering.output[0],
                            barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode),
-        clustering = id_reads_clustering_input,
+        clustering = rules.isOnClustPipeline.output[0],
         minimap = rules.minimap_aligner_from_spoa.output[0]
     output:
         #id_reads_tsc = config['results_folder'] + "id_reads/id_reads.tsv",

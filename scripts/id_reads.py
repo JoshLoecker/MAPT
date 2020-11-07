@@ -137,7 +137,7 @@ def extract_cluster(x, style='isONclust'):
 
 
 # load reads-by-clusters info
-clusters = snakemake.input.clustering
+clusters = str(snakemake.input.clustering) + str("final_clusters.tsv")
 clusters = pd.read_csv(clusters, sep='\t', engine="python")
 clusters.columns = ('cluster', 'read_id')
 
