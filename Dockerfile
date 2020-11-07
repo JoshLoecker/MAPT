@@ -27,7 +27,7 @@ RUN apt update && \
     # create conda environment with our environment file
     conda env create --file /pipeline/environment.yml && \
     # remove installed packages, as they are no longer needed
-    apt --yes purge g++ git libidn11 wget && \
+    apt --yes purge g++ git wget && \
     # remove unneeded apt files to reduce image size
     rm -rf /var/lib/apt/lists/*
 
@@ -37,4 +37,4 @@ RUN apt update && \
 # # set our working directory at the end so we are able to run snakemake
 # WORKDIR = /pipeline
 # # start our conda environment `pipeline`, and call `snakemake`
-ENTRYPOINT cd pipeline && conda run -n pipeline snakemake -j all --dry-run
+ENTRYPOINT cd pipeline && conda run -n pipeline snakemake -j all

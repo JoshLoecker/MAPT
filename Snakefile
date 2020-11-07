@@ -4,7 +4,7 @@ import glob
 from multiprocessing import cpu_count
 configfile: "config.yaml"
 alignment_name = os.getenv("alignment_name")
-print(alignment_name)
+print(f"ALIGNMENT: {alignment_name})
 def return_barcode_numbers(path: str):
     """
     This function will return a list of barcode numbers under the directory passed in
@@ -385,9 +385,10 @@ rule temp_spoa:
         complete_rule = rules.isONclustClusterFastq.output.rule_complete,
         cluster_data = glob.glob(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq")
     output:
-        temp_output = temp(directory(config['results_folder'] + ".temp/spoa"))
+        temp_output = directory(config['results_folder'] + ".temp/spoa")
     shell:
         r"""
+            echo {input}
             # make our temporary output folder
             mkdir -p {output.temp_output}     
             
