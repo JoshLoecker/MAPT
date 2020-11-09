@@ -4,7 +4,6 @@ ARG VERSION_NUMBER=4.2.2
 ENV alignment_name=${alignment_name}
 VOLUME /results /data
 ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
-# COPY environment.yml .
 
 # unpack guppy, link it to docker environment bash so it can be called anywhere
 RUN tar -xf guppy.tar.gz && \
