@@ -1,8 +1,8 @@
 # set the location of the input fast5 files
-fast5_location: /results/
+fast5_location: /data/fast5
 
 # set the location where you would like all results to be saved
-results_folder: /data/
+results_folder: /results/
 
 # Set this to the location of your alignment reference file for the aligner tool you are using (guppy/minimap/vsearch)
 alignment_reference_file: /Volumes/Elements/pipeline_test/data/zymogen_alignment_reference.fasta
