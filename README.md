@@ -75,9 +75,9 @@ and pasted, assuming the previous step has been completed
     ```
     docker run \
     --name=pipeline \
-    --mount 'type=bind,source="${results}",target=/results/' \
-    --mount 'type=bind,source="${data}":/data/,readonly' \
-    --mount 'type=bind,source="${data}/${alignment_name}",target=/alignment_file.fasta,readonly' \
+    --mount type=bind,source="${results}",target=/results \
+    --mount type=bind,source="${data}",target=/data,readonly' \
+    -e alignment_name="${alignment_name}" \
     joshloecker/pipeline_cpu:latest
     ```
    If you are using the GPU version of the pipeline, the final line 
