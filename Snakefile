@@ -1,10 +1,12 @@
 import os
+import subprocess
 from pathlib import Path
 import glob
 from multiprocessing import cpu_count
 configfile: "config.yaml"
+
 alignment_name = os.getenv("alignment_name")
-print(f"ALIGNMENT: {alignment_name})
+
 def return_barcode_numbers(path: str):
     """
     This function will return a list of barcode numbers under the directory passed in
@@ -72,8 +74,7 @@ def minimap_aligner_from_spoa(wildcards):
     return config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
 def vsearch_aligner(wildcards):
     isOnclustComplete = rules.isONclustClusterFastq.output.rule_complete
-    return expand(config['results_folder'] + "alignment/vsearch/vsearch.{file_number}.tsv",
-                  file_number=glob_wildcards(config['results_folder'] + "isONclust/cluster_fastq/{file_number}.fastq").file_number)
+    return config['results_folder'] + "alignment/vsearch/"
 def id_reads(wildcards):
     checkpoint_output = rules.isONclustClusterFastq.output.rule_complete
     return [#config['results_folder'] + "id_reads/id_reads.tsv",
@@ -372,38 +373,35 @@ rule isONclustClusterFastq:
 
 
 
-def temp_spoa_input(wildcards):
-    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
-    file_names = set()
-    for item in os.listdir(checkpoint_output[0]):
-        if ".fastq" in item:
-            file_names.add(item)
-    return expand(checkpoint_output[0] + "{file_name}", file_name=file_names)
 rule temp_spoa:
     input:
-        # temp_spoa_input
         complete_rule = rules.isONclustClusterFastq.output.rule_complete,
-        cluster_data = glob.glob(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq")
+        cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
+                              file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
         temp_output = directory(config['results_folder'] + ".temp/spoa")
-    shell:
-        r"""
-            echo {input}
-            # make our temporary output folder
-            mkdir -p {output.temp_output}     
-            
-            for file in {input.cluster_data}; do
-                fastq_to_fasta="${{file%.fastq}}.fasta"
-                fastq_to_fasta="$(basename -- $fastq_to_fasta)"
-                
-                temp_output={output.temp_output}/"$fastq_to_fasta"
-                touch "$temp_output"
-                spoa "$file" -r 0 > "$temp_output"
-            done
-        """
+    run:
+        # make our temporary output folder
+        os.mkdir(output.temp_output)
+
+        for file in input.cluster_data:
+            if ".fastq" in file:
+                # convert fastq file names to fasta
+                fastq_to_fasta = file[:-1] + "a"
+                fastq_to_fasta = os.path.basename(fastq_to_fasta)
+
+                # get our temporary output path generated and create the file
+                temp_output = os.path.join(output.temp_output, fastq_to_fasta)
+
+                # run spoa on the current isOnclust file, putting output into the temp spoa file
+                with open(temp_output, 'w') as output_stream:
+                    subprocess.run(["spoa", file, "-r", "0"], stdout=output_stream, universal_newlines=True)
+                # ["spoa", file, "-r", "0", ">", temp_output], stdout=PIPE, universal_newlines=True
+
+
 rule spoa:
     input:
-        rules.temp_spoa.output[0]
+        rules.temp_spoa.output.temp_output
     output:
         config['results_folder'] + "spoa/consensus.sequences.fasta"
     shell:
@@ -427,7 +425,7 @@ rule guppy_aligner:
     params:
         barcode = "{barcode}",
         temp_dir = config['results_folder'] + ".temp/guppy",
-        alignment_reference = f"/data/" + str(alignment_name)
+        alignment_reference = "/data/" + str(alignment_name)
     shell:
         r"""
         # move input files to our temp folder
@@ -494,32 +492,49 @@ rule minimap_aligner_from_spoa:
 
 
 
-def get_isONclust_clustering_fastq_files(wildcards):
-    return glob.glob(config['results_folder'] + f"isONclust/cluster_fastq/{wildcards.file_number}.fastq")
 rule fq2fa:
     input:
-        get_isONclust_clustering_fastq_files
+        complete_rule = rules.isONclustClusterFastq.output.rule_complete,
+        cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
+                              file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
-        temp(config['results_folder'] + ".temp/vsearch/vsearch.temp.{file_number}.fasta")
-    shell:
-        r"""
-        seqkit fq2fa {input} > {output}
-        """
+        temp(directory(config['results_folder'] + ".temp/vsearch/"))
+    run:
+        for item in input.cluster_data:
+            file_name = os.path.basename(item)
+            output_file = output[0] + file_name
+            with open(output_file, 'w') as output_stream:
+                subprocess.run(["seqkit", "fq2fa", item], stdout=output_stream, universal_newlines=True)
 rule vsearch_aligner:
     input:
         rules.fq2fa.output
     output:
-        config['results_folder'] + "alignment/vsearch/vsearch.{file_number}.tsv"
+        directory(config['results_folder'] + "alignment/vsearch/")
     params:
-        alignment_reference = f"/data/" + str(alignment_name)
-    shell:
-        r"""
-        vsearch \
-        --sintax {input} \
-        --tabbedout {output} \
-        --db {params.alignment_reference} \
-        --quiet
-        """
+        alignment_reference = "/data/" + str(alignment_name)
+    run:
+        # {file}.fastq
+        # vsearch.{file_number}.tsv
+        for item in os.listdir(str(input)):
+            # get just the file number
+            file_number = os.path.basename(item)
+            file_number = file_number.split(".")[0]
+
+            # make our output path
+            output_path = config['results_folder'] + f"alignment/vsearch/vsearch.{file_number}.tsv"
+
+            # call vsearch
+            command = f"vsearch --sintax {input}{item} --tabbedout {output_path} --db {params.alignment_reference} --quiet"
+            with open(output_path, 'w') as output_stream:
+                subprocess.run(command.split(" "), stdout=output_stream, universal_newlines=True)
+#     shell:
+#         r"""
+#         vsearch \
+#         --sintax {input} \
+#         --tabbedout {output} \
+#         --db {params.alignment_reference} \
+#         --quiet
+#         """
 
 
 rule id_reads:

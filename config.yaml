@@ -1,11 +1,11 @@
 # set the location of the input fast5 files
-fast5_location: /data/fast5/
+fast5_location: /results/
 
 # set the location where you would like all results to be saved
-results_folder: /results/
+results_folder: /data/
 
 # Set this to the location of your alignment reference file for the aligner tool you are using (guppy/minimap/vsearch)
-alignment_reference_file: /data/${alignment_name}
+alignment_reference_file: /Volumes/Elements/pipeline_test/data/zymogen_alignment_reference.fasta
 
 # set this variable to the configuration name you would like to use with basecalling
 # additionally, set the number of callers and threads per caller to use with basecalling
