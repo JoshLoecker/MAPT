@@ -419,9 +419,9 @@ rule guppy_aligner:
     input:
         rules.filtering.output[0]
     output:
-        sam_files = config['results_folder'] + "alignment/guppy/sam_files/{barcode}.guppy.sam",
-        alignment_summary = config['results_folder'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv",
-        log_file = config['results_folder'] + "alignment/guppy/logs/{barcode}.guppy.log",
+        sam_files = touch(config['results_folder'] + "alignment/guppy/sam_files/{barcode}.guppy.sam"),
+        alignment_summary = touch(config['results_folder'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv"),
+        log_file = touch(config['results_folder'] + "alignment/guppy/logs/{barcode}.guppy.log"),
     params:
         barcode = "{barcode}",
         temp_dir = config['results_folder'] + ".temp/guppy",
