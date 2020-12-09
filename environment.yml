@@ -4,7 +4,7 @@ channels:
   - bioconda
 dependencies:
   - python=3.7
-  - pip
+  - pip=20.2.*
   - snakemake=5.22.*
   - nanoplot=1.31.*
   - nanofilt=2.7.*
@@ -16,7 +16,8 @@ dependencies:
   - plotly=4.8.*
   - spoa=4.*
   - seaborn=0.10.*
+  - edlib>=1.1.2
   - pip:
-        - IsoCon==0.3.*
-        - isONclust==0.*
         - networkx==2.3
+        - --disable-dependency-tracking IsoCon==0.3.*
+        - isONclust==0.*

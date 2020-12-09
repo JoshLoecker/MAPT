@@ -76,13 +76,10 @@ and pasted, assuming the previous step has been completed
     docker run \
     --name=pipeline \
     --mount type=bind,source="${results}",target=/results \
-    --mount type=bind,source="${data}",target=/data,readonly' \
+    --mount type=bind,source="${data}",target=/data \
     -e alignment_name="${alignment_name}" \
     joshloecker/pipeline_cpu:latest
     ```
-   If you are using the GPU version of the pipeline, the final line 
-   (`joshloecker/pipeline_cpu:latest`) should be changed to 
-   `joshloecker/pipeline_gpu:latest`
    
 This will download and run the container
 
@@ -109,13 +106,12 @@ will be able to see each of the folders that are output, such as `basecalling`,
 A `.temp` folder is generated under the `results` folder. This file contains
 data that is not necessary to the general user. If this folder is deleted, the
 next `snakemake` run will detect results in this folder is not present, and
-it may be ran again.
-
+the pipeline will be ran again.
 
 ## Known Errors
 Deleting files from the `.temp` folder will cause the pipeline to regenerate 
 these files, along with any output downstream.
-If you experience any errors, contact [joshua.loecker@usda.gov](mailto:joshua.loecker@usda.gov) for assistance
+If you experience any errors, contact [joshua.loecker@jacks.sdstate.edu](mailto:joshua.loecker@jacks.sdstate.edu) for assistance
 
 <!--stackedit_data:
 eyJoaXN0b3J5IjpbOTIyMDg4NzE1XX0=
