@@ -2,5 +2,5 @@
 /.snakemake/
 /.idea/
 /data/
+/dockerBuild/
 /results/
-/guppy.tar.gz

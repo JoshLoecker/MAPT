@@ -6,6 +6,12 @@ from multiprocessing import cpu_count
 configfile: "config.yaml"
 
 alignment_name = os.getenv("alignment_name")
+num_basecallers = os.getenv("num_basecallers")
+threads_per_caller = os.getenv("threads_per_caller")
+
+print(f"alignment_name: {alignment_name}")
+print(f"num_basecallers: {num_basecallers}")
+print(f"threads_per_caller: {threads_per_caller}")
 
 def return_barcode_numbers(path: str):
     """
@@ -134,8 +140,7 @@ rule all:
         plotly_histogram_cutadapt,              # plotly cutadapt histogram
         plotly_histogram_filtering,             # plotly filtering histogram
         plotly_histogram_mapping,               # plotly mapping histogram
-        plotly_box_whisker                      # plotly box and whisker plot
-
+        plotly_box_whisker,                     # plotly box and whisker plot
 
 
 checkpoint basecall:
@@ -145,8 +150,8 @@ checkpoint basecall:
         output = directory(config['results_folder'] + "basecall/")
     params:
         configuration = config["basecall_configuration"],
-        callers = config['num_callers'],
-        threads_per_caller = config['num_threads_per_caller']
+        callers = num_basecallers,
+        threads_per_caller = threads_per_caller
     shell:
         r"""
         echo Basecalling
@@ -180,8 +185,6 @@ checkpoint barcode:
         
         touch {output.barcode_complete_file}
         """
-
-
 
 def merge_files_input(wildcards):
     return glob.glob(config['results_folder'] + f".temp/barcodeTempOutput/{wildcards.barcode}/*.fastq")
@@ -353,7 +356,9 @@ rule isOnClustPipeline:
         
         isONclust --ont \
         --fastq {input} \
-        --aligned_threshold 0.95 \
+        --aligned_threshold 0.90 \
+        --min_fraction 0.55 \
+		--mapped_threshold 0.65 \
         --outfolder {output}
         """
 
@@ -367,7 +372,11 @@ rule isONclustClusterFastq:
         rule_complete = config['results_folder'] + ".temp/isONclustClusterFastqComplete"
     shell:
         r"""
-        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv --fastq {input.merged_filtering_reads} --outfolder {output.cluster_output} --N 1
+        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv \
+        --fastq {input.merged_filtering_reads} \
+        --outfolder {output.cluster_output} \
+        --N 1
+        
         touch {output.rule_complete}
         """
 
@@ -425,7 +434,7 @@ rule guppy_aligner:
     params:
         barcode = "{barcode}",
         temp_dir = config['results_folder'] + ".temp/guppy",
-        alignment_reference = "/data/" + str(alignment_name)
+        alignment_reference = config['data_folder'] + alignment_name
     shell:
         r"""
         # move input files to our temp folder
@@ -464,7 +473,7 @@ rule minimap_aligner_from_filtering:
     output:
         config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference = "/data/" + str(alignment_name)
+        alignment_reference = config['data_folder'] + alignment_name
     shell:
         r"""
         touch {output}
@@ -479,7 +488,7 @@ rule minimap_aligner_from_spoa:
     output:
         config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
     params:
-        alignment_reference = "/data/" + str(alignment_name)
+        alignment_reference = config['data_folder'] + alignment_name
     shell:
         r"""
         touch {output}
@@ -511,7 +520,7 @@ rule vsearch_aligner:
     output:
         directory(config['results_folder'] + "alignment/vsearch/")
     params:
-        alignment_reference = "/data/" + str(alignment_name)
+        alignment_reference = config['data_folder'] + alignment_name
     run:
         # {file}.fastq
         # vsearch.{file_number}.tsv

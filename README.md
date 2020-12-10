@@ -31,44 +31,48 @@ home
 The `results` folder does not need to exist, but it can if you would like. If 
 it does not exist, It will be created by Singularity/Docker when starting the 
 container
+
+### <ins>To Start</ins>
+Set up a few variables in the terminal
+
+    export results="/path/to/results"
+    export data="/path/to/data"
+    export alignment_name="name_of_alignment_file.fasta"
+    export basecall_callers=3
+    export threads_per_caller=5
+
+   The multiplication of `basecall_callers` and `threads_per_caller` should be
+   very close to the number cores/threads you have on your machine, or reserved
+   on a cluster
+  
+   
 ### <ins>Singularty</ins>
-1. If you are working on a cluster, Singularity may already be installed; this 
-is the case with SciNet. If Singularity is not installed, follow the 
-instructions: [Install Singularity](https://singularity.lbl.gov/install-linux)
-2. If you would like to pull the CPU version of the pipeline, executing the 
-following command in a terminal window:<br>
-	`singularity pull docker://joshloecker/pipeline_cpu:latest`
-3. The GPU version of the pipeline can be obtained by executing this command in
- a terminal window:<br>
-	`singularity pull docker://joshloecker/pipeline_gpu:latest`
-4. Then, set up a few environment variables:
-    ```
-    results="/path/to/results"
-    data="/path/to/data"
-    alignment_name="name_of_alignment_file.fasta"
-    ```
-5. To run the container, execute the following command:
+1. If you chose to work with Singularity, ensure it is already installed on your 
+system by running `singularity --version`. If `singularity version . . .` does not appear,
+[install singularity here](https://singularity.lbl.gov/install-linux).  
+Singularity is already installed on most clusters, such as SciNET
+
+2. Next, pull the docker container  
+    `singularity pull docker://joshloecker/pipeline:latest`
+4. Assuming the `To Start` section was completed, the following command
+can safely be copied and pasted. This will run the container, and data will be
+populated in the folder mapped to `/results`
     ```
     singularity run \
     --bind "${results}":/results/ \
     --bind "${data}":/data_files/ \
     --bind "${data}/${alignment_name}:/alignment_file.fasta \
-    pipeline_cpu:latest
+    --env alignment_name="${alignment_name}" \
+    --env basecall_callers=${basecall_callers} \
+    --env threads_per_caller=${threads_per_caller} \ 
+    pipeline:latest
 	```
-   
-    If you downloaded the GPU version of the pipeline, the last line
-    (`pipeline_cpu:latest`) needs to be changed to `pipeline_gpu:latest`
    
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your 
 system by running `docker --version`. If `Docker version . . .` does not appear,
 [install docker here](https://docs.docker.com/get-docker/)  
-2. To start, set up a few variables in the terminal
-    ```
-    results="/path/to/results"
-    data="/path/to/data"
-    alignment_name="name_of_alignment_file.fasta"
-   ```
+
 
 3. Then, run the container using the following command. This can safely be copied
 and pasted, assuming the previous step has been completed
@@ -78,7 +82,9 @@ and pasted, assuming the previous step has been completed
     --mount type=bind,source="${results}",target=/results \
     --mount type=bind,source="${data}",target=/data \
     -e alignment_name="${alignment_name}" \
-    joshloecker/pipeline_cpu:latest
+    -e basecall_callers=${basecall_callers} \
+    -e threads_per_caller=${threads_per_caller} \
+    joshloecker/pipeline:latest
     ```
    
 This will download and run the container
