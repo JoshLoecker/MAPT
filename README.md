@@ -10,36 +10,42 @@ appropriate: Microbial Automated Processing Tool, or MAPT for short.
 This project is meant to run using Singularity or Docker
 ### <ins>Folder Setup</ins>
 Two paths are needed with this container: 1) A `results` folder, and 2) A 
-`data_files` folder. These folders can be named as you please, but this guide 
-will use these respective names
-It is important to note that under the `data_files` folder, a folder **must** 
-be named `fast5`. If this is not done, guppy_basecaller will not be able to pick up **any** `.fast5` files, even if they are present, as it looks for `.fast5` files under the `fast5` folder. As such, your `data_files` folder structure may look as follows:
-<br>
+`data` folder. These folders can be named as you please, but this guide 
+will use these respective names.  
+
+Under the `data` folder, a folder **must** 
+be named `fast5`. If this is not done, guppy_basecaller will not be able to find
+**any** `.fast5` files, even if they are present, as it looks for `.fast5`
+files under the `fast5` folder.  
+
+The `results` folder must exist before running the container. Your alignment file
+should also be placed within the `data` folder.
+
+Your `data` folder structure may look as follows:
 ```
 home
 | -- Rob
     | -- Projects
         | -- run_1
-            | -- data_files
+            | -- data
                 | -- fast5
                     | -- file_1.fast5
                     | -- file_2.fast5
                     | -- file_3.fast5
                 | -- silva_alignment_file.fasta
                 | -- some_other_file.txt
+            | -- results
 ```
-The `results` folder does not need to exist, but it can if you would like. If 
-it does not exist, It will be created by Singularity/Docker when starting the 
-container
 
 ### <ins>To Start</ins>
-Set up a few variables in the terminal
+Set up a few variables in the terminal, using the above structure as an example 
+Change this to values that make sense for your workflow
 
-    export results="/path/to/results"
-    export data="/path/to/data"
-    export alignment_name="name_of_alignment_file.fasta"
-    export basecall_callers=3
-    export threads_per_caller=5
+    results="/home/Rob/Projects/run_1/results"
+    data="/home/Rob/Projects/run_1/data/"
+    alignment_name="silva_alignment_file.fasta"
+    num_basecallers=3
+    threads_per_caller=5
 
    The multiplication of `basecall_callers` and `threads_per_caller` should be
    very close to the number cores/threads you have on your machine, or reserved
@@ -54,40 +60,67 @@ Singularity is already installed on most clusters, such as SciNET
 
 2. Next, pull the docker container  
     `singularity pull docker://joshloecker/pipeline:latest`
+
 4. Assuming the `To Start` section was completed, the following command
-can safely be copied and pasted. This will run the container, and data will be
-populated in the folder mapped to `/results`
+can safely be copied and pasted. This will download the container, but it is
+not yet running
     ```
-    singularity run \
+    singularity create \
     --bind "${results}":/results/ \
     --bind "${data}":/data_files/ \
-    --bind "${data}/${alignment_name}:/alignment_file.fasta \
     --env alignment_name="${alignment_name}" \
-    --env basecall_callers=${basecall_callers} \
+    --env num_basecallers=${num_basecallers} \
     --env threads_per_caller=${threads_per_caller} \ 
-    pipeline:latest
+    joshloecker/pipeline:latest
 	```
+
+5. To run the container, perform the following
+   ```
+   singularity run pipeline
+   ```
+   
+6. If you would like to see a dry-run of the pipeline, append `--dry-run`
+to the end of the `run` command. [Other Snakemake flags](https://snakemake.readthedocs.io/en/stable/executing/cli.html)
+can also be added in this manner.  
+   ```
+   singularity run joshloecker/pipeline --dry-run
+   ```
+    Note: Due to this workflow running in a container, not all flags have been tested
+    nor are confirmed to work as expected.  
+   
    
 ### <ins>Docker</ins>
 1. If you chose to work with Docker, ensure Docker is already installed on your 
 system by running `docker --version`. If `Docker version . . .` does not appear,
 [install docker here](https://docs.docker.com/get-docker/)  
 
-
-3. Then, run the container using the following command. This can safely be copied
+2. Then, run the container using the following command. This can safely be copied
 and pasted, assuming the previous step has been completed
     ```
-    docker run \
+    docker create \
     --name=pipeline \
     --mount type=bind,source="${results}",target=/results \
     --mount type=bind,source="${data}",target=/data \
     -e alignment_name="${alignment_name}" \
-    -e basecall_callers=${basecall_callers} \
+    -e num_basecallers=${num_basecallers} \
     -e threads_per_caller=${threads_per_caller} \
     joshloecker/pipeline:latest
     ```
-   
-This will download and run the container
+This will only download the container
+
+3. To run the container, simply run
+   ```
+   docker run joshloecker/pipeline 
+   ```
+  
+4. If you would like to see a dry-run of the pipeline, append `--dry-run`
+to the end of the `run` command. [Other Snakemake flags](https://snakemake.readthedocs.io/en/stable/executing/cli.html)
+can also be added in this manner.  
+   ```
+   docker run joshloecker/pipeline --dry-run
+   ```
+    Note: Due to this workflow running in a container, not all flags have been tested
+    nor are confirmed to work as expected. 
 
 ## Workflow
 The following workflow will be completed, relatively in this order
