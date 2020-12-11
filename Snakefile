@@ -5,13 +5,10 @@ import glob
 from multiprocessing import cpu_count
 configfile: "config.yaml"
 
-alignment_name = os.getenv("alignment_name")
-num_basecallers = os.getenv("num_basecallers")
-threads_per_caller = os.getenv("threads_per_caller")
-
-print(f"alignment_name: {alignment_name}")
-print(f"num_basecallers: {num_basecallers}")
-print(f"threads_per_caller: {threads_per_caller}")
+envvars:
+    "alignment_name",
+    "num_basecallers",
+    "threads_per_caller"
 
 def return_barcode_numbers(path: str):
     """
@@ -150,8 +147,8 @@ checkpoint basecall:
         output = directory(config['results_folder'] + "basecall/")
     params:
         configuration = config["basecall_configuration"],
-        callers = num_basecallers,
-        threads_per_caller = threads_per_caller
+        callers = os.environ["num_basecallers"],
+        threads_per_caller = os.environ["threads_per_caller"]
     shell:
         r"""
         echo Basecalling
@@ -434,7 +431,7 @@ rule guppy_aligner:
     params:
         barcode = "{barcode}",
         temp_dir = config['results_folder'] + ".temp/guppy",
-        alignment_reference = config['data_folder'] + alignment_name
+        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
     shell:
         r"""
         # move input files to our temp folder
@@ -473,7 +470,7 @@ rule minimap_aligner_from_filtering:
     output:
         config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference = config['data_folder'] + alignment_name
+        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
     shell:
         r"""
         touch {output}
@@ -488,7 +485,7 @@ rule minimap_aligner_from_spoa:
     output:
         config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
     params:
-        alignment_reference = config['data_folder'] + alignment_name
+        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
     shell:
         r"""
         touch {output}
@@ -520,7 +517,7 @@ rule vsearch_aligner:
     output:
         directory(config['results_folder'] + "alignment/vsearch/")
     params:
-        alignment_reference = config['data_folder'] + alignment_name
+        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
     run:
         # {file}.fastq
         # vsearch.{file_number}.tsv
