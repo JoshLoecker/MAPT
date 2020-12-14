@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3\
+FROM continuumio/miniconda3
 MAINTAINER joshua.loecker@usda.gov
 ARG VERSION_NUMBER=4.2.2
 
@@ -13,6 +13,7 @@ COPY Dockerfile /workflow/
 COPY Snakefile /workflow/
 COPY config.yaml /workflow/
 COPY environment.yml /workflow/
+COPY scripts /workflow/scripts
 
 # unpack guppy, link it to docker environment bash so it can be called anywhere
 # add the these three lines when docker is running
@@ -30,7 +31,7 @@ RUN ln -s /guppy/bin/guppy_aligner /usr/local/bin/guppy_aligner && \
 # clone github repo when docker is running
 #git clone --branch master https://github.com/JoshLoecker/pipeline workflow && \
 RUN apt update && \
-    apt --yes --no-install-recommends install g++ git libidn11 m4 autoconf automake dh-autoreconf && \
+    apt --yes --no-install-recommends install g++ git libidn11 m4 autoconf automake dh-autoreconf nano && \
     # update conda environment
     #conda update -n base -c defaults conda && \
     # create conda environment with our environment file
