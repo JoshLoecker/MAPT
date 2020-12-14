@@ -1,18 +1,17 @@
 import pandas as pd
 import plotly.graph_objs as go
 
-
 csv_file_paths = str(snakemake.input).split(" ")
-plot_names = ["Barcode", "Cutadapt", "NanoFilt", "Guppy"]
+plot_names = ["Barcode (Guppy Barcoder)", "Trim (Cutadapt)", "Filtering (NanoFilt)", "Mapping (MiniMap)"]
 
 # set a color list for easier viewing
 color_list = [
     "rgb(111, 129, 246)",  # barcode
     "rgb(178, 178, 102)",  # cutadapt
-    "rgb(61, 194, 156)",   # nanofilt
-    "rgb(163, 113, 244)"]  # guppy
+    "rgb(61, 194, 156)",  # nanofilt
+    "rgb(163, 113, 244)"]  # mapping
 
-# create a list of data frames that match the follow the following list: barcode, cutadapt, nanofilt, guppy
+# create a list of data frames that match the follow the following list: barcode, cutadapt, nanofilt, mapping
 data_frames = []
 for file in csv_file_paths:
     data_frames.append(pd.read_csv(
@@ -73,7 +72,6 @@ for frame in data_frames:
             temp_template.append(f"{read} barcodes")
     hover_templates_list.append(temp_template)
 
-
 """
 We are now adding 'traces' to the figure
 Each trace is an additional box plot; in total there will be four traces (one for each name listed in `plot_names` above
@@ -81,17 +79,17 @@ Each trace is an additional box plot; in total there will be four traces (one fo
 for index, name in enumerate(plot_names):
     box_plot.add_trace(
         go.Box(
-            name=name,  #................................................ Set x-axis name
-            y=data_frames[index]["reads"],  #............................ Set data for y-axis
-            jitter=1.0,  #............................................... This will prevent data points from overlapping (set between 0, 1)
-            boxpoints="all",  #.......................................... Show all data points
+            name=name,  # ................................................ Set x-axis name
+            y=data_frames[index]["reads"],  # ............................ Set data for y-axis
+            jitter=1.0,  # ............................................... This will prevent data points from overlapping (set between 0, 1)
+            boxpoints="all",  # .......................................... Show all data points
             marker=dict(  # .............................................. Modify outliers
                 color=color_list[index],
                 outliercolor="rgb(153, 153, 153)",
                 line=dict(
                     outliercolor="rgb(255, 51, 51)",
                     outlierwidth=1)),
-            pointpos=0,  #............................................... Set position of data points relative to trace
+            pointpos=0,  # ............................................... Set position of data points relative to trace
             hovertext=[label for label in hover_templates_list[index]]  # Set the text for hovering
         ))
 
@@ -155,7 +153,6 @@ annotation_data = [
          showarrow=False,
          text=f"Unclassified Reads: {unclassified_reads_value[3]}",
          font=dict(size=13)),
-
 
 ]
 

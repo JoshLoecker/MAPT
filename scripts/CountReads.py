@@ -13,7 +13,8 @@ total_reads_dict = {}
 for file_path in snakemake.input:
 
     # get the total number of lines in the file
-    total_lines = len(open(file_path, 'r').readlines())
+    file_lines = open(file_path, 'r').readlines()
+    total_lines = len(file_lines)
 
     # we know that fastq files have four lines per read, and fasta files have two lines per read
     # we will divide the file by the appropriate number
@@ -21,6 +22,13 @@ for file_path in snakemake.input:
         number_of_reads = int(total_lines / 4)
     elif "alignment.summary.csv" in file_path:
         number_of_reads = total_lines
+    elif ".minimap.sam" in file_path:
+        number_of_reads = 0
+        # iterate through each line in the file
+        for line in file_lines:
+            # only count reads that do not start with "@"
+            if line[0] != "@":
+                number_of_reads += 1
     else:
         number_of_reads = 0
 

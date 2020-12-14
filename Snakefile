@@ -3,6 +3,8 @@ import subprocess
 from pathlib import Path
 import glob
 from multiprocessing import cpu_count
+from pprint import pprint
+
 configfile: "config.yaml"
 
 envvars:
@@ -74,7 +76,7 @@ def minimap_aligner_from_filtering(wildcards):
         barcode=return_barcode_numbers(checkpoint_output))
 def minimap_aligner_from_spoa(wildcards):
     #checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
-    return config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
+    return config['results_folder'] + "alignment/minimap/spoa.minimap.sam"
 def vsearch_aligner(wildcards):
     isOnclustComplete = rules.isONclustClusterFastq.output.rule_complete
     return config['results_folder'] + "alignment/vsearch/"
@@ -123,10 +125,10 @@ rule all:
         filtering,                              # nanofilt on cutadapt files
         isONclust_pipeline,                     # cluster reads
         isONclust_cluster_fastq,                # clustering reads
-        guppy_aligner,                          # guppy
+        # guppy_aligner,                          # guppy
         minimap_aligner_from_filtering,         # minimap from filtering
         minimap_aligner_from_spoa,          # minimap from spoa clustering
-        vsearch_aligner,                       # vsearch
+        # vsearch_aligner,                       # vsearch
         id_reads,                              # id reads through python script
         IsoCon,                                # get consensus sequence
         spoa,                                  # partial order alignment
@@ -385,7 +387,7 @@ rule temp_spoa:
         cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
                               file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
-        temp_output = directory(config['results_folder'] + ".temp/spoa")
+        temp_output = temp(directory(config['results_folder'] + ".temp/spoa"))
     run:
         # make our temporary output folder
         os.mkdir(output.temp_output)
@@ -402,7 +404,6 @@ rule temp_spoa:
                 # run spoa on the current isOnclust file, putting output into the temp spoa file
                 with open(temp_output, 'w') as output_stream:
                     subprocess.run(["spoa", file, "-r", "0"], stdout=output_stream, universal_newlines=True)
-                # ["spoa", file, "-r", "0", ">", temp_output], stdout=PIPE, universal_newlines=True
 
 
 rule spoa:
@@ -410,15 +411,23 @@ rule spoa:
         rules.temp_spoa.output.temp_output
     output:
         config['results_folder'] + "spoa/consensus.sequences.fasta"
-    shell:
-        r"""
-            for file in {input}/*.fasta; do
-                top_line=">cluster_$(basename $file .fasta)"
-                sed -i '' -e "1s/.*/$top_line/" "$file"
-            done
-            cat {input}/*.fasta > {output}
-        """
+    run:
+        for file in os.listdir(str(input)):
+            # we do not want the `.snakemake_timestamp` file to be included in this
+            if ".snakemake_timestamp" not in file:
+                file_path = os.path.join(str(input), file)
 
+                # get file name without extension
+                file_basename = file.split(".")[0]
+
+                # overwrite first line in file with `>cluster_{file_basename}`
+                # read lines
+                file_lines = open(file_path, 'r').readlines()
+                # replace first line
+                file_lines[0] = f">cluster_{file_basename}\n"
+
+                # append new lines to the output file
+                open(str(output), 'a').writelines(file_lines)
 
 
 rule guppy_aligner:
@@ -483,7 +492,7 @@ rule minimap_aligner_from_spoa:
     input:
         rules.spoa.output[0]
     output:
-        config['results_folder'] + "alignment/minimap/consensus.minimap.sam"
+        config['results_folder'] + "alignment/minimap/spoa.minimap.sam"
     params:
         alignment_reference = config['data_folder'] + os.environ["alignment_name"]
     shell:
@@ -533,14 +542,6 @@ rule vsearch_aligner:
             command = f"vsearch --sintax {input}{item} --tabbedout {output_path} --db {params.alignment_reference} --quiet"
             with open(output_path, 'w') as output_stream:
                 subprocess.run(command.split(" "), stdout=output_stream, universal_newlines=True)
-#     shell:
-#         r"""
-#         vsearch \
-#         --sintax {input} \
-#         --tabbedout {output} \
-#         --db {params.alignment_reference} \
-#         --quiet
-#         """
 
 
 rule id_reads:
@@ -566,7 +567,7 @@ rule IsoCon:
     input:
         merged_filter_files = rules.merge_filtering_files.output[0]
     output:
-        directory(config['results_folder'] + "IsoCon/")
+        directory(config['results_folder'] + "isoCon/")
     shell:
         r"""
         IsoCon pipeline -fl_reads {input.merged_filter_files} -outfolder {output}
@@ -576,13 +577,11 @@ rule IsoCon:
 def count_reads_filtering_input(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output
     files = return_barcode_numbers(checkpoint_output[0])
-    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
-                  barcode=files)
-def count_reads_mapping_input(wildcards):
+    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq", barcode=files)
+def count_minimap_reads(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output
     files = return_barcode_numbers(checkpoint_output[0])
-    return expand(config['results_folder'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv",
-                  barcode=files)
+    return expand(config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam", barcode=files)
 rule count_reads_barcode:
     input:
         expand(rules.merge_files.output[0],
@@ -614,7 +613,7 @@ rule count_reads_filtering:
         "scripts/CountReads.py"
 rule count_reads_mapping:
     input:
-        count_reads_mapping_input
+        count_minimap_reads
     output:
         config['results_folder'] + "count_reads/count.reads.mapping.csv"
     params:
