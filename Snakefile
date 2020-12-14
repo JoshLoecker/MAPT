@@ -35,85 +35,85 @@ def barcode_merge_files(wildcards):
         if Path(full_path).is_dir():
             barcodes.add(folder)
 
-    return_merged_files = [config['results_folder'] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
+    return_merged_files = [config['results'] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
     return return_merged_files
 def nanoqc_basecall_data(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/nanoqc/basecall/"
+    return config['results'] + "visuals/nanoqc/basecall/"
 def nanoqc_barcode_classified(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/nanoqc/barcode/classified"
+    return config['results'] + "visuals/nanoqc/barcode/classified"
 def nanoqc_barcode_unclassified(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/nanoqc/barcode/unclassified"
+    return config['results'] + "visuals/nanoqc/barcode/unclassified"
 def cutadapt(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(
-        config['results_folder'] + "cutadapt/{barcode}.cutadapt.fastq",
+        config['results'] + "cutadapt/{barcode}.cutadapt.fastq",
         barcode=return_barcode_numbers(checkpoint_output))
 def filtering(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
+    return expand(config['results'] + "filter/{barcode}.filter.fastq",
                   barcode=return_barcode_numbers(checkpoint_output))
 def isONclust_pipeline(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "isONclust/pipeline/"
+    return config['results'] + "isONclust/pipeline/"
 def isONclust_cluster_fastq(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "isONclust/cluster_fastq/"
+    return config['results'] + "isONclust/cluster_fastq/"
 def IsoCon(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "IsoCon/"
+    return config['results'] + "isoCon/"
 def guppy_aligner(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(
-        config['results_folder'] + "alignment/guppy/sam_files/{barcode}.guppy.sam",
+        config['results'] + "alignment/guppy/sam_files/{barcode}.guppy.sam",
                barcode=return_barcode_numbers(checkpoint_output))
 def minimap_aligner_from_filtering(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(
-        config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
+        config['results'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
         barcode=return_barcode_numbers(checkpoint_output))
 def minimap_aligner_from_spoa(wildcards):
     #checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
-    return config['results_folder'] + "alignment/minimap/spoa.minimap.sam"
+    return config['results'] + "alignment/minimap/spoa.minimap.sam"
 def vsearch_aligner(wildcards):
     isOnclustComplete = rules.isONclustClusterFastq.output.rule_complete
-    return config['results_folder'] + "alignment/vsearch/"
+    return config['results'] + "alignment/vsearch/"
 def id_reads(wildcards):
     checkpoint_output = rules.isONclustClusterFastq.output.rule_complete
-    return [#config['results_folder'] + "id_reads/id_reads.tsv",
-            config['results_folder'] + "id_reads/mapped_seq_id.csv",
-            config['results_folder'] + "id_reads/minimap_output.csv",
-            config['results_folder'] + "id_reads/mapped_consensus.csv"]
+    return [#config['results'] + "id_reads/id_reads.tsv",
+            config['results'] + "id_reads/mapped_seq_id.csv",
+            config['results'] + "id_reads/minimap_output.csv",
+            config['results'] + "id_reads/mapped_consensus.csv"]
 def spoa(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "spoa/consensus.sequences.fasta"
+    return config['results'] + "spoa/consensus.sequences.fasta"
 def nanoplot_basecall(wildcards):
-    checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/nanoplot/basecall/"
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    return config['results'] + "visuals/nanoplot/basecall/"
 def nanoplot_barcode_classified(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/nanoplot/barcode/classified"
+    return config['results'] + "visuals/nanoplot/barcode/classified"
 def nanoplot_barcode_unclassified(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/nanoplot/barcode/unclassified"
+    return config['results'] + "visuals/nanoplot/barcode/unclassified"
 def plotly_histogram_barcode(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/plotly/histograms/plotly.barcode.histogram.html"
+    return config['results'] + "visuals/plotly/histograms/plotly.barcode.histogram.html"
 def plotly_histogram_cutadapt(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html"
+    return config['results'] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html"
 def plotly_histogram_filtering(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
+    return config['results'] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
 def plotly_histogram_mapping(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/plotly/histograms/plotly.mapping.histogram.html"
+    return config['results'] + "visuals/plotly/histograms/plotly.mapping.histogram.html"
 def plotly_box_whisker(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return config['results_folder'] + "visuals/plotly/plotly.box.whisker.html"
-FAST5_FILES = glob_wildcards(config['fast5_location'] + "{fast5_file}.fast5").fast5_file
+    return config['results'] + "visuals/plotly/plotly.box.whisker.html"
+FAST5_FILES = glob_wildcards(config['data'] + "fast5/" + "{fast5_file}.fast5").fast5_file
 
 rule all:
     input:
@@ -141,37 +141,40 @@ rule all:
         plotly_histogram_mapping,               # plotly mapping histogram
         plotly_box_whisker,                     # plotly box and whisker plot
 
+if config['basecall']:
+    checkpoint basecall:
+        input:
+            config['data'] + "fast5"
+        output:
+            output = directory(config['results'] + "basecall/")
+        params:
+            config = config['basecall_configuration'],
+            callers = os.environ["num_basecallers"],
+            threads_per_caller = os.environ["threads_per_caller"]
+        shell:
+            r"""
+            echo Basecalling           
+            
+            guppy_basecaller \
+            --config {params.config} \
+            --input_path {input} \
+            --save_path {output} \
+            --num_callers {params.callers} \
+            --cpu_threads_per_caller {params.threads_per_caller} \
+            --recursive
+            """
 
-checkpoint basecall:
-    input:
-        config['fast5_location']
-    output:
-        output = directory(config['results_folder'] + "basecall/")
-    params:
-        configuration = config["basecall_configuration"],
-        callers = os.environ["num_basecallers"],
-        threads_per_caller = os.environ["threads_per_caller"]
-    shell:
-        r"""
-        echo Basecalling
-        
-        guppy_basecaller \
-        --config {params.configuration} \
-        --input_path {input} \
-        --save_path {output} \
-        --num_callers {params.callers} \
-        --cpu_threads_per_caller {params.threads_per_caller} \
-        --recursive
-        """
-
-
-
+def barcode_input(wildcards):
+    if config['basecall']:
+        return rules.basecall.output[0]
+    else:
+        return config['data'] + "fastq"
 checkpoint barcode:
     input:
-        rules.basecall.output[0]
+        barcode_input
     output:
-        output_directory = temp(directory(config['results_folder'] + ".temp/barcodeTempOutput/")),
-        barcode_complete_file = config['results_folder'] + ".temp/barcodingDone"
+        output_directory = temp(directory(config['results'] + ".temp/barcodeTempOutput/")),
+        barcode_complete_file = config['results'] + ".temp/barcodingDone"
     params:
         barcode_kit = config['barcode_kit']
     shell:
@@ -186,15 +189,15 @@ checkpoint barcode:
         """
 
 def merge_files_input(wildcards):
-    return glob.glob(config['results_folder'] + f".temp/barcodeTempOutput/{wildcards.barcode}/*.fastq")
+    return glob.glob(config['results'] + f".temp/barcodeTempOutput/{wildcards.barcode}/*.fastq")
 rule merge_files:
     input:
         merge_files_input
     output:
-        config['results_folder'] + "barcode/{barcode}.merged.fastq"
+        config['results'] + "barcode/{barcode}.merged.fastq"
     params:
-        input_folder = config['results_folder'] + ".barcodeTempOutput",
-        save_folder = config['results_folder'] + "barcode"
+        input_folder = config['results'] + ".barcodeTempOutput",
+        save_folder = config['results'] + "barcode"
     shell:
         r"""
         for item in {input}; do
@@ -205,18 +208,19 @@ rule merge_files:
 
 def collate_basecall_fastq_files_input(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return glob.glob(config['results_folder'] + ".temp/barcodeTempOutput/**/*.fastq")
+    return glob.glob(config['results'] + "basecall/*.fastq")
 def create_classified_unclassified_input(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return glob.glob(config['results_folder'] + ".temp/barcodeTempOutput/**/*.fastq")
+    return glob.glob(config['results'] + ".temp/barcodeTempOutput/**/*.fastq")
 rule collate_basecall_fastq_files:
     input:
         collate_basecall_fastq_files_input
     output:
-        temp(config['results_folder'] + ".temp/basecall.temp.merged.files.fastq")
+        temp(config['results'] + ".temp/basecall.temp.merged.files.fastq")
     shell:
         r"""        
         # concatenate each file in the params directory to the output file
+        touch {output}
         for file in {input}; do
             cat "$file" >> {output}
         done
@@ -225,8 +229,8 @@ rule create_classified_unclassified_file:
     input:
         create_classified_unclassified_input
     output:
-        classified = temp(config['results_folder'] + ".temp/barcode.classified.merged.temp.fastq"),
-        unclassified = temp(config['results_folder'] + ".temp/barcode.unclassified.merged.temp.fastq")
+        classified = temp(config['results'] + ".temp/barcode.classified.merged.temp.fastq"),
+        unclassified = temp(config['results'] + ".temp/barcode.unclassified.merged.temp.fastq")
     shell:
         r"""
         for file in {input}; do
@@ -242,7 +246,7 @@ rule NanoQCBasecall:
     input:
         rules.collate_basecall_fastq_files.output[0]
     output:
-        directory(config['results_folder'] + "visuals/nanoqc/basecall/")
+        directory(config['results'] + "visuals/nanoqc/basecall/")
     shell:
         r"""
         nanoQC -o {output} {input}
@@ -252,8 +256,8 @@ rule NanoQCBarcode:
         classified = rules.create_classified_unclassified_file.output.classified,
         unclassified = rules.create_classified_unclassified_file.output.unclassified
     output:
-        classified = directory(config['results_folder'] + "visuals/nanoqc/barcode/classified"),
-        unclassified = directory(config['results_folder'] + "visuals/nanoqc/barcode/unclassified")
+        classified = directory(config['results'] + "visuals/nanoqc/barcode/classified"),
+        unclassified = directory(config['results'] + "visuals/nanoqc/barcode/unclassified")
     shell:
         r"""
         nanoQC -o {output.classified} {input.classified}
@@ -261,24 +265,26 @@ rule NanoQCBarcode:
         """
 
 
-
 rule NanoPlotBasecall:
     input:
         rules.collate_basecall_fastq_files.output[0]
     output:
-        directory(config['results_folder'] + "visuals/nanoplot/basecall/")
-    shell:
-        r"""
-        NanoPlot --fastq {input} -o {output}
-        """
+        directory(config['results'] + "visuals/nanoplot/basecall/")
+    run:
+        # if we are not basecalling, the input file will have 0 lines
+        # if this is the case, do nothing
+        if len(open(str(input)).readlines()) != 0:
+            subprocess.run(["NanoPlot", "--fastq", input, "-o", output])
+        else:
+            pass
 rule NanoPlotBarcode:
     input:
         classified = rules.create_classified_unclassified_file.output.classified,
         unclassified = rules.create_classified_unclassified_file.output.unclassified
 
     output:
-        classified = directory(config['results_folder'] + "visuals/nanoplot/barcode/classified"),
-        unclassified = directory(config['results_folder'] + "visuals/nanoplot/barcode/unclassified")
+        classified = directory(config['results'] + "visuals/nanoplot/barcode/classified"),
+        unclassified = directory(config['results'] + "visuals/nanoplot/barcode/unclassified")
     shell:
         r"""
         NanoPlot --fastq {input.classified} -o {output.classified}
@@ -290,7 +296,7 @@ rule cutadapt:
     input:
         rules.merge_files.output[0]
     output:
-        config['results_folder'] + "cutadapt/{barcode}.cutadapt.fastq"
+        config['results'] + "cutadapt/{barcode}.cutadapt.fastq"
     params:
         three_prime_adapter = config['trim_three_prime_adapter'],
         five_prime_adapter = config['trim_five_prime_adapter'],
@@ -314,7 +320,7 @@ rule filtering:
     input:
         rules.cutadapt.output[0]
     output:
-        barcode_files = config['results_folder'] + "filter/{barcode}.filter.fastq"
+        barcode_files = config['results'] + "filter/{barcode}.filter.fastq"
     params:
         min_length = config['filtering_min'],
         max_length = config['filtering_max'],
@@ -328,13 +334,13 @@ rule filtering:
 def merge_filtering_input(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output
     files = return_barcode_numbers(checkpoint_output[0])
-    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq",
+    return expand(config['results'] + "filter/{barcode}.filter.fastq",
                   barcode=files)
 rule merge_filtering_files:
     input:
         merge_filtering_input
     output:
-        config['results_folder'] + ".temp/merge.filtering.files.fastq"
+        config['results'] + ".temp/merge.filtering.files.fastq"
     shell:
         r"""
         for file in {input}; do
@@ -348,7 +354,7 @@ rule isOnClustPipeline:
     input:
         rules.merge_filtering_files.output[0]
     output:
-        directory(config['results_folder'] + "isONclust/pipeline/")
+        directory(config['results'] + "isONclust/pipeline/")
     shell:
         r"""
         # create a .tsv file
@@ -367,8 +373,8 @@ rule isONclustClusterFastq:
         pipeline_output = rules.isOnClustPipeline.output[0],
         merged_filtering_reads = rules.merge_filtering_files.output[0]
     output:
-        cluster_output = directory(config['results_folder'] + "isONclust/cluster_fastq/"),
-        rule_complete = config['results_folder'] + ".temp/isONclustClusterFastqComplete"
+        cluster_output = directory(config['results'] + "isONclust/cluster_fastq/"),
+        rule_complete = config['results'] + ".temp/isONclustClusterFastqComplete"
     shell:
         r"""
         isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv \
@@ -387,7 +393,7 @@ rule temp_spoa:
         cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
                               file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
-        temp_output = temp(directory(config['results_folder'] + ".temp/spoa"))
+        temp_output = temp(directory(config['results'] + ".temp/spoa"))
     run:
         # make our temporary output folder
         os.mkdir(output.temp_output)
@@ -410,7 +416,7 @@ rule spoa:
     input:
         rules.temp_spoa.output.temp_output
     output:
-        config['results_folder'] + "spoa/consensus.sequences.fasta"
+        config['results'] + "spoa/consensus.sequences.fasta"
     run:
         for file in os.listdir(str(input)):
             # we do not want the `.snakemake_timestamp` file to be included in this
@@ -434,13 +440,13 @@ rule guppy_aligner:
     input:
         rules.filtering.output[0]
     output:
-        sam_files = touch(config['results_folder'] + "alignment/guppy/sam_files/{barcode}.guppy.sam"),
-        alignment_summary = touch(config['results_folder'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv"),
-        log_file = touch(config['results_folder'] + "alignment/guppy/logs/{barcode}.guppy.log"),
+        sam_files = touch(config['results'] + "alignment/guppy/sam_files/{barcode}.guppy.sam"),
+        alignment_summary = touch(config['results'] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv"),
+        log_file = touch(config['results'] + "alignment/guppy/logs/{barcode}.guppy.log"),
     params:
         barcode = "{barcode}",
-        temp_dir = config['results_folder'] + ".temp/guppy",
-        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
+        temp_dir = config['results'] + ".temp/guppy",
+        alignment_reference = config['data'] + os.environ["alignment_name"]
     shell:
         r"""
         # move input files to our temp folder
@@ -477,9 +483,9 @@ rule minimap_aligner_from_filtering:
     input:
         rules.filtering.output[0]
     output:
-        config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
+        config['results'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
+        alignment_reference = config['data'] + os.environ["alignment_name"]
     shell:
         r"""
         touch {output}
@@ -492,9 +498,9 @@ rule minimap_aligner_from_spoa:
     input:
         rules.spoa.output[0]
     output:
-        config['results_folder'] + "alignment/minimap/spoa.minimap.sam"
+        config['results'] + "alignment/minimap/spoa.minimap.sam"
     params:
-        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
+        alignment_reference = config['data'] + os.environ["alignment_name"]
     shell:
         r"""
         touch {output}
@@ -513,7 +519,7 @@ rule fq2fa:
         cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
                               file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
-        temp(directory(config['results_folder'] + ".temp/vsearch/"))
+        temp(directory(config['results'] + ".temp/vsearch/"))
     run:
         for item in input.cluster_data:
             file_name = os.path.basename(item)
@@ -524,9 +530,9 @@ rule vsearch_aligner:
     input:
         rules.fq2fa.output
     output:
-        directory(config['results_folder'] + "alignment/vsearch/")
+        directory(config['results'] + "alignment/vsearch/")
     params:
-        alignment_reference = config['data_folder'] + os.environ["alignment_name"]
+        alignment_reference = config['data'] + os.environ["alignment_name"]
     run:
         # {file}.fastq
         # vsearch.{file_number}.tsv
@@ -536,7 +542,7 @@ rule vsearch_aligner:
             file_number = file_number.split(".")[0]
 
             # make our output path
-            output_path = config['results_folder'] + f"alignment/vsearch/vsearch.{file_number}.tsv"
+            output_path = config['results'] + f"alignment/vsearch/vsearch.{file_number}.tsv"
 
             # call vsearch
             command = f"vsearch --sintax {input}{item} --tabbedout {output_path} --db {params.alignment_reference} --quiet"
@@ -547,17 +553,17 @@ rule vsearch_aligner:
 rule id_reads:
     input:
         filtering = expand(rules.filtering.output[0],
-                           barcode=glob_wildcards(config['results_folder'] + "filter/{barcode}.filter.fastq").barcode),
+                           barcode=glob_wildcards(config['results'] + "filter/{barcode}.filter.fastq").barcode),
         clustering = rules.isOnClustPipeline.output[0],
         minimap = rules.minimap_aligner_from_spoa.output[0]
     output:
-        #id_reads_tsc = config['results_folder'] + "id_reads/id_reads.tsv",
-        mapped_seq_id_csv = config['results_folder'] + "id_reads/mapped_seq_id.csv",
-        minimap_output = config['results_folder'] + "id_reads/minimap_output.csv",
-        mapped_consensus_csv = config['results_folder'] + "id_reads/mapped_consensus.csv"
+        #id_reads_tsc = config['results'] + "id_reads/id_reads.tsv",
+        mapped_seq_id_csv = config['results'] + "id_reads/mapped_seq_id.csv",
+        minimap_output = config['results'] + "id_reads/minimap_output.csv",
+        mapped_consensus_csv = config['results'] + "id_reads/mapped_consensus.csv"
 
     params:
-        results_folder = config['results_folder']
+        results_folder = config['results']
     script:
         "scripts/id_reads.py"
 
@@ -567,7 +573,7 @@ rule IsoCon:
     input:
         merged_filter_files = rules.merge_filtering_files.output[0]
     output:
-        directory(config['results_folder'] + "isoCon/")
+        directory(config['results'] + "isoCon/")
     shell:
         r"""
         IsoCon pipeline -fl_reads {input.merged_filter_files} -outfolder {output}
@@ -577,17 +583,17 @@ rule IsoCon:
 def count_reads_filtering_input(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output
     files = return_barcode_numbers(checkpoint_output[0])
-    return expand(config['results_folder'] + "filter/{barcode}.filter.fastq", barcode=files)
+    return expand(config['results'] + "filter/{barcode}.filter.fastq", barcode=files)
 def count_minimap_reads(wildcards):
     checkpoint_output = checkpoints.barcode.get(**wildcards).output
     files = return_barcode_numbers(checkpoint_output[0])
-    return expand(config['results_folder'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam", barcode=files)
+    return expand(config['results'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam", barcode=files)
 rule count_reads_barcode:
     input:
         expand(rules.merge_files.output[0],
-               barcode=glob_wildcards(config['results_folder'] + "barcode/{barcode}.merged.fastq").barcode)
+               barcode=glob_wildcards(config['results'] + "barcode/{barcode}.merged.fastq").barcode)
     output:
-        config['results_folder'] + "count_reads/count.reads.barcode.csv"
+        config['results'] + "count_reads/count.reads.barcode.csv"
     params:
         process = "barcode"
     script:
@@ -595,9 +601,9 @@ rule count_reads_barcode:
 rule count_reads_cutadapt:
     input:
         expand(rules.cutadapt.output[0],
-               barcode=glob_wildcards(config['results_folder'] + "cutadapt/{barcode}.cutadapt.fastq").barcode)
+               barcode=glob_wildcards(config['results'] + "cutadapt/{barcode}.cutadapt.fastq").barcode)
     output:
-        config['results_folder'] + "count_reads/count.reads.cutadapt.csv"
+        config['results'] + "count_reads/count.reads.cutadapt.csv"
     params:
         process = "cutadapt"
     script:
@@ -606,7 +612,7 @@ rule count_reads_filtering:
     input:
         count_reads_filtering_input
     output:
-        config['results_folder'] + "count_reads/count.reads.filter.csv"
+        config['results'] + "count_reads/count.reads.filter.csv"
     params:
         process = "filtering"
     script:
@@ -615,7 +621,7 @@ rule count_reads_mapping:
     input:
         count_minimap_reads
     output:
-        config['results_folder'] + "count_reads/count.reads.mapping.csv"
+        config['results'] + "count_reads/count.reads.mapping.csv"
     params:
         process = "mapping"
     script:
@@ -627,7 +633,7 @@ rule plotly_barcode_histogram:
     input:
         rules.count_reads_barcode.output[0]
     output:
-        config['results_folder'] + "visuals/plotly/histograms/plotly.barcode.histogram.html"
+        config['results'] + "visuals/plotly/histograms/plotly.barcode.histogram.html"
     params:
         sub_title = "Performed after Merging Files"
     script:
@@ -636,7 +642,7 @@ rule plotly_cutadapt_histogram:
     input:
         rules.count_reads_cutadapt.output[0]
     output:
-        config['results_folder'] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html"
+        config['results'] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html"
     params:
         sub_title = "Performed after Cutadapt",
     script:
@@ -645,7 +651,7 @@ rule plotly_filtering_histogram:
     input:
         rules.count_reads_filtering.output[0]
     output:
-        config['results_folder'] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
+        config['results'] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
     params:
         sub_title = "Performed after Filtering",
     script:
@@ -654,7 +660,7 @@ rule plotly_mapping_histogram:
     input:
         rules.count_reads_mapping.output[0]
     output:
-        config['results_folder'] + "visuals/plotly/histograms/plotly.mapping.histogram.html"
+        config['results'] + "visuals/plotly/histograms/plotly.mapping.histogram.html"
     params:
         sub_title = "Performed after Mapping"
     script:
@@ -666,7 +672,7 @@ rule plotly_box_whisker_generation:
         rules.count_reads_filtering.output[0],
         rules.count_reads_mapping.output[0]
     output:
-        config['results_folder'] + "visuals/plotly/plotly.box.whisker.html"
+        config['results'] + "visuals/plotly/plotly.box.whisker.html"
     script:
         "scripts/PlotlyBoxWhisker.py"
 

@@ -2,9 +2,10 @@ FROM continuumio/miniconda3
 MAINTAINER joshua.loecker@usda.gov
 ARG VERSION_NUMBER=4.2.2
 
-ENV alignment_name=''
+ENV alignment_path=''
 ENV num_basecallers=''
 ENV threads_per_caller=''
+ENV perform_basecall=True
 # ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
 
 # Remove after docker is good to go
@@ -58,6 +59,6 @@ RUN /bin/bash -c  "source activate pipeline" && \
 
 # start our conda environment `pipeline`, and call `snakemake`
 # adding `-n` or `--dry-run` after calling docker run joshloecker/pipeline will perform a dry-run of the pipeline
-CMD ["conda", "run", "--name", "pipeline", "--cwd", "/workflow", "snakemake", "-j", "all"]
+CMD ["conda", "run", "--name", "pipeline", "--cwd", "/workflow", "snakemake", "-j", "all", "--config", "perform_basecall=$perform_basecall"]
 VOLUME /results
 VOLUME /data

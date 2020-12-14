@@ -1,11 +1,9 @@
-# set the location where you would like all results to be saved
-results_folder: /results/
+# 1) This is where results will be saved. In docker, it is mapped to the host folder
+# 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
+results: results/
+data: data/
 
-# This is the location of the `data` folder. It contains items such as the fast5 files, alignment files, etc.
-data_folder: /data/
-
-# set the location of the input fast5 files
-fast5_location: /data/fast5
+basecall: True
 
 # set this variable to the configuration name you would like to use with basecalling
 # additionally, set the number of callers and threads per caller to use with basecalling

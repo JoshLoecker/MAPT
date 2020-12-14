@@ -26,13 +26,15 @@ Your `data` folder structure may look as follows:
 home
 | -- Rob
     | -- Projects
+        | -- alignment_files
+            | -- silva_alignment_file.fasta
+            | -- another_alignment_file.fasta
         | -- run_1
             | -- data
                 | -- fast5
                     | -- file_1.fast5
                     | -- file_2.fast5
                     | -- file_3.fast5
-                | -- silva_alignment_file.fasta
                 | -- some_other_file.txt
             | -- results
 ```
@@ -43,13 +45,16 @@ Change this to values that make sense for your workflow
 
     results="/home/Rob/Projects/run_1/results"
     data="/home/Rob/Projects/run_1/data/"
-    alignment_name="silva_alignment_file.fasta"
+    alignment_path="/home/Rob/Projects/alignment_files/silva_alignment_file.fasta"
     num_basecallers=3
     threads_per_caller=5
+    perform_basecall=True
 
    The multiplication of `basecall_callers` and `threads_per_caller` should be
    very close to the number cores/threads you have on your machine, or reserved
-   on a cluster
+   on a cluster.  
+   If you do not have fast5 files (i.e. no need for basecalling),
+   set the `perform_basecall` option to `False`.
   
    
 ### <ins>Singularty</ins>
@@ -68,7 +73,7 @@ not yet running
     singularity create \
     --bind "${results}":/results/ \
     --bind "${data}":/data_files/ \
-    --env alignment_name="${alignment_name}" \
+    --env alignment_path="${alignment_path}" \
     --env num_basecallers=${num_basecallers} \
     --env threads_per_caller=${threads_per_caller} \ 
     joshloecker/pipeline:latest
@@ -101,7 +106,7 @@ and pasted, assuming the previous step has been completed
     --name=pipeline \
     --mount type=bind,source="${results}",target=/results \
     --mount type=bind,source="${data}",target=/data \
-    -e alignment_name="${alignment_name}" \
+    -e alignment_path="${alignment_path}" \
     -e num_basecallers=${num_basecallers} \
     -e threads_per_caller=${threads_per_caller} \
     joshloecker/pipeline:latest
