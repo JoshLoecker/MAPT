@@ -1,7 +1,7 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-results: results/
-data: data/
+results: /results/
+data: /data/
 
 basecall: True
 
@@ -20,5 +20,6 @@ trim_five_prime_adapter: TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
 # set the match rate for vsearch
 vsearch_match_rate: 0.90
 
+# Minimum and maximum filtering length to be used
 filtering_min: 1000
 filtering_max: 2000

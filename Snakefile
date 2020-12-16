@@ -7,10 +7,19 @@ from pprint import pprint
 
 configfile: "config.yaml"
 
+# these environment variables are required by this pipeline
 envvars:
-    "alignment_name",
+    "alignment_path",
     "num_basecallers",
-    "threads_per_caller"
+    "threads_per_caller",
+    "basecall_configuration",
+    "barcode_kit",
+    "cutadapt_trim_error_rate",
+    "cutadapt_trim_three_prime_adapter",
+    "cutadapt_trim_five_prime_adapter",
+    "nanofilt_filtering_min",
+    "nanofilt_filtering_max"
+
 
 def return_barcode_numbers(path: str):
     """
@@ -28,48 +37,52 @@ def return_barcode_numbers(path: str):
             barcode_numbers.add(item)
     return barcode_numbers
 def barcode_merge_files(wildcards):
-    barcode_checkpoint = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     barcodes = set()  # a set is like a list but only stores unique values
-    for folder in os.listdir(barcode_checkpoint):
-        full_path = os.path.join(barcode_checkpoint, folder)
+    for folder in os.listdir(checkpoint_output):
+        full_path = os.path.join(checkpoint_output, folder)
         if Path(full_path).is_dir():
             barcodes.add(folder)
 
     return_merged_files = [config['results'] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
     return return_merged_files
 def nanoqc_basecall_data(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/nanoqc/basecall/"
 def nanoqc_barcode_classified(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/nanoqc/barcode/classified"
 def nanoqc_barcode_unclassified(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/nanoqc/barcode/unclassified"
 def cutadapt(wildcards):
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(
         config['results'] + "cutadapt/{barcode}.cutadapt.fastq",
         barcode=return_barcode_numbers(checkpoint_output))
 def filtering(wildcards):
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(config['results'] + "filter/{barcode}.filter.fastq",
                   barcode=return_barcode_numbers(checkpoint_output))
 def isONclust_pipeline(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "isONclust/pipeline/"
 def isONclust_cluster_fastq(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "isONclust/cluster_fastq/"
 def IsoCon(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "isoCon/"
 def guppy_aligner(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return expand(
         config['results'] + "alignment/guppy/sam_files/{barcode}.guppy.sam",
                barcode=return_barcode_numbers(checkpoint_output))
 def minimap_aligner_from_filtering(wildcards):
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     return expand(
         config['results'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
@@ -87,31 +100,31 @@ def id_reads(wildcards):
             config['results'] + "id_reads/minimap_output.csv",
             config['results'] + "id_reads/mapped_consensus.csv"]
 def spoa(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "spoa/consensus.sequences.fasta"
 def nanoplot_basecall(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/nanoplot/basecall/"
 def nanoplot_barcode_classified(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/nanoplot/barcode/classified"
 def nanoplot_barcode_unclassified(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/nanoplot/barcode/unclassified"
 def plotly_histogram_barcode(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/plotly/histograms/plotly.barcode.histogram.html"
 def plotly_histogram_cutadapt(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html"
 def plotly_histogram_filtering(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
 def plotly_histogram_mapping(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/plotly/histograms/plotly.mapping.histogram.html"
 def plotly_box_whisker(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config['results'] + "visuals/plotly/plotly.box.whisker.html"
 FAST5_FILES = glob_wildcards(config['data'] + "fast5/" + "{fast5_file}.fast5").fast5_file
 
@@ -148,7 +161,7 @@ if config['basecall']:
         output:
             output = directory(config['results'] + "basecall/")
         params:
-            config = config['basecall_configuration'],
+            config = os.environ['basecall_configuration'],
             callers = os.environ["num_basecallers"],
             threads_per_caller = os.environ["threads_per_caller"]
         shell:
@@ -176,7 +189,7 @@ checkpoint barcode:
         output_directory = temp(directory(config['results'] + ".temp/barcodeTempOutput/")),
         barcode_complete_file = config['results'] + ".temp/barcodingDone"
     params:
-        barcode_kit = config['barcode_kit']
+        barcode_kit = os.environ['barcode_kit']
     shell:
         r"""
         guppy_barcoder \
@@ -207,10 +220,10 @@ rule merge_files:
 
 
 def collate_basecall_fastq_files_input(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return glob.glob(config['results'] + "basecall/*.fastq")
 def create_classified_unclassified_input(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return glob.glob(config['results'] + ".temp/barcodeTempOutput/**/*.fastq")
 rule collate_basecall_fastq_files:
     input:
@@ -296,11 +309,12 @@ rule cutadapt:
     input:
         rules.merge_files.output[0]
     output:
-        config['results'] + "cutadapt/{barcode}.cutadapt.fastq"
+        cutadapt_file = config['results'] + "cutadapt/{barcode}.cutadapt.fastq"
     params:
-        three_prime_adapter = config['trim_three_prime_adapter'],
-        five_prime_adapter = config['trim_five_prime_adapter'],
-        error_rate = config['trim_error_rate']
+        three_prime_adapter = os.environ['cutadapt_trim_three_prime_adapter'],
+        five_prime_adapter = os.environ['cutadapt_trim_five_prime_adapter'],
+        error_rate = os.environ['cutadapt_trim_error_rate']
+
     shell:
         r"""
         cutadapt \
@@ -313,7 +327,16 @@ rule cutadapt:
         --output {output} \
         {input}
         """
-
+rule cutadaptDone:
+    input:
+        expand(rules.cutadapt.output, barcode=glob_wildcards(config['results'] + ".temp/barcodeTempOutput/{barcode}/*.fastq").barcode)
+    output:
+        touch(config['results'] + ".temp/cutadaptDone")
+    shell:
+        """
+        # this is to ensure cutadapt is done before continuing.
+        # Attempting to use cutadapt with a checkpoint results in the inability to fill the wildcard `barcode`
+        """
 
 
 rule filtering:
@@ -322,8 +345,8 @@ rule filtering:
     output:
         barcode_files = config['results'] + "filter/{barcode}.filter.fastq"
     params:
-        min_length = config['filtering_min'],
-        max_length = config['filtering_max'],
+        min_length = os.environ['nanofilt_filtering_min'],
+        max_length = os.environ['nanofilt_filtering_max'],
     shell:
         r"""
         touch {output}
@@ -332,8 +355,9 @@ rule filtering:
 
 
 def merge_filtering_input(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output
-    files = return_barcode_numbers(checkpoint_output[0])
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    files = return_barcode_numbers(checkpoint_output)
     return expand(config['results'] + "filter/{barcode}.filter.fastq",
                   barcode=files)
 rule merge_filtering_files:
@@ -446,7 +470,7 @@ rule guppy_aligner:
     params:
         barcode = "{barcode}",
         temp_dir = config['results'] + ".temp/guppy",
-        alignment_reference = config['data'] + os.environ["alignment_name"]
+        alignment_reference = os.environ["alignment_path"]
     shell:
         r"""
         # move input files to our temp folder
@@ -485,7 +509,7 @@ rule minimap_aligner_from_filtering:
     output:
         config['results'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference = config['data'] + os.environ["alignment_name"]
+        alignment_reference = os.environ["alignment_path"]
     shell:
         r"""
         touch {output}
@@ -500,7 +524,7 @@ rule minimap_aligner_from_spoa:
     output:
         config['results'] + "alignment/minimap/spoa.minimap.sam"
     params:
-        alignment_reference = config['data'] + os.environ["alignment_name"]
+        alignment_reference = os.environ["alignment_path"]
     shell:
         r"""
         touch {output}
@@ -532,7 +556,7 @@ rule vsearch_aligner:
     output:
         directory(config['results'] + "alignment/vsearch/")
     params:
-        alignment_reference = config['data'] + os.environ["alignment_name"]
+        alignment_reference = os.environ["alignment_path"]
     run:
         # {file}.fastq
         # vsearch.{file_number}.tsv
@@ -579,19 +603,30 @@ rule IsoCon:
         IsoCon pipeline -fl_reads {input.merged_filter_files} -outfolder {output}
         """
 
-
+def count_reads_barcode_input(wildcards):
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    files = return_barcode_numbers(checkpoint_output)
+    merged_barcode_files = expand(rules.merge_files.output, barcode=files)
+    return merged_barcode_files
+def count_reads_cutadapt_input(wildcards):
+    cutadapt_done = rules.cutadaptDone.output[0]
+    cutadapt_output = rules.cutadapt.output[0]
+    barcode_numbers = return_barcode_numbers(checkpoints.barcode.get(**wildcards).output[0])
+    return expand(cutadapt_output, barcode=barcode_numbers)
 def count_reads_filtering_input(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output
-    files = return_barcode_numbers(checkpoint_output[0])
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    files = return_barcode_numbers(checkpoint_output)
     return expand(config['results'] + "filter/{barcode}.filter.fastq", barcode=files)
 def count_minimap_reads(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output
-    files = return_barcode_numbers(checkpoint_output[0])
+    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    files = return_barcode_numbers(checkpoint_output)
     return expand(config['results'] + "alignment/minimap/from_filtering/{barcode}.minimap.sam", barcode=files)
 rule count_reads_barcode:
     input:
-        expand(rules.merge_files.output[0],
-               barcode=glob_wildcards(config['results'] + "barcode/{barcode}.merged.fastq").barcode)
+        count_reads_barcode_input
     output:
         config['results'] + "count_reads/count.reads.barcode.csv"
     params:
@@ -600,8 +635,7 @@ rule count_reads_barcode:
         "scripts/CountReads.py"
 rule count_reads_cutadapt:
     input:
-        expand(rules.cutadapt.output[0],
-               barcode=glob_wildcards(config['results'] + "cutadapt/{barcode}.cutadapt.fastq").barcode)
+        count_reads_cutadapt_input
     output:
         config['results'] + "count_reads/count.reads.cutadapt.csv"
     params:

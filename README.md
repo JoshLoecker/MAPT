@@ -26,6 +26,7 @@ Your `data` folder structure may look as follows:
 home
 | -- Rob
     | -- Projects
+        | -- cache_dir
         | -- alignment_files
             | -- silva_alignment_file.fasta
             | -- another_alignment_file.fasta
@@ -43,12 +44,21 @@ home
 Set up a few variables in the terminal, using the above structure as an example 
 Change this to values that make sense for your workflow
 
+    cache_dir="/home/Rob/Projects/cache_dir"
     results="/home/Rob/Projects/run_1/results"
     data="/home/Rob/Projects/run_1/data/"
     alignment_path="/home/Rob/Projects/alignment_files/silva_alignment_file.fasta"
     num_basecallers=3
     threads_per_caller=5
-    perform_basecall=True
+    basecall=True  # True or False, should basecalling be done?
+    basecall_configuration=""
+    barcode_kit=""
+    cutadapt_trim_error_rate=0.15  # default value of 0.15
+    cutadapt_trim_three_prime_adapter=""
+    cutadapt_trim_five_prime_adapter=""
+    nanofilt_filtering_min=1000  # default value of 1000
+    nanofilt_filtering_max=2000  # default value of 2000
+    
 
    The multiplication of `basecall_callers` and `threads_per_caller` should be
    very close to the number cores/threads you have on your machine, or reserved
@@ -70,18 +80,27 @@ Singularity is already installed on most clusters, such as SciNET
 can safely be copied and pasted. This will download the container, but it is
 not yet running
     ```
-    singularity create \
-    --bind "${results}":/results/ \
-    --bind "${data}":/data_files/ \
-    --env alignment_path="${alignment_path}" \
-    --env num_basecallers=${num_basecallers} \
-    --env threads_per_caller=${threads_per_caller} \ 
-    joshloecker/pipeline:latest
+    singularity run \
+    --bind $results:/results \
+    --bind $data:/data \
+    --bind $cache_dir /home/$USER/.cache \
+    --env alignment_path=$alignment_path \
+    --env num_basecallers=$num_basecallers \
+    --env threads_per_caller=$threads_per_caller \
+    --env basecall_configuration=$basecall_configuration \
+    --env barcode_kit=$barcode_kit \
+    --env cutadapt_trim_error_rate=$cutadapt_trim_error \
+    --env cutadapt_trim_three_prime_adapter=$cutadapt_trim_three_prime_adapter \
+    --env cutadapt_trim_five_prime_adapter=$cutadapt_trim_five_prime_adapter \
+    --env nanofilt_filtering_min=$nanofilt_filtering_min \
+    --env nanofilt_filtering_max=$nanofilt_filtering_max \
+    --env basecall=$basecall \
+    docker://joshloecker/pipeline:latest
 	```
 
 5. To run the container, perform the following
    ```
-   singularity run pipeline
+   singularity run joshloecker/pipeline
    ```
    
 6. If you would like to see a dry-run of the pipeline, append `--dry-run`
@@ -104,11 +123,19 @@ and pasted, assuming the previous step has been completed
     ```
     docker create \
     --name=pipeline \
-    --mount type=bind,source="${results}",target=/results \
-    --mount type=bind,source="${data}",target=/data \
-    -e alignment_path="${alignment_path}" \
-    -e num_basecallers=${num_basecallers} \
-    -e threads_per_caller=${threads_per_caller} \
+    --mount type=bind,source=$results,target=/results \
+    --mount type=bind,source=$data,target=/data \
+    --env alignment_path=$alignment_path \
+    --env num_basecallers=$num_basecallers \
+    --env threads_per_caller=$threads_per_caller \
+    --env basecall_configuration=$basecall_configuration \
+    --env barcode_kit=$barcode_kit \
+    --env cutadapt_trim_error_rate=$cutadapt_trim_error \
+    --env cutadapt_trim_three_prime_adapter=$cutadapt_trim_three_prime_adapter \
+    --env cutadapt_trim_five_prime_adapter=$cutadapt_trim_five_prime_adapter \
+    --env nanofilt_filtering_min=$nanofilt_filtering_min \
+    --env nanofilt_filtering_max=$nanofilt_filtering_max \
+    --env basecall=$basecall \
     joshloecker/pipeline:latest
     ```
 This will only download the container
