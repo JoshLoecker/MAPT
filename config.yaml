@@ -2,7 +2,6 @@
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
 results: /results/
 data: /data/
-
 basecall: True
 
 # set this variable to the configuration name you would like to use with basecalling
