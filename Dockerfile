@@ -4,11 +4,10 @@ ARG VERSION_NUMBER=4.2.2
 
 ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
 
+# Unpack guppy and link so it can be used anywhere in container
 RUN tar -xf guppy.tar.gz && \
     rm guppy.tar.gz && \
-    mv ont-guppy /guppy && \
-    conda env create --file /workflow/environment.yml && \
-    # link guppy to docker environment so it can be called anywhere
+    mv ont-guppy* /guppy && \
     ln -s /guppy/bin/guppy_aligner /usr/local/bin/guppy_aligner && \
     ln -s /guppy/bin/guppy_barcoder /usr/local/bin/guppy_barcoder && \
     ln -s /guppy/bin/guppy_basecall_server /usr/local/bin/guppy_basecall_server && \
@@ -22,6 +21,8 @@ RUN apt update && \
     # clone parasail (required by IsoCon) and the pipeline
     git clone https://github.com/jeffdaily/parasail-python /parasail && \
     git clone --branch master https://github.com/JoshLoecker/pipeline workflow && \
+    # set up conda environment
+    conda env create --file /workflow/environment.yml && \
     # remove unneeded apt files to reduce image size
     apt --yes purge git && \
     apt --yes autoremove && \
