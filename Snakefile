@@ -74,7 +74,6 @@ def minimap_aligner_from_filtering(wildcards):
         config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
         barcode=return_barcode_numbers(checkpoint_output))
 def minimap_aligner_from_spoa(wildcards):
-    #checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
     return config["results"] + "alignment/minimap/spoa.minimap.sam"
 def vsearch_aligner(wildcards):
     isOnclustComplete = rules.isONclustClusterFastq.output.rule_complete
@@ -128,7 +127,7 @@ rule all:
         isONclust_cluster_fastq,# clustering reads
         # guppy_aligner,                          # guppy
         minimap_aligner_from_filtering,# minimap from filtering
-        minimap_aligner_from_spoa,# minimap from spoa clustering
+        config["results"] + "alignment/minimap/spoa.minimap.sam", # minimap_aligner_from_spoa,# minimap from spoa clustering
         # vsearch_aligner,                       # vsearch
         id_reads,# id reads through python script
         IsoCon,# get consensus sequence
@@ -281,7 +280,7 @@ rule NanoPlotBasecall:
         # if we are not basecalling, the input file will have 0 lines
         # if this is the case, do nothing
         if len(open(str(input)).readlines()) != 0:
-            subprocess.run(["NanoPlot", "--fastq", input, "-o", output])
+            subprocess.run(["NanoPlot", "--fastq", str(input), "-o", str(output)])
         else:
             pass
 
@@ -407,6 +406,16 @@ rule isONclustClusterFastq:
         touch {output.rule_complete}
         """
 
+
+rule remove_low_reads:
+    input:
+        complete_rule = rules.isONclustClusterFastq.output.rule_complete,
+        cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
+            file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
+    output:
+        config['results'] + ".temp/RemoveLowClustersDone"
+    script:
+        "scripts/additionalScripts/RemoveLowClusters.py"
 
 rule temp_spoa:
     input:
