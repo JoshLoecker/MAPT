@@ -5,6 +5,7 @@ import glob
 from multiprocessing import cpu_count
 from pprint import pprint
 import shutil
+import pandas as pd
 
 configfile: "config.yaml"
 
@@ -131,6 +132,10 @@ rule all:
         minimap_aligner_from_spoa,# minimap from spoa clustering
         # vsearch_aligner,                       # vsearch
         id_reads,# id reads through python script
+        config["results"] + "id_reads/filterIDReads/withinDivergence.csv",  # filter id_reads that are inside divergence
+        config["results"] + "id_reads/filterIDReads/outsideDivergence.csv",  # filter id_reads that are outside divergence
+        config["results"] + "id_reads/OTU/withinDivergence.csv",  # create OTU table of values within divergence
+        config["results"] + "id_reads/OTU/outsideDivergence.csv",  # create OTU table of values outside divergence
         IsoCon,# get consensus sequence
         config["results"] + ".temp/RemoveLowClustersDone",  # remove clusters with low reads
         spoa, # partial order alignment
@@ -612,6 +617,29 @@ rule id_reads:
         results_folder=config["results"]
     script:
         "scripts/id_reads.py"
+
+
+rule filter_id_reads_mapped_sequence:
+    input:
+        csv = rules.id_reads.output.mapped_seq_id_csv
+    output:
+        within_divergence = config["results"] + "id_reads/filterIDReads/withinDivergence.csv",
+        outside_divergence = config["results"] + "id_reads/filterIDReads/outsideDivergence.csv"
+    run:
+        data_frame = pd.read_csv(input.csv, )
+        pprint(data_frame)
+        exit(0)
+
+
+rule otu_from_filter_id_reads:
+    input:
+        within_divergence = rules.filter_id_reads_mapped_sequence.output.within_divergence,
+        outside_divergence = rules.filter_id_reads_mapped_sequence.output.outside_divergence
+    output:
+        within_divergence = config["results"] + "id_reads/OTU/withinDivergence.csv",
+        outside_divergence = config["results"] + "id_reads/OTU/outsideDivergence.csv"
+    run:
+        pass
 
 
 rule IsoCon:
