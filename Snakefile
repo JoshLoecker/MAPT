@@ -4,6 +4,7 @@ from pathlib import Path
 import glob
 from multiprocessing import cpu_count
 from pprint import pprint
+import shutil
 
 configfile: "config.yaml"
 
@@ -74,7 +75,7 @@ def minimap_aligner_from_filtering(wildcards):
         config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
         barcode=return_barcode_numbers(checkpoint_output))
 def minimap_aligner_from_spoa(wildcards):
-    return config["results"] + "alignment/minimap/spoa.minimap.sam"
+    return config["results"] + "alignment/minimap/from_spoa/spoa.minimap.sam"
 def vsearch_aligner(wildcards):
     isOnclustComplete = rules.isONclustClusterFastq.output.rule_complete
     return config["results"] + "alignment/vsearch/"
@@ -127,11 +128,12 @@ rule all:
         isONclust_cluster_fastq,# clustering reads
         # guppy_aligner,                          # guppy
         minimap_aligner_from_filtering,# minimap from filtering
-        config["results"] + "alignment/minimap/spoa.minimap.sam", # minimap_aligner_from_spoa,# minimap from spoa clustering
+        minimap_aligner_from_spoa,# minimap from spoa clustering
         # vsearch_aligner,                       # vsearch
         id_reads,# id reads through python script
         IsoCon,# get consensus sequence
-        spoa,# partial order alignment
+        config["results"] + ".temp/RemoveLowClustersDone",  # remove clusters with low reads
+        spoa, # partial order alignment
         nanoplot_basecall,# nanoplot for basecall files
         nanoplot_barcode_classified,# nanoplot for classified barcode files
         nanoplot_barcode_unclassified,# nanoplot for unclassified barcode files
@@ -409,17 +411,30 @@ rule isONclustClusterFastq:
 
 rule remove_low_reads:
     input:
-        complete_rule = rules.isONclustClusterFastq.output.rule_complete,
+        previous_rule_complete = rules.isONclustClusterFastq.output.rule_complete,
         cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
             file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
-        config['results'] + ".temp/RemoveLowClustersDone"
-    script:
-        "scripts/additionalScripts/RemoveLowClusters.py"
+        rule_complete = touch(config["results"] + ".temp/RemoveLowClustersDone")
+    params:
+        cluster_cutoff = config["cluster_cutoff"],
+        output_folder = config["results"] + "TooFewReadsInCluster"
+    run:
+        os.makedirs(params.output_folder)
+        for file in input.cluster_data:
+            file_path = os.path.join(str(rules.isONclustClusterFastq.output.cluster_output), file)
+            lines_in_file = open(file_path, 'r').readlines()
+            count_lines_in_file = len(lines_in_file)
+            count_reads_in_file = count_lines_in_file / 4
+
+            # keep files that are equal to OR GREATER than the cutoff
+            if count_reads_in_file < params.cluster_cutoff:
+                shutil.move(src=file_path, dst=str(params.output_folder))
+
 
 rule temp_spoa:
     input:
-        complete_rule=rules.isONclustClusterFastq.output.rule_complete,
+        complete_rule=rules.remove_low_reads.output.rule_complete,
         cluster_data=expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
             file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
@@ -529,7 +544,7 @@ rule minimap_aligner_from_spoa:
     input:
         rules.spoa.output[0]
     output:
-        config["results"] + "alignment/minimap/spoa.minimap.sam"
+        config["results"] + "alignment/minimap/from_spoa/spoa.minimap.sam"
     params:
         alignment_reference=config["alignment_path"]
     shell:

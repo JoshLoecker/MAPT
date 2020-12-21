@@ -51,6 +51,7 @@ Change these values for your workflow.
     cutadapt_trim_error_rate=0.15  # default value of 0.15
     cutadapt_trim_three_prime_adapter=""
     cutadapt_trim_five_prime_adapter=""
+    cluster_cutoff=3  # Clusters with this many reads OR GREATER are kept. Clusters with fewer are moved to /results/.temp/TooFewReadsInCluster
     nanofilt_filtering_min=1000  # default value of 1000
     nanofilt_filtering_max=2000  # default value of 2000
     

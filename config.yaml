@@ -1,28 +1,31 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-results: results/
-data: data/
-basecall: False
+results: /Users/joshl/PycharmProjects/MAPT/pipeline/results/
+data: /Users/joshl/PycharmProjects/MAPT/pipeline/data/
 
+
+# -------- DEFAULT VALES --------
+# should basecalling be done?
+basecall: True
+# path to alignment file
 alignment_path: data/zymogen_alignment_file.fasta
+# basecallers to use
 num_basecallers: 1
+# threads per basecaller to use
 threads_per_caller: 12
-
+# clusters with 3 or fewer reads will be excluded from spoa
+cluster_cutoff: 3
 # set this variable to the configuration name you would like to use with basecalling
 # additionally, set the number of callers and threads per caller to use with basecalling
 basecall_configuration: dna_r9.4.1_450bps_fast.cfg
-
 # set the barcode_kit variable to the name of the barcoding kit you will be using
 barcode_kit: EXP-PBC096
-
 # set the error rate, 3' adapter, and 5' adapter to use with cutadapt (trimming reads)
 cutadapt_trim_error_rate: 0.15
 cutadapt_trim_three_prime_adapter: ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
 cutadapt_trim_five_prime_adapter: TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
-
 # set the match rate for vsearch
 vsearch_match_rate: 0.90
-
 # Minimum and maximum filtering length to be used
 nanofilt_filtering_min: 1000
 nanofilt_filtering_max: 2000
