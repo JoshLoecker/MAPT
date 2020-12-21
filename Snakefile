@@ -6,6 +6,7 @@ from multiprocessing import cpu_count
 from pprint import pprint
 import shutil
 import pandas as pd
+import numpy as np
 
 configfile: "config.yaml"
 
@@ -83,9 +84,9 @@ def vsearch_aligner(wildcards):
 def id_reads(wildcards):
     checkpoint_output = rules.isONclustClusterFastq.output.rule_complete
     return [  #config["results"] + "id_reads/id_reads.tsv",
-        config["results"] + "id_reads/mapped_seq_id.csv",
-        config["results"] + "id_reads/minimap_output.csv",
-        config["results"] + "id_reads/mapped_consensus.csv"]
+        config["results"] + "id_reads/mapped_reads/mapped_seq_id.csv",
+        config["results"] + "id_reads/mapped_reads/minimap_output.csv",
+        config["results"] + "id_reads/mapped_reads/mapped_consensus.csv"]
 def spoa(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config["results"] + "spoa/consensus.sequences.fasta"
@@ -132,10 +133,12 @@ rule all:
         minimap_aligner_from_spoa,# minimap from spoa clustering
         # vsearch_aligner,                       # vsearch
         id_reads,# id reads through python script
-        config["results"] + "id_reads/filterIDReads/withinDivergence.csv",  # filter id_reads that are inside divergence
-        config["results"] + "id_reads/filterIDReads/outsideDivergence.csv",  # filter id_reads that are outside divergence
-        config["results"] + "id_reads/OTU/withinDivergence.csv",  # create OTU table of values within divergence
-        config["results"] + "id_reads/OTU/outsideDivergence.csv",  # create OTU table of values outside divergence
+        config["results"] + "id_reads/filter_id_reads/withinDivergence.csv",  # filter id_reads that are inside divergence
+        config["results"] + "id_reads/filter_id_reads/outsideDivergence.csv",  # filter id_reads that are outside divergence
+        config["results"] + "id_reads/filter_id_reads/nanDivergence.csv",  # filter id_reads that have no divergence
+        config["results"] + "id_reads/OTU/withinDivergenceOTU.csv",  # create OTU table of values within divergence
+        config["results"] + "id_reads/OTU/outsideDivergenceOTU.csv",  # create OTU table of values outside divergence
+        config["results"] + "id_reads/OTU/nanDivergenceOTU.csv",  # create OTU table of id_reads that have no divergence
         IsoCon,# get consensus sequence
         config["results"] + ".temp/RemoveLowClustersDone",  # remove clusters with low reads
         spoa, # partial order alignment
@@ -609,9 +612,9 @@ rule id_reads:
         minimap=rules.minimap_aligner_from_spoa.output[0]
     output:
         #id_reads_tsc = config["results"] + "id_reads/id_reads.tsv",
-        mapped_seq_id_csv=config["results"] + "id_reads/mapped_seq_id.csv",
-        minimap_output=config["results"] + "id_reads/minimap_output.csv",
-        mapped_consensus_csv=config["results"] + "id_reads/mapped_consensus.csv"
+        mapped_seq_id_csv=config["results"] + "id_reads/mapped_reads/mapped_seq_id.csv",
+        minimap_output=config["results"] + "id_reads/mapped_reads/minimap_output.csv",
+        mapped_consensus_csv=config["results"] + "id_reads/mapped_reads/mapped_consensus.csv"
 
     params:
         results_folder=config["results"]
@@ -623,23 +626,61 @@ rule filter_id_reads_mapped_sequence:
     input:
         csv = rules.id_reads.output.mapped_seq_id_csv
     output:
-        within_divergence = config["results"] + "id_reads/filterIDReads/withinDivergence.csv",
-        outside_divergence = config["results"] + "id_reads/filterIDReads/outsideDivergence.csv"
+        within_divergence = config["results"] + "id_reads/filter_id_reads/withinDivergence.csv",
+        outside_divergence = config["results"] + "id_reads/filter_id_reads/outsideDivergence.csv",
+        nan_divergence = config["results"] + "id_reads/filter_id_reads/nanDivergence.csv"
+    params:
+        divergence_threshold = config["filter_id_reads_divergence_threshold"]
     run:
-        data_frame = pd.read_csv(input.csv, )
-        pprint(data_frame)
-        exit(0)
+        data_frame = pd.read_csv(input.csv, delimiter=",", header=0)
+        header_data = data_frame.columns.values
 
+        # create three pandas dataframes. One within bounds, one outside bounds, and one with NaN data
+        within_bounds_data = data_frame.loc[data_frame["divergence"] <= params.divergence_threshold]
+        outside_bounds_data = data_frame.loc[data_frame["divergence"] > params.divergence_threshold]
+        nan_data = data_frame.loc[pd.isnull(data_frame["divergence"])]
+
+        # write data to respective csv
+        within_bounds_data.to_csv(path_or_buf=str(output.within_divergence), header=header_data, index=False)
+        outside_bounds_data.to_csv(path_or_buf=str(output.outside_divergence), header=header_data, index=False)
+        nan_data.to_csv(path_or_buf=str(output.nan_divergence), header=header_data, index=False)
 
 rule otu_from_filter_id_reads:
     input:
         within_divergence = rules.filter_id_reads_mapped_sequence.output.within_divergence,
-        outside_divergence = rules.filter_id_reads_mapped_sequence.output.outside_divergence
+        outside_divergence = rules.filter_id_reads_mapped_sequence.output.outside_divergence,
+        nan_divergence = rules.filter_id_reads_mapped_sequence.output.nan_divergence
     output:
-        within_divergence = config["results"] + "id_reads/OTU/withinDivergence.csv",
-        outside_divergence = config["results"] + "id_reads/OTU/outsideDivergence.csv"
+        within_divergence_otu = config["results"] + "id_reads/OTU/withinDivergenceOTU.csv",
+        outside_divergence_otu = config["results"] + "id_reads/OTU/outsideDivergenceOTU.csv",
+        nan_divergence_otu = config["results"] + "id_reads/OTU/nanDivergenceOTU.csv"
     run:
-        pass
+        within_divergence_data = pd.read_csv(input.within_divergence, delimiter=",", header=0)
+        outside_divergence_data = pd.read_csv(input.outside_divergence, delimiter=",", header=0)
+        nan_divergence_data = pd.read_csv(input.nan_divergence, delimiter=",", header=0)
+
+        within_barcodes = within_divergence_data["barcode"]
+        within_clusters = within_divergence_data["cluster"]
+
+        outside_barcodes = outside_divergence_data["barcode"]
+        outside_clusters = outside_divergence_data["cluster"]
+
+        nan_barcodes = nan_divergence_data["barcode"]
+        nan_clusters = nan_divergence_data["cluster"]
+
+        for index, (barcode, cluster) in enumerate(zip(within_barcodes, within_clusters)):
+            if barcode == cluster:
+                print(f"FOUND WITHIN: {barcode}, {cluster}")
+
+        for index, (barcode, cluster) in enumerate(zip(outside_barcodes, outside_clusters)):
+            if barcode == cluster:
+                print(f"FOUND OUTSIDE: {barcode}, {cluster}")
+
+        for index, (barcode, cluster) in enumerate(zip(nan_barcodes, nan_clusters)):
+            if barcode == cluster:
+                print(f"FOUND NAN: {barcode}, {cluster}")
+            
+            
 
 
 rule IsoCon:
