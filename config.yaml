@@ -25,7 +25,7 @@ cutadapt_trim_error_rate: 0.15
 cutadapt_trim_three_prime_adapter: ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
 cutadapt_trim_five_prime_adapter: TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
 # The default value for divergence threshold under rule filter_id_reads_mapped_sequence
-filter_id_reads_divergence_threshold: 0.05
+mapped_reads_divergence_threshold: 0.05
 # set the match rate for vsearch
 vsearch_match_rate: 0.90
 # Minimum and maximum filtering length to be used

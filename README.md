@@ -52,6 +52,7 @@ Change these values for your workflow.
     cutadapt_trim_three_prime_adapter=""
     cutadapt_trim_five_prime_adapter=""
     cluster_cutoff=3  # Clusters with this many reads OR GREATER are kept. Clusters with fewer are moved to /results/.temp/TooFewReadsInCluster
+    mapped_reads_divergence_threshold=0.05  # The divergence threshold for mapped reads after filtering & clustering
     nanofilt_filtering_min=1000  # default value of 1000
     nanofilt_filtering_max=2000  # default value of 2000
     
@@ -85,6 +86,8 @@ not yet running
     --env cutadapt_trim_five_prime_adapter=$cutadapt_trim_five_prime_adapter \
     --env nanofilt_filtering_min=$nanofilt_filtering_min \
     --env nanofilt_filtering_max=$nanofilt_filtering_max \
+    --env cluster_cutoff=$cluster_cutoff \
+    --env mapped_reads_divergence_threshold=$mapped_reads_divergence_threshold \
     --env basecall=$basecall \
     docker://joshloecker/pipeline:latest
 	```
@@ -128,6 +131,8 @@ and pasted, assuming the `To Start` step has been completed
     cutadapt_trim_five_prime_adapter=$cutadapt_trim_five_prime_adapter \
     nanofilt_filtering_min=$nanofilt_filtering_min \
     nanofilt_filtering_max=$nanofilt_filtering_max \
+    --env cluster_cutoff=$cluster_cutoff \
+    --env mapped_reads_divergence_threshold=$mapped_reads_divergence_threshold \
     basecall=$basecall
     ```
     This will start the container, or download it if it is not downloaded.

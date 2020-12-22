@@ -3,20 +3,10 @@ import os
 from natsort import natsorted as natural_sort
 from pprint import pprint
 
-try:
-    # split input/output files into lists
-    input_files = str(snakemake.input).split(" ")
-    output_files = str(snakemake.output).split(" ")
-except NameError:
-    input_files = [
-        "/Users/joshl/PycharmProjects/MAPT/pipeline/results/id_reads/filter_id_reads/withinDivergence.csv",
-        "/Users/joshl/PycharmProjects/MAPT/pipeline/results/id_reads/filter_id_reads/outsideDivergence.csv",
-        "/Users/joshl/PycharmProjects/MAPT/pipeline/results/id_reads/filter_id_reads/nanDivergence.csv"
-    ]
-    output_files = [
-        "/Users/joshl/PycharmProjects/MAPT/pipeline/results/id_reads/OTU/withinDivergenceOTU.csv",
-        "/Users/joshl/PycharmProjects/MAPT/pipeline/results/id_reads/OTU/outsideDivergenceOTU.csv",
-        "/Users/joshl/PycharmProjects/MAPT/pipeline/results/id_reads/OTU/nanDivergenceOTU.csv"]
+
+# split input/output files into lists
+input_files = str(snakemake.input).split(" ")
+output_files = str(snakemake.output).split(" ")
 
 # iterate through input/output files, 'pairing' them together
 for index, (in_file, out_file) in enumerate(zip(input_files, output_files)):

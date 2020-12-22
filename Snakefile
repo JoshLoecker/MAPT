@@ -142,7 +142,9 @@ rule all:
         config["results"] + "id_reads/OTU/nanDivergenceOTU.csv",  # create OTU table of id_reads that have no divergence
         IsoCon,# get consensus sequence
         config["results"] + ".temp/RemoveLowClustersDone",  # remove clusters with low reads
-        config["results"] + "id_reads/mapped_reads/simple_id_reads.csv",  # create simplified mapped_seq_id csv
+        config["results"] + "id_reads/mapped_reads/simpleMappedReadsWithinDivergence.csv",  # create simplified mapped_seq_id csv within divergence value
+        config["results"] + "id_reads/mapped_reads/simpleMappedReadsOutsideDivergence.csv",  # create simplified mapped_seq_id csv outside divergence value
+        config["results"] + "id_reads/mapped_reads/simpleMappedReadsNaNDivergence.csv",  # create simplified mapped_seq_id csv without divergence value
         spoa, # partial order alignment
         nanoplot_basecall,# nanoplot for basecall files
         nanoplot_barcode_classified,# nanoplot for classified barcode files
@@ -632,7 +634,7 @@ rule filter_id_reads_mapped_sequence:
         outside_divergence = config["results"] + "id_reads/filter_id_reads/outsideDivergence.csv",
         nan_divergence = config["results"] + "id_reads/filter_id_reads/nanDivergence.csv"
     params:
-        divergence_threshold = config["filter_id_reads_divergence_threshold"]
+        divergence_threshold = config["mapped_reads_divergence_threshold"]
     run:
         data_frame = pd.read_csv(input.csv, delimiter=",", header=0)
         header_data = data_frame.columns.values
@@ -647,6 +649,7 @@ rule filter_id_reads_mapped_sequence:
         outside_bounds_data.to_csv(path_or_buf=str(output.outside_divergence), header=header_data, index=False)
         nan_data.to_csv(path_or_buf=str(output.nan_divergence), header=header_data, index=False)
 
+
 rule otu_from_filter_id_reads:
     input:
         within_divergence = rules.filter_id_reads_mapped_sequence.output.within_divergence,
@@ -657,25 +660,20 @@ rule otu_from_filter_id_reads:
         outside_divergence_otu = config["results"] + "id_reads/OTU/outsideDivergenceOTU.csv",
         nan_divergence_otu = config["results"] + "id_reads/OTU/nanDivergenceOTU.csv"
     script:
-        "scripts/filterIDReads.py"
+        "scripts/generateOTU.py"
 
 
 rule make_simple_mapped_sequence_id:
     input:
         rules.id_reads.output.mapped_seq_id_csv
     output:
-        simple_mapped_seq = config["results"] + "id_reads/mapped_reads/simple_id_reads.csv"
-    run:
-        read_csv = pd.read_csv(str(input), header=0, delimiter=",")
-        unique_data = {}
-        for column_name in read_csv:
-            # ref_id, sequence_length, divergence, cluster_number, cluster_size
-            for index, (ref_id, seq_length, divergence, cluster_number) in enumerate(
-                    zip(read_csv["ref_id"], read_csv["seq_length"], read_csv["divergence"], read_csv["cluster"])
-            ):
-                pass
-
-
+        within_divergence = config["results"] + "id_reads/mapped_reads/simpleMappedReadsWithinDivergence.csv",
+        outside_divergence = config["results"] + "id_reads/mapped_reads/simpleMappedReadsOutsideDivergence.csv",
+        nan_divergence = config["results"] + "id_reads/mapped_reads/simpleMappedReadsNaNDivergence.csv"
+    params:
+        divergence_threshold = config["mapped_reads_divergence_threshold"]
+    script:
+        "scripts/simpleMappedSequenceID.py"
 
 rule IsoCon:
     input:
