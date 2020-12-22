@@ -142,9 +142,9 @@ rule all:
         config["results"] + "id_reads/OTU/nanDivergenceOTU.csv",  # create OTU table of id_reads that have no divergence
         IsoCon,# get consensus sequence
         config["results"] + ".temp/RemoveLowClustersDone",  # remove clusters with low reads
-        config["results"] + "id_reads/mapped_reads/simpleMappedReadsWithinDivergence.csv",  # create simplified mapped_seq_id csv within divergence value
-        config["results"] + "id_reads/mapped_reads/simpleMappedReadsOutsideDivergence.csv",  # create simplified mapped_seq_id csv outside divergence value
-        config["results"] + "id_reads/mapped_reads/simpleMappedReadsNaNDivergence.csv",  # create simplified mapped_seq_id csv without divergence value
+        config["results"] + "id_reads/simple_mapped_reads/simpleMappedWithinDivergence.csv",  # create simplified mapped_seq_id csv within divergence value
+        config["results"] + "id_reads/simple_mapped_reads/simpleMappedOutsideDivergence.csv",  # create simplified mapped_seq_id csv outside divergence value
+        config["results"] + "id_reads/simple_mapped_reads/simpleMappedNaNDivergence.csv",  # create simplified mapped_seq_id csv without divergence value
         spoa, # partial order alignment
         nanoplot_basecall,# nanoplot for basecall files
         nanoplot_barcode_classified,# nanoplot for classified barcode files
@@ -667,9 +667,9 @@ rule make_simple_mapped_sequence_id:
     input:
         rules.id_reads.output.mapped_seq_id_csv
     output:
-        within_divergence = config["results"] + "id_reads/mapped_reads/simpleMappedReadsWithinDivergence.csv",
-        outside_divergence = config["results"] + "id_reads/mapped_reads/simpleMappedReadsOutsideDivergence.csv",
-        nan_divergence = config["results"] + "id_reads/mapped_reads/simpleMappedReadsNaNDivergence.csv"
+        within_divergence = config["results"] + "id_reads/simple_mapped_reads/simpleMappedWithinDivergence.csv",
+        outside_divergence = config["results"] + "id_reads/simple_mapped_reads/simpleMappedOutsideDivergence.csv",
+        nan_divergence = config["results"] + "id_reads/simple_mapped_reads/simpleMappedNaNDivergence.csv"
     params:
         divergence_threshold = config["mapped_reads_divergence_threshold"]
     script:
