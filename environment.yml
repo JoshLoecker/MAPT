@@ -18,3 +18,5 @@ dependencies:
   - seaborn=0.10.*
   - edlib>=1.1.2
   - natsort=7.1.*
+  - pip:
+        networkx==2.3

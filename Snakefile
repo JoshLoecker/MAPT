@@ -145,6 +145,9 @@ rule all:
         config["results"] + "id_reads/simple_mapped_reads/simpleMappedWithinDivergence.csv",  # create simplified mapped_seq_id csv within divergence value
         config["results"] + "id_reads/simple_mapped_reads/simpleMappedOutsideDivergence.csv",  # create simplified mapped_seq_id csv outside divergence value
         config["results"] + "id_reads/simple_mapped_reads/simpleMappedNaNDivergence.csv",  # create simplified mapped_seq_id csv without divergence value
+        config["results"] + "id_reads/cluster_summary/clusterSummaryWithinDivergence.csv",  # create a cluster summary file; csv files with data within/outside/no divergence data are created
+        config["results"] + "id_reads/cluster_summary/clusterSummaryOutsideDivergence.csv",
+        config["results"] + "id_reads/cluster_summary/clusterSummaryNaNDivergence.csv",
         spoa, # partial order alignment
         nanoplot_basecall,# nanoplot for basecall files
         nanoplot_barcode_classified,# nanoplot for classified barcode files
@@ -674,6 +677,19 @@ rule make_simple_mapped_sequence_id:
         divergence_threshold = config["mapped_reads_divergence_threshold"]
     script:
         "scripts/simpleMappedSequenceID.py"
+
+
+rule cluster_summary:
+    input:
+        rules.id_reads.output.mapped_seq_id_csv
+    output:
+        within_divergence = config["results"] + "id_reads/cluster_summary/clusterSummaryWithinDivergence.csv",
+        outside_divergence = config["results"] + "id_reads/cluster_summary/clusterSummaryOutsideDivergence.csv",
+        nan_divergence = config["results"] + "id_reads/cluster_summary/clusterSummaryNaNDivergence.csv"
+    params:
+        divergence_threshold = config["mapped_reads_divergence_threshold"]
+    script:
+        "scripts/clusterSummary.py"
 
 rule IsoCon:
     input:
