@@ -161,12 +161,10 @@ The following workflow will be completed, relatively in this order
 Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/home/Rob/Projects/run_1/results`). 
 From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`, etc.
 
-A `.temp` folder is generated under the `results` folder. This file contains data that is not necessary to the general user.
-If this folder is deleted, the next `snakemake` run will detect results in this folder is not present, and the pipeline will be run again.
 
 ### Known Errors
-Deleting files from the `.temp` folder will cause the pipeline to regenerate these files, along with any output downstream.
-If you experience any errors, contact [joshua.loecker@jacks.sdstate.edu](mailto:joshua.loecker@jacks.sdstate.edu) for assistance
+Deleting files from the `.temp` folder will cause the pipeline to regenerate these files, along with any output downstream.  
+If you experience any other errors, contact [joshua.loecker@jacks.sdstate.edu](mailto:joshua.loecker@jacks.sdstate.edu) for assistance
 
 <!--stackedit_data:
 eyJoaXN0b3J5IjpbOTIyMDg4NzE1XX0=
