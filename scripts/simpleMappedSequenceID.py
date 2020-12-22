@@ -9,10 +9,9 @@ This file will be placed under results/id_reads/mapped_reads/simple_mapped_seq_i
 import pandas as pd
 from pprint import pprint
 
-
+map_data_frame = pd.read_csv(str(snakemake.input), header=0)
 output_files = str(snakemake.output).split(" ")
 divergence_threshold = snakemake.params.divergence_threshold
-map_data_frame = pd.read_csv(str(snakemake.input), header=0)
 
 # create three pandas dataframes. One within bounds, one outside bounds, and one with NaN data
 # store these in a list so we can iterate through each one and map it to its output file
@@ -23,7 +22,7 @@ divergence_data_frames = [
 ]
 
 for index, (data_frame, out_file) in enumerate(zip(divergence_data_frames, output_files)):
-    print(f"Creating simple mapped sequence: {output_files}")
+    print(f"Creating simple mapped sequence: {out_file}")
     ref_id = data_frame["ref_id"]
     sequence_length = data_frame["seq_length"]
     divergence = data_frame["divergence"]
