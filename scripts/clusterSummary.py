@@ -20,6 +20,7 @@ def calculate_cluster_sizes(clusters):
 
 output_files = str(snakemake.output).split(" ")
 map_data_frame = pd.read_csv(str(snakemake.input), header=0)
+divergence_threshold = snakemake.params.divergence_threshold
 
 divergence_data_frames = [
     map_data_frame.loc[map_data_frame["divergence"] <= divergence_threshold],
