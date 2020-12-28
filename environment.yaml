@@ -1,4 +1,4 @@
-name: pipeline
+---
 channels:
   - conda-forge
   - bioconda
@@ -17,5 +17,8 @@ dependencies:
   - seaborn=0.10.*
   - edlib>=1.1.2
   - natsort=7.1.*
+  - networkx=2.3.*
   - pip:
-        networkx==2.3
+      - IsoCon
+      - isONclust
+name: pipeline

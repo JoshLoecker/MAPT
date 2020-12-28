@@ -20,25 +20,22 @@ RUN apt update && \
     apt --yes --no-install-recommends install g++ libidn11 m4 autoconf automake dh-autoreconf && \
     # clone parasail (required by IsoCon) and the pipeline
     git clone https://github.com/jeffdaily/parasail-python /parasail && \
-    git clone --branch master https://github.com/JoshLoecker/pipeline workflow && \
-    # set up conda environment
-    conda env create --file /workflow/environment.yml && \
-    # remove unneeded apt files to reduce image size
+    git clone --branch master https://github.com/JoshLoecker/pipeline /workflow && \
+    ls /workflow && \
+    cat /workflow/config.yml && \
+    # build parasail (required by IsoCon, could not get this to work with pip install)
+    #    cd /parasail && \
+    #    python setup.py bdist_wheel && \
+    #    # set up conda environment
+    #    conda env create --file /workflow/environment.yaml && \
+    #    # remove unneeded apt files to reduce image size
     apt --yes purge git && \
     apt --yes autoremove && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/* && \
     rm -rf /var/tmp/*
 
-# activate our conda environment
-RUN /bin/bash -c  "source activate pipeline" && \
-    echo "source activate pipeline" > ~/.bashrc && \
-    # build parasail (required by IsoCon, could not get this to work with pip install)
-    cd /parasail && \
-    python setup.py bdist_wheel && \
-    pip install IsoCon isONclust
-
 # start our conda environment `pipeline`, and call `snakemake`
-ENTRYPOINT ["conda", "run", "--name", "pipeline", "--cwd", "/workflow", "snakemake", "-j", "all"]
+ENTRYPOINT ["conda", "run", "--name", "pipeline", "--cwd", "/workflow", "snakemake", "--cores", "all"]
 VOLUME /results
 VOLUME /data
