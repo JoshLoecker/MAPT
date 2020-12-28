@@ -2,7 +2,7 @@ FROM continuumio/miniconda3
 MAINTAINER joshua.loecker@usda.gov
 ARG VERSION_NUMBER=4.2.2
 
-ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
+ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
 
 # Unpack guppy and link so it can be used anywhere in container
 RUN tar -xf guppy.tar.gz && \
@@ -22,13 +22,13 @@ RUN apt update && \
     git clone https://github.com/jeffdaily/parasail-python /parasail && \
     git clone --branch master https://github.com/JoshLoecker/pipeline /workflow && \
     ls /workflow && \
-    cat /workflow/config.yml && \
+    cat /workflow/config.yaml && \
     # build parasail (required by IsoCon, could not get this to work with pip install)
-    #    cd /parasail && \
-    #    python setup.py bdist_wheel && \
-    #    # set up conda environment
-    #    conda env create --file /workflow/environment.yaml && \
-    #    # remove unneeded apt files to reduce image size
+    cd /parasail && \
+    python setup.py bdist_wheel && \
+    # set up conda environment
+    conda env create --file /workflow/environment.yaml && \
+    # remove unneeded apt files to reduce image size
     apt --yes purge git && \
     apt --yes autoremove && \
     rm -rf /var/lib/apt/lists/* && \

@@ -1,14 +1,14 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-results: /Users/joshl/PycharmProjects/MAPT/pipeline/results/
-data: /Users/joshl/PycharmProjects/MAPT/pipeline/data/
+results: /results/
+data: /data/
 
 
 # -------- DEFAULT VALES --------
 # should basecalling be done?
 basecall: True
 # path to alignment file
-alignment_path: data/zymogen_alignment_file.fasta
+alignment_path: /data/zymogen_alignment_file.fasta
 # basecallers to use
 num_basecallers: 1
 # threads per basecaller to use
