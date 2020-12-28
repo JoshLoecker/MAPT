@@ -63,9 +63,6 @@ def isONclust_pipeline(wildcards):
 def isONclust_cluster_fastq(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return config["results"] + "isONclust/cluster_fastq/"
-def IsoCon(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "isoCon/"
 def guppy_aligner(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     return expand(
@@ -140,7 +137,6 @@ rule all:
         config["results"] + "id_reads/OTU/withinDivergenceOTU.csv",  # create OTU table of values within divergence
         config["results"] + "id_reads/OTU/outsideDivergenceOTU.csv",  # create OTU table of values outside divergence
         config["results"] + "id_reads/OTU/nanDivergenceOTU.csv",  # create OTU table of id_reads that have no divergence
-        IsoCon,# get consensus sequence
         config["results"] + ".temp/RemoveLowClustersDone",  # remove clusters with low reads
         config["results"] + "id_reads/simple_mapped_reads/simpleMappedWithinDivergence.csv",  # create simplified mapped_seq_id csv within divergence value
         config["results"] + "id_reads/simple_mapped_reads/simpleMappedOutsideDivergence.csv",  # create simplified mapped_seq_id csv outside divergence value
@@ -690,16 +686,6 @@ rule cluster_summary:
         divergence_threshold = config["mapped_reads_divergence_threshold"]
     script:
         "scripts/clusterSummary.py"
-
-rule IsoCon:
-    input:
-        merged_filter_files=rules.merge_filtering_files.output[0]
-    output:
-        directory(config["results"] + "isoCon/")
-    shell:
-        r"""
-        IsoCon pipeline -fl_reads {input.merged_filter_files} -outfolder {output}
-        """
 
 
 def count_reads_barcode_input(wildcards):
