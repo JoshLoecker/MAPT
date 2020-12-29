@@ -6,7 +6,7 @@ data: /data/
 
 # -------- DEFAULT VALES --------
 # path to alignment file
-alignment_path: /data/zymogen_alignment_file.fasta
+reference_database: "/data/zymogen_alignment_file.fasta"
 basecall:
     # should basecalling be done?
     perform_basecall: True
@@ -16,23 +16,28 @@ basecall:
     threads_per_caller: 12
     # set this variable to the configuration name you would like to use with basecalling
     # additionally, set the number of callers and threads per caller to use with basecalling
-    configuration: dna_r9.4.1_450bps_fast.cfg
+    configuration: "dna_r9.4.1_450bps_fast.cfg"
 
 barcode:
     # set the barcode_kit variable to the name of the barcoding kit you will be using
-    kit: EXP-PBC096
+    kit: "EXP-PBC096"
 
 cluster:
     # clusters with 3 or fewer reads will be excluded from spoa
-    spoa_cutoff: 3
+    min_reads_per_cluster: 3
     # The default value for divergence threshold under rule filter_id_reads_mapped_sequence
     divergence_threshold: 0.05
 
 cutadapt:
     # set the error rate, 3' adapter, and 5' adapter to use with cutadapt (trimming reads)
     error_rate: 0.15
-    three_prime_adapter: ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
-    five_prime_adapter: TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
+    three_prime_adapter: "ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT"
+    five_prime_adapter: "TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG"
+
+isONclust:
+    aligned_threshold:  0.90
+    min_fraction:  0.55
+    mapped_threshold:  0.65
 
 nanofilt:
     # Minimum and maximum filtering length to be used

@@ -1,8 +1,7 @@
 /venv/
 /.snakemake/
 /.idea/
-/results/
 /.git/
 /.snakemake/
 /data/
-/dockerBuild/
+/results/

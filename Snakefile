@@ -182,7 +182,7 @@ def barcode_input(wildcards):
     if config["basecall"]:
         return rules.basecall.output[0]
     else:
-        return config["data"] + "fastq"
+        return os.path.join(config["data"], "fastq")
 
 
 checkpoint barcode:
@@ -389,15 +389,19 @@ rule isOnClustPipeline:
         rules.merge_filtering_files.output[0]
     output:
         directory(config["results"] + "isONclust/pipeline/")
+    params:
+        aligned_threshold = config["isONclust"]["aligned_threshold"],
+        min_fraction = config["isONclust"]["min_fraction"],
+        mapped_threshold = config["isONclust"]["mapped_threshold"]
     shell:
         r"""
         # create a .tsv file
 
         isONclust --ont \
         --fastq {input} \
-        --aligned_threshold 0.90 \
-        --min_fraction 0.55 \
-		--mapped_threshold 0.65 \
+        --aligned_threshold {params.aligned_threshold} \
+        --min_fraction {params.min_fraction} \
+		--mapped_threshold {params.mapped_threshold} \
         --outfolder {output}
         """
 
@@ -428,7 +432,7 @@ rule remove_low_reads:
     output:
         rule_complete = touch(config["results"] + ".temp/RemoveLowClustersDone")
     params:
-        cluster_cutoff = config["cluster"]["spoa_cutoff"],
+        cluster_cutoff = config["cluster"]["min_reads_per_cluster"],
         output_folder = config["results"] + "TooFewReadsInCluster"
     run:
         os.makedirs(params.output_folder)
@@ -503,7 +507,7 @@ rule guppy_aligner:
     params:
         barcode="{barcode}",
         temp_dir=config["results"] + ".temp/guppy",
-        alignment_reference=config["alignment_path"]
+        alignment_reference=config["reference_database"]
     shell:
         r"""
         # move input files to our temp folder
@@ -541,7 +545,7 @@ rule minimap_aligner_from_filtering:
     output:
         config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference=config["alignment_path"]
+        alignment_reference=config["reference_database"]
     shell:
         r"""
         touch {output}
@@ -557,7 +561,7 @@ rule minimap_aligner_from_spoa:
     output:
         config["results"] + "alignment/minimap/from_spoa/spoa.minimap.sam"
     params:
-        alignment_reference=config["alignment_path"]
+        alignment_reference=config["reference_database"]
     shell:
         r"""
         touch {output}
@@ -589,7 +593,7 @@ rule vsearch_aligner:
     output:
         directory(config["results"] + "alignment/vsearch/")
     params:
-        alignment_reference=config["alignment_path"]
+        alignment_reference=config["reference_database"]
     run:
         # {file}.fastq
         # vsearch.{file_number}.tsv

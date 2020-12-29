@@ -37,5 +37,5 @@ RUN apt update && \
 
 # start our conda environment `pipeline`, and call `snakemake`
 ENTRYPOINT ["conda", "run", "--name", "pipeline", "--cwd", "/workflow", "snakemake", "--cores", "all"]
-VOLUME /results
-VOLUME /data
+VOLUME /results/
+VOLUME /data/
