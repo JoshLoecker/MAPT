@@ -2,8 +2,7 @@ FROM continuumio/miniconda3
 MAINTAINER joshua.loecker@usda.gov
 ARG VERSION_NUMBER=4.2.2
 
-# ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
-COPY /dockerBuild/ont-guppy.tar.gz /guppy.tar.gz
+ADD https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_${VERSION_NUMBER}_linux64.tar.gz /guppy.tar.gz
 
 RUN apt update && \
     # install required packages
