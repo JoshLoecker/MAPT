@@ -1,0 +1,29 @@
+# This is an example configuration file that a user may set up for persistent data between runs
+# It should be placed under the fodler
+
+# folder paths
+results: /Users/joshl/PycharmProjects/MAPT/pipeline/results
+data: /Users/joshl/PycharmProjects/MAPT/pipeline/data
+alignment_path: /data/zymogen_alignment_file.fasta
+
+# basecall configuration
+perform_basecall: True       # should basecalling be done?
+num_callers: 1
+threads_per_caller: 12
+configuration: dna_r9.4.1_450bps_fast.cfg
+
+# barcode configuration
+kit: EXP-PBC096
+
+# id_reads configuration
+spoa_cutoff: 3               # cutoff for spoa to exclude clusters
+divergence_threshold: 0.05   # divergence bounds to use when grouping filtered reads
+
+# cutadapt
+error_rate: 0.15
+three_prime_adapter: ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
+five_prime_adapter: TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
+
+# nanofilt
+min_filter: 1000
+max_filter: 2000

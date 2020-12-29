@@ -32,6 +32,7 @@ home
                     | -- file_1.fastq
                     | -- file_2.fastq
                     | -- file_3.fastq
+                | -- config_file.yaml
                 | -- some_other_file.txt
             | -- results
 ```
@@ -40,24 +41,37 @@ home
 Set up a few variables in the terminal, using the above structure as an example. 
 Change these values for your workflow.
 
-    results="/home/Rob/Projects/run_1/results"
-    data="/home/Rob/Projects/run_1/data/"
-    alignment_path="/home/Rob/Projects/alignment_files/silva_alignment_file.fasta"
-    num_basecallers=3
-    threads_per_caller=5
-    basecall=True  # True or False, should basecalling be done?
-    basecall_configuration=""
-    barcode_kit=""
-    cutadapt_trim_error_rate=0.15  # default value of 0.15
-    cutadapt_trim_three_prime_adapter=""
-    cutadapt_trim_five_prime_adapter=""
-    cluster_cutoff=3  # Clusters with this many reads OR GREATER are kept. Clusters with fewer are moved to /results/.temp/TooFewReadsInCluster
-    mapped_reads_divergence_threshold=0.05  # The divergence threshold for mapped reads after filtering & clustering
-    nanofilt_filtering_min=1000  # default value of 1000
-    nanofilt_filtering_max=2000  # default value of 2000
+    # folder paths
+    results=/Users/joshl/PycharmProjects/MAPT/pipeline/results
+    data=/Users/joshl/PycharmProjects/MAPT/pipeline/data
+    alignment_path=/data/zymogen_alignment_file.fasta
+
+    # basecall configuration
+    perform_basecall=True       # should basecalling be done? 
+    num_callers=1
+    threads_per_caller=12
+    configuration=dna_r9.4.1_450bps_fast.cfg
+    
+    # barcode configuration 
+    kit=EXP-PBC096
+    
+    # id_reads configuration
+    spoa_cutoff=3               # cutoff for spoa to exclude clusters
+    divergence_threshold=0.05   # divergence bounds to use when grouping filtered reads
+    
+    # cutadapt
+    error_rate=0.15
+    three_prime_adapter=ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
+    five_prime_adapter=TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
+    
+    # nanofilt
+    min_filter=1000
+    max_filter=2000
     
 
-   If you do not have fast5 files (i.e. no need for basecalling), set the `perform_basecall` option to `False`.
+If you do not have fast5 files (i.e. no need for basecalling), set the `perform_basecall` option to `False`.  
+Optionally, you may set up a `.yaml` file with the above configuration, and use the `--configfile` option. If this is done, the `configfile` should
+be placed in the path under /data, such as `/home/Rob/projects/run_1/data/config_file.yaml`. An example of this can be [found here]()
   
    
 ### Singularty
