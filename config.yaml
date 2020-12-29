@@ -1,7 +1,7 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-results: results/
-data: data/
+results: /results/
+data: /data/
 
 
 # -------- DEFAULT VALES --------

@@ -71,7 +71,7 @@ Change these values for your workflow.
 
 If you do not have fast5 files (i.e. no need for basecalling), set the `perform_basecall` option to `False`.  
 Optionally, you may set up a `.yaml` file with the above configuration, and use the `--configfile` option. If this is done, the `configfile` should
-be placed in the path under /data, such as `/home/Rob/projects/run_1/data/config_file.yaml`. An example of this can be [found here]()
+be placed in the path under /data, such as `/home/Rob/projects/run_1/data/config_file.yaml`. An example of this can be [found here](https://github.com/JoshLoecker/pipeline/blob/master/example_config.yaml)
   
    
 ### Singularty
