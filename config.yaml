@@ -1,7 +1,7 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-results: /results/
-data: /data/
+results: results/
+data: data/
 
 
 # -------- DEFAULT VALES --------
@@ -43,3 +43,4 @@ nanofilt:
     # Minimum and maximum filtering length to be used
     min_filter: 1000
     max_filter: 2000
+    min_quality: 7

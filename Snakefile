@@ -352,14 +352,19 @@ rule filtering:
     input:
         rules.cutadapt.output[0]
     output:
-        barcode_files=config["results"] + "filter/{barcode}.filter.fastq"
+        barcode_files = config["results"] + "filter/{barcode}.filter.fastq"
     params:
-        min_length=config["nanofilt"]["min_filter"],
-        max_length=config["nanofilt"]["max_filter"]
+        min_quality = config["nanofilt"]["min_quality"],
+        min_length = config["nanofilt"]["min_filter"],
+        max_length = config["nanofilt"]["max_filter"],
     shell:
         r"""
         touch {output}
-        NanoFilt --length {params.min_length} --maxlength {params.max_length} {input} > {output}
+        NanoFilt \
+        --quality {params.min_quality} \
+        --length {params.min_length} \
+        --maxlength {params.max_length} \
+        {input} > {output}
         """
 
 
@@ -411,11 +416,15 @@ rule isONclustClusterFastq:
         pipeline_output=rules.isOnClustPipeline.output[0],
         merged_filtering_reads=rules.merge_filtering_files.output[0]
     output:
-        cluster_output=directory(config["results"] + "isONclust/cluster_fastq/"),
-        rule_complete=config["results"] + ".temp/isONclustClusterFastqComplete"
+        cluster_output = directory(config["results"] + "isONclust/cluster_fastq/"),
+        rule_complete = config["results"] + ".temp/isONclustClusterFastqComplete"
+    params:
+        min_quality = config["nanofilt"]["min_quality"],  # use same quality as NanoFilt (i.e. rule filtering)
     shell:
         r"""
-        isONclust write_fastq --clusters {input.pipeline_output}/final_clusters.tsv \
+        isONclust write_fastq \
+        --q {params.min_quality} \
+        --clusters {input.pipeline_output}/final_clusters.tsv \
         --fastq {input.merged_filtering_reads} \
         --outfolder {output.cluster_output} \
         --N 1
