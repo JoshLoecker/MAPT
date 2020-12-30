@@ -2,8 +2,24 @@
 # This file will create a conda environment using the environment file in the parent directory
 # If the conda environment already exists, nothing will be done
 
-project_base_directory="/90daydata/shared/ncarl_minion/joshl/"
+# project_base_directory="/90daydata/shared/ncarl_minion/joshl/"
+# conda_prefix=$(< "../environment.yaml" tr ' ' _ | grep "prefix: ")
+conda_prefix=$(tail < "../environment.yaml" | grep "prefix: ")
+conda_prefix="${conda_prefix:8}"
 
+
+while true; do
+    printf "Installing conda environment in: %s\n" "$conda_prefix"
+    printf "Is this correct? ([Y]/n) "
+    read -r correct_directory
+    correct_directory=$(echo "$correct_directory" | tr "[:upper:]" "[:lower:]")  # convert input to lowercase
+    if [[ "$correct_directory" == "y" || "$correct_directory" == "" ]]; then
+        break
+    else
+        printf "Enter your conda environment installation location: "
+        read -r conda_prefix
+    fi
+done
 
 # try to load miniconda
 load_miniconda_error_status=$(module load miniconda 2>&1)
@@ -19,13 +35,15 @@ if [[ $load_miniconda_error_status == 0 ]]; then
     elif [ "$conda_init_status" == 0 ]; then
         printf "Conda is initialized"
     fi
+else
+    printf "Not on SciNet, continuing with local environment creation\n"
 fi
 
 # Get the name of the environment to create
 # Used for maintainability, in case the environment name changes nothing will break
 # print name of file, redirecting output to grep. search file for 'name: '
-env_name=$(< "../environment.yaml" tr ' ' _ | grep "name:")
-env_name="${env_name:6}"  # take data after 'name: ' (i.e. environment name)
+env_name=$(tail < "../environment.yaml" | grep "name:")
+env_name="${env_name:6}" # take data after 'name: ' (i.e. environment name)
 
 # Get a list of current environments
 current_conda_envs=$(conda env list)
@@ -33,15 +51,16 @@ current_conda_envs=$(conda env list)
 # we have not found an environment with the name 'pipeline', we need to create it
 if [[ "$current_conda_envs" != *"$env_name"* ]]; then
     # Create a new conda environment from the "environment.yaml" file in the parent directory
-    conda env create --file "../environment.yaml" --prefix "$project_base_directory"
+    conda env create --file "../environment.yaml" --prefix $conda_prefix
 # we have found a conda environment with the name 'pipeline', check if it has the correct packages
 else
     printf "Found the required conda environment: %s\n" "$env_name"
 fi
 
-printf "\n"
-printf "Setup complete.\n"
-printf "You can list all environments with 'conda info --envs'\n"
-printf "You may need to run 'module load miniconda' first, if running on a cluster\n"
-printf "The MAPT pipeline will be using the environment %s, as shown above\n" "$env_name"
-
+if [[ $? == 0 ]]; then
+    printf "\n"
+    printf "Setup complete.\n"
+    printf "You can list all environments with 'conda info --envs'\n"
+    printf "You may need to run 'module load miniconda' first, if running on a cluster\n"
+    printf "The MAPT pipeline will be using the environment %s, as shown above\n" "$env_name"
+fi

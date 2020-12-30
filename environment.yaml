@@ -5,7 +5,7 @@ channels:
 dependencies:
   - python=3.7
   - pip=20.2.*
-  - snakemake=5.22.*
+  - snakemake=5.*
   - nanoplot=1.31.*
   - nanofilt=2.7.*
   - nanoqc=0.9.*
@@ -21,3 +21,4 @@ dependencies:
   - pip:
       - isONclust
 name: mapt_pipeline
+# prefix: /Users/joshl/miniconda3/envs
