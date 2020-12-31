@@ -160,6 +160,7 @@ if config["basecall"]:
             config["data"] + "fast5"
         output:
             output=directory(config["results"] + "basecall/")
+        container: "docker://joshloecker/guppy:latest"
         params:
             config=config["basecall"]["configuration"],
             callers=config["basecall"]["num_callers"],
@@ -422,12 +423,17 @@ rule isONclustClusterFastq:
         min_quality = config["nanofilt"]["min_quality"],  # use same quality as NanoFilt (i.e. rule filtering)
     shell:
         r"""
-        isONclust write_fastq \
-        --q {params.min_quality} \
-        --clusters {input.pipeline_output}/final_clusters.tsv \
+        isONclust \
         --fastq {input.merged_filtering_reads} \
+        --q {params.min_quality} \
         --outfolder {output.cluster_output} \
+        write_fastq \
+        --clusters {input.pipeline_output}/final_clusters.tsv \
         --N 1
+        
+        
+        
+        
 
         touch {output.rule_complete}
         """

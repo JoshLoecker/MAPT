@@ -1,12 +1,12 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-results: results/
-data: data/
+results: "results/"
+data: "data/"
 
 
 # -------- DEFAULT VALES --------
 # path to alignment file
-reference_database: "/data/zymogen_alignment_file.fasta"
+reference_database: "data/zymogen_alignment_file.fasta"
 basecall:
     # should basecalling be done?
     perform_basecall: True

@@ -18,6 +18,9 @@ dependencies:
   - edlib>=1.1.2
   - natsort=7.1.*
   - networkx=2.3.*
+  - autoconf
+  - automake
+  - libtool
   - pip:
       - isONclust
 name: mapt_pipeline
