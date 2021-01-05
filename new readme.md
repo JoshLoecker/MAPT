@@ -56,4 +56,6 @@ If step 2 has been completed for your group already, you are ready to activate t
     b. This will guide you through a simple setup to install the conda environment  
 4. If you know where the `prefix: ` to the conda environment was set, simply type `source activate /path/to/conda/env/name`  
     a. To deactivate the environment, type `conda deactivate`.  
-5. The final step is to 
+5. To be able to use the Guppy suite of tools, the 
+5. The final step is to edit several lines within the `pipeline/config.yaml` file
+    a. First, set the `results`, `data`, `reference_database`, and `guppy_simg_location`
