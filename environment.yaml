@@ -16,12 +16,11 @@ dependencies:
   - spoa=4.*
   - seaborn=0.10.*
   - edlib>=1.1.2
-  - natsort=7.1.*
   - networkx=2.3.*
-  - autoconf
-  - automake
-  - libtool
+  - autoconf  # required by isOnclust
+  - automake  # required by isOnclust
+  - libtool  # required by isOnclust
   - pip:
       - isONclust
 name: mapt_pipeline
-# prefix: /Users/joshl/miniconda3/envs
+prefix: /home/joshua.loecker/.conda/envs/

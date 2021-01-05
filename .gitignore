@@ -6,3 +6,7 @@
 /results/
 /my_data/
 /scripts/Generate PNG
+/.cache/
+/containers/
+/.tests/
+/singularity/

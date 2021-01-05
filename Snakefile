@@ -7,7 +7,6 @@ from pprint import pprint
 import shutil
 import pandas as pd
 import numpy as np
-from natsort import natsorted as natural_sort
 
 configfile: "config.yaml"
 
@@ -154,7 +153,7 @@ rule all:
         plotly_histogram_mapping,# plotly mapping histogram
         plotly_box_whisker  # plotly box and whisker plot
 
-if config["basecall"]:
+if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input:
             config["data"] + "fast5"
@@ -180,18 +179,17 @@ if config["basecall"]:
 
 
 def barcode_input(wildcards):
-    if config["basecall"]:
+    if config["basecall"]["perform_basecall"]:
         return rules.basecall.output[0]
     else:
         return os.path.join(config["data"], "fastq")
-
-
 checkpoint barcode:
     input:
         barcode_input
     output:
         output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/barcodingDone"
+    container: "docker://joshloecker/guppy"
     params:
         barcode_kit=config["barcode"]["kit"]
     shell:
@@ -260,7 +258,6 @@ rule create_classified_unclassified_file:
             fi
         done
         """
-
 rule NanoQCBasecall:
     input:
         rules.collate_basecall_fastq_files.output[0]
@@ -270,7 +267,6 @@ rule NanoQCBasecall:
         r"""
         nanoQC -o {output} {input}
         """
-
 rule NanoQCBarcode:
     input:
         classified=rules.create_classified_unclassified_file.output.classified,
@@ -297,7 +293,6 @@ rule NanoPlotBasecall:
             subprocess.run(["NanoPlot", "--fastq", str(input), "-o", str(output)])
         else:
             pass
-
 rule NanoPlotBarcode:
     input:
         classified=rules.create_classified_unclassified_file.output.classified,
@@ -335,7 +330,6 @@ rule cutadapt:
         --output {output} \
         {input}
         """
-
 rule cutadaptDone:
     input:
         expand(rules.cutadapt.output,
@@ -357,7 +351,7 @@ rule filtering:
     params:
         min_quality = config["nanofilt"]["min_quality"],
         min_length = config["nanofilt"]["min_filter"],
-        max_length = config["nanofilt"]["max_filter"],
+        max_length = config["nanofilt"]["max_filter"]
     shell:
         r"""
         touch {output}
@@ -375,8 +369,6 @@ def merge_filtering_input(wildcards):
     files = return_barcode_numbers(checkpoint_output)
     return expand(config["results"] + "filter/{barcode}.filter.fastq",
         barcode=files)
-
-
 rule merge_filtering_files:
     input:
         merge_filtering_input
@@ -410,32 +402,26 @@ rule isOnClustPipeline:
 		--mapped_threshold {params.mapped_threshold} \
         --outfolder {output}
         """
-
-
 rule isONclustClusterFastq:
     input:
-        pipeline_output=rules.isOnClustPipeline.output[0],
+        pipeline_output=rules.isOnClustPipeline.output,
         merged_filtering_reads=rules.merge_filtering_files.output[0]
     output:
         cluster_output = directory(config["results"] + "isONclust/cluster_fastq/"),
         rule_complete = config["results"] + ".temp/isONclustClusterFastqComplete"
     params:
-        min_quality = config["nanofilt"]["min_quality"],  # use same quality as NanoFilt (i.e. rule filtering)
+        min_quality = config["nanofilt"]["min_quality"]  # use same quality as NanoFilt (i.e. rule filtering)
     shell:
         r"""
+        
         isONclust \
-        --fastq {input.merged_filtering_reads} \
-        --q {params.min_quality} \
-        --outfolder {output.cluster_output} \
+        --q "{params.min_quality}" \
         write_fastq \
-        --clusters {input.pipeline_output}/final_clusters.tsv \
-        --N 1
-        
-        
-        
-        
-
-        touch {output.rule_complete}
+        --fastq "{input.merged_filtering_reads}" \
+        --outfolder "{output.cluster_output}" \
+        --clusters "{input.pipeline_output}/final_clusters.tsv"
+                
+        touch "{output.rule_complete}"
         """
 
 
@@ -450,16 +436,16 @@ rule remove_low_reads:
         cluster_cutoff = config["cluster"]["min_reads_per_cluster"],
         output_folder = config["results"] + "TooFewReadsInCluster"
     run:
-        os.makedirs(params.output_folder)
-        for file in input.cluster_data:
-            file_path = os.path.join(str(rules.isONclustClusterFastq.output.cluster_output), file)
-            lines_in_file = open(file_path, 'r').readlines()
+        os.makedirs(params.output_folder, exist_ok=True)
+        input_data = str(input.cluster_data).split(" ")
+        for file in input_data:
+            lines_in_file = open(file, 'r').readlines()
             count_lines_in_file = len(lines_in_file)
             count_reads_in_file = count_lines_in_file / 4
 
             # keep files that are equal to OR GREATER than the cutoff
             if count_reads_in_file < params.cluster_cutoff:
-                shutil.move(src=file_path, dst=str(params.output_folder))
+                shutil.move(src=file, dst=str(params.output_folder))
 
 
 rule temp_spoa:
@@ -468,12 +454,12 @@ rule temp_spoa:
         cluster_data=expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
             file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
     output:
-        temp_output=temp(directory(config["results"] + ".temp/spoa"))
+        temp_output=directory(config["results"] + ".temp/spoa")
     run:
         # make our temporary output folder
         os.mkdir(output.temp_output)
-
-        for file in input.cluster_data:
+        input_data = str(input.cluster_data).split(" ")
+        for file in input_data:
             if ".fastq" in file:
                 # convert fastq file names to fasta
                 fastq_to_fasta = file[:-1] + "a"
@@ -485,8 +471,6 @@ rule temp_spoa:
                 # run spoa on the current isOnclust file, putting output into the temp spoa file
                 with open(temp_output,'w') as output_stream:
                     subprocess.run(["spoa", file, "-r", "0"],stdout=output_stream,universal_newlines=True)
-
-
 rule spoa:
     input:
         rules.temp_spoa.output.temp_output
@@ -519,6 +503,7 @@ rule guppy_aligner:
         alignment_summary=touch(
             config["results"] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv"),
         log_file=touch(config["results"] + "alignment/guppy/logs/{barcode}.guppy.log")
+    container: "docker://joshloecker/guppy"
     params:
         barcode="{barcode}",
         temp_dir=config["results"] + ".temp/guppy",
@@ -569,7 +554,6 @@ rule minimap_aligner_from_filtering:
         {params.alignment_reference} \
         {input} > {output}
         """
-
 rule minimap_aligner_from_spoa:
     input:
         rules.spoa.output[0]
@@ -601,7 +585,6 @@ rule fq2fa:
             output_file = output[0] + file_name
             with open(output_file,'w') as output_stream:
                 subprocess.run(["seqkit", "fq2fa", item],stdout=output_stream,universal_newlines=True)
-
 rule vsearch_aligner:
     input:
         rules.fq2fa.output
@@ -713,29 +696,21 @@ def count_reads_barcode_input(wildcards):
     files = return_barcode_numbers(checkpoint_output)
     merged_barcode_files = expand(rules.merge_files.output,barcode=files)
     return merged_barcode_files
-
-
 def count_reads_cutadapt_input(wildcards):
     cutadapt_done = rules.cutadaptDone.output[0]
     cutadapt_output = rules.cutadapt.output[0]
     barcode_numbers = return_barcode_numbers(checkpoints.barcode.get(**wildcards).output[0])
     return expand(cutadapt_output,barcode=barcode_numbers)
-
-
 def count_reads_filtering_input(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     files = return_barcode_numbers(checkpoint_output)
     return expand(config["results"] + "filter/{barcode}.filter.fastq",barcode=files)
-
-
 def count_minimap_reads(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     files = return_barcode_numbers(checkpoint_output)
     return expand(config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",barcode=files)
-
-
 rule count_reads_barcode:
     input:
         count_reads_barcode_input
@@ -745,7 +720,6 @@ rule count_reads_barcode:
         process="barcode"
     script:
         "scripts/CountReads.py"
-
 rule count_reads_cutadapt:
     input:
         count_reads_cutadapt_input
@@ -755,7 +729,6 @@ rule count_reads_cutadapt:
         process="cutadapt"
     script:
         "scripts/CountReads.py"
-
 rule count_reads_filtering:
     input:
         count_reads_filtering_input
@@ -765,7 +738,6 @@ rule count_reads_filtering:
         process="filtering"
     script:
         "scripts/CountReads.py"
-
 rule count_reads_mapping:
     input:
         count_minimap_reads
@@ -786,7 +758,6 @@ rule plotly_barcode_histogram:
         sub_title="Performed after Merging Files"
     script:
         "scripts/PlotlyHistogram.py"
-
 rule plotly_cutadapt_histogram:
     input:
         rules.count_reads_cutadapt.output[0]
@@ -796,7 +767,6 @@ rule plotly_cutadapt_histogram:
         sub_title="Performed after Cutadapt"
     script:
         "scripts/PlotlyHistogram.py"
-
 rule plotly_filtering_histogram:
     input:
         rules.count_reads_filtering.output[0]
@@ -806,7 +776,6 @@ rule plotly_filtering_histogram:
         sub_title="Performed after Filtering"
     script:
         "scripts/PlotlyHistogram.py"
-
 rule plotly_mapping_histogram:
     input:
         rules.count_reads_mapping.output[0]
@@ -816,7 +785,6 @@ rule plotly_mapping_histogram:
         sub_title="Performed after Mapping"
     script:
         "scripts/PlotlyHistogram.py"
-
 rule plotly_box_whisker_generation:
     input:
         rules.count_reads_barcode.output[0],
@@ -827,4 +795,3 @@ rule plotly_box_whisker_generation:
         config["results"] + "visuals/plotly/plotly.box.whisker.html"
     script:
         "scripts/PlotlyBoxWhisker.py"
-
