@@ -5,7 +5,7 @@
 results: "results/"
 data: "data/"
 reference_database: "data/zymogen_alignment_file.fasta"
-guppy_sif_location: "singularity/guppy_latest.sif"
+guppy_container: "/90daydata/shared/ncarl_minion/guppy_container"
 
 
 # -------- DEFAULT VALES --------

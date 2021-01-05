@@ -159,7 +159,7 @@ if config["basecall"]["perform_basecall"]:
             config["data"] + "fast5"
         output:
             output=directory(config["results"] + "basecall/")
-        container: config["guppy_sif_location"]
+        container: config["guppy_container"]
         params:
             config=config["basecall"]["configuration"],
             callers=config["basecall"]["num_callers"],
@@ -189,7 +189,7 @@ checkpoint barcode:
     output:
         output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/barcodingDone"
-    container: config["guppy_sif_location"]
+    container: config["guppy_container"]
     params:
         barcode_kit=config["barcode"]["kit"]
     shell:
@@ -503,7 +503,7 @@ rule guppy_aligner:
         alignment_summary=touch(
             config["results"] + "alignment/guppy/alignment_summary/{barcode}.alignment.summary.csv"),
         log_file=touch(config["results"] + "alignment/guppy/logs/{barcode}.guppy.log")
-    container: config["guppy_sif_location"]
+    container: config["guppy_container"]
     params:
         barcode="{barcode}",
         temp_dir=config["results"] + ".temp/guppy",
