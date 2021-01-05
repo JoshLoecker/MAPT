@@ -1,15 +1,15 @@
 # 1) This is where results will be saved. In docker, it is mapped to the host folder
 # 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
+# 3) This is the path to the reference database for MiniMap
 results: "results/"
 data: "data/"
-
+reference_database: "data/zymogen_alignment_file.fasta"
 
 # -------- DEFAULT VALES --------
-# path to alignment file
-reference_database: "data/zymogen_alignment_file.fasta"
+guppy_sif_location: "singularity/guppy_latest.sif"
 basecall:
     # should basecalling be done?
-    perform_basecall: True
+    perform_basecall: False
     # number of basecallers to use
     num_callers: 1
     # threads per basecaller to use

@@ -2,8 +2,6 @@
 # This file will create a conda environment using the environment file in the parent directory
 # If the conda environment already exists, nothing will be done
 
-# project_base_directory="/90daydata/shared/ncarl_minion/joshl/"
-# conda_prefix=$(< "../environment.yaml" tr ' ' _ | grep "prefix: ")
 conda_prefix=$(tail < "../environment.yaml" | grep "prefix: ")
 conda_prefix="${conda_prefix:8}"
 
