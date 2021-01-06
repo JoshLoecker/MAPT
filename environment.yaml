@@ -17,6 +17,7 @@ dependencies:
   - seaborn=0.10.*
   - edlib>=1.1.2
   - networkx=2.3.*
+  - natsort=7.*  # used by scripts/generateOTU.py
   - autoconf  # required by isOnclust
   - automake  # required by isOnclust
   - libtool  # required by isOnclust
