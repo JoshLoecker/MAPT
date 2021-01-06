@@ -27,7 +27,7 @@ The page to the GitHub and Docker repositories are as follows, if they are neede
 - GitHub: [https://github.com/JoshLoecker/pipeline](https://github.com/JoshLoecker/pipeline)
 - Docker: [https://hub.docker.com/repository/docker/joshloecker/pipeline](https://hub.docker.com/repository/docker/joshloecker/pipeline)
 
-Installation
+Installation & Setup
 ------------
 
 This project was built and testing on the following versions of Singularity and Docker. Reproducibility and stability cannot be guaranteed on earlier versions.
@@ -57,5 +57,27 @@ If step 2 has been completed for your group already, you are ready to activate t
 4. If you know where the `prefix: ` to the conda environment was set, simply type `source activate /path/to/conda/env/name`  
     a. To deactivate the environment, type `conda deactivate`.  
 5. To be able to use the Guppy suite of tools, the 
-5. The final step is to edit several lines within the `pipeline/config.yaml` file
-    a. First, set the `results`, `data`, `reference_database`, and `guppy_simg_location`
+5. The final step is to edit several lines within the `pipeline/config.yaml` file  
+    a. First, set the `results`, `data`, `reference_database`, and `guppy_container` to their appropriate locations  
+	1) `results` is where you would like results of the pipeline to be stored  
+	2) `data` holds your fast5/fastq files for Guppy  
+	3) `reference_database` is the database you will be using with MiniMap for alignments  
+	4) `guppy_container` is the location of the guppy container you will be using  
+	
+	b. Then set any other values required under the `DEFAULT VALUES` section. If these are not changed, they will remain as-is during the pipeline run
+
+
+
+Notes to Future Maintainers
+---------------------------
+1. Singularity and Docker must be installed on the same machine to update guppy
+2. Building the Guppy singularity image was first done by building a docker container  
+	a. `docker build --tag [YOUR TAG] .`  
+    b. This was done simply because I was most familiar with docker containers  
+    c. It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
+3. The singularity container is built in the following manner  
+	a. `singularity build --sandbox docker-daemon://[YOUR TAG FROM STEP 2]`  
+	b. The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
+	1) `singularity build --sandbox docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
+    
+	c. 

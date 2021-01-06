@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:latest as guppy
 ARG version=4.4.0
 
 # Ubuntu-20 GPU
