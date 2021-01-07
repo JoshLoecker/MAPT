@@ -86,15 +86,16 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 	   1) In short, the following structure should be used: `srun --pty -p [QUEUE_CHOICE] -t hh:mm:ss -n [TASKS] -N [NODES] /bin/bash -l`
    c. It should be noted that if you have an Interactive Run, and your connection to the server is lost, the job will quit immediately. Because of this, it is recommended to use Slurm Jobs instead
 3. Slurm Jobs  
-	a. If you would like to close your connection to the server, Slurm Jobs are the most versatile tool.
-    b. [SciNet User Guide](https://scinet.usda.gov/guide/ceres/)
-        1) [Requesting the proper nodes and cores](https://scinet.usda.gov/guide/ceres/#requesting-the-proper-number-of-nodes-and-cores)
-        2) [Simple how-to on SLURM](https://scinet.usda.gov/guide/ceres/#batch-mode)
+	a. If you would like to close your connection to the server, Slurm Jobs are the most versatile tool.  
+    b. [SciNet User Guide](https://scinet.usda.gov/guide/ceres/)  
+    1) [Requesting the proper nodes and cores](https://scinet.usda.gov/guide/ceres/#requesting-the-proper-number-of-nodes-and-cores)  
+    2) [Simple how-to on SLURM](https://scinet.usda.gov/guide/ceres/#batch-mode)  
 	
-	c. For more SBATCH options, see [this guide](https://osirim.irit.fr/site/en/articles/sbatch-options)
-        1) These options will be listed at the top of the slurm file
-    d. For some simple getting-started scripts, view files under the following folder in SciNet
-        1) `/project/brookings_minion/example_slurm_scripts`
+	c. For more SBATCH options, see [this guide](https://osirim.irit.fr/site/en/articles/sbatch-options)    
+	d. For some simple getting-started scripts, view the example slurm scripts in one of the two locations:
+    1) SciNet: `/project/brookings_minion/example_slurm_scripts/`
+	2) GitHub: []
+    
 
 
 
