@@ -91,7 +91,7 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
     1) SciNet: `/project/brookings_minion/example_slurm_scripts/`
 	2) GitHub: [Example SLURM Scripts](https://github.com/JoshLoecker/pipeline/tree/master/Example%20SLURM%20Scripts)
 
-3. Dry Runs
+3. Dry Runs  
     a. Dry-Runs can be done in Interactive Runs or Slurm Jobs.
 	a. A dry-run allows you to see what steps need to be done, and ensures preliminary configuration is set up correctly.  
     b. To perform a dry-run, activate the `mapt_pipeline` conda environment by running the following command: `conda activate mapt_pipeline`  
