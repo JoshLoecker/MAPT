@@ -1,185 +1,113 @@
-# Pipeline (MAPT)
+Pipeline (MAPT)
+===============
 
-## Naming
+Naming
+------
 I would like to name this project as it has been my first, and most in-depth, project to date. 
 Due to the nature of this project revolving around mapping noisy microbial reads (hopefully) down to the species level, 
 the following name seemed appropriate: Microbial Automated Processing Tool, or MAPT for short.
 
-### Installation and Running
-This project is meant to run using Singularity or Docker
-### Folder Setup
-Two paths are needed with this container: 1) A `results` folder, and 2) A `data` folder. These folders can be named as you please, but this guide will use these respective names.  
 
-Under the `data` folder, a folder **must** be named `fast5` **or** `fastq`. If this is not done, guppy_basecaller/barcoder will not be able to find any 
-`.fast5` files, even if they are present, as it looks for `.fast5` files under the `fast5` folder.
-The `results` folder must exist before running the container. Your alignment file should also be placed within the `data` folder.
-Your `data` folder structure may look as follows:
-```
-home
-| -- Rob
-    | -- Projects
-        | -- cache_dir
-        | -- alignment_files
-            | -- silva_alignment_file.fasta
-            | -- another_alignment_file.fasta
-        | -- run_1
-            | -- data
-                | -- fast5
-                    | -- file_1.fast5
-                    | -- file_2.fast5
-                    | -- file_3.fast5
-                | -- fastq
-                    | -- file_1.fastq
-                    | -- file_2.fastq
-                    | -- file_3.fastq
-                | -- config_file.yaml
-                | -- some_other_file.txt
-            | -- results
-```
+Usage
+-----
 
-### To Start
-Set up a few variables in the terminal, using the above structure as an example. 
-Change these values for your workflow.
+This is a workflow/pipeline aimed to streamline post-processing of noisy reads from [Oxford Nanopore MinION Sequencing Data](https://www.nanoporetech.com). The following software will need to be installed in a conda environment. A startup-script is provided in the GitHub repository. This is explained further on this page.
 
-    # folder paths
-    results=/Users/joshl/PycharmProjects/MAPT/pipeline/results
-    data=/Users/joshl/PycharmProjects/MAPT/pipeline/data
-    alignment_path=/data/zymogen_alignment_file.fasta
+The following software will be used (not necessarily in this order):
+- Guppy Basecalling
+- Guppy Barcoding
+- Cutadapt
+- NanoFilt
+- isONclust
+- spoa
+- NanoPlot
+- Plotly Graphs
 
-    # basecall configuration
-    perform_basecall=True       # should basecalling be done? 
-    num_callers=1
-    threads_per_caller=12
-    configuration=dna_r9.4.1_450bps_fast.cfg
-    
-    # barcode configuration 
-    kit=EXP-PBC096
-    
-    # id_reads configuration
-    spoa_cutoff=3               # cutoff for spoa to exclude clusters
-    divergence_threshold=0.05   # divergence bounds to use when grouping filtered reads
-    
-    # cutadapt
-    error_rate=0.15
-    three_prime_adapter=ACTTGCCTGTCGCTCTATCTTCTACCTTGTTACGACTT
-    five_prime_adapter=TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG
-    
-    # nanofilt
-    min_filter=1000
-    max_filter=2000
-    
+The page to the GitHub and Docker repositories are as follows, if they are needed.
+- GitHub: [https://github.com/JoshLoecker/pipeline](https://github.com/JoshLoecker/pipeline)
+- Docker: [https://hub.docker.com/repository/docker/joshloecker/pipeline](https://hub.docker.com/repository/docker/joshloecker/pipeline)
 
-If you do not have fast5 files (i.e. no need for basecalling), set the `perform_basecall` option to `False`.  
-Optionally, you may set up a `.yaml` file with the above configuration, and use the `--configfile` option. If this is done, the `configfile` should
-be placed in the path under /data, such as `/home/Rob/projects/run_1/data/config_file.yaml`. An example of this can be [found here](https://github.com/JoshLoecker/pipeline/blob/master/example_config.yaml)
-  
+Installation & Setup
+--------------------
+
+This project was built and testing on the following versions of Singularity and Docker. Reproducibility and stability cannot be guaranteed on earlier versions.
+1. Singularity (version 3.6.4-1.el7 or higher)
+2. Docker (version 20.10.0 or higher)
+
+[Download singularity](https://singularity.lbl.gov/)  
+[Download docker](https://www.docker.com/products/docker-desktop)
+
+Git and Miniconda are required to download the pipeline and create a new Conda environment with the required software
+
+[Download git](https://git-scm.com/downloads)
+[Download miniconda](https://docs.conda.io/en/latest/miniconda.html)
+
+1. Start by cloning the GitHub repo  
+    a. `git clone https://github.com/JoshLoecker/pipeline`
+    b. This will create a new folder `pipeline` in your current directory. Move this to the folder you would like it to be contained in
+2. Within the `pipeline` folder, edit the `environment.yaml` file.  
+    a. Change the last line to the location where you would like to store your conda environments  
+    b. On SciNet, storage space in your home directory is limited. It is [strongly recommended](https://scinet.usda.gov/guide/ceres/#quotas-on-home-and-project-directories) to store environments in your `/project` directory.  
+    c. By saving environments in your `/project` directory, it is possible for everyone on your team to use the same environment, even if multiple people are running jobs at the same time.
+    d. You may also change the name of the pipeline by changing `name: mapt_pipeline` to `name: MY_NAME` if you choose
    
-### Singularty
-1. If you chose to work with Singularity, ensure it is already installed on your system by running `singularity --version`. 
-   If `singularity version . . .` does not appear, [install singularity here](https://singularity.lbl.gov/install-linux). 
-   Singularity is already installed on most clusters, such as SciNET
+If this is the first time setting up the conda environment for your group, continue to Step 3
+If step 2 has been completed for your group already, you are ready to activate the conda environment. Proceed to Step 4
 
-2. Next, pull the docker container  
-    `singularity pull docker://joshloecker/pipeline:latest`
+3. Navigate to the `setup` folder where you first downloaded the pipeline (from Step 1)  
+    a. Call the `setup.sh` script by running `./setup.sh`  
+    b. This will guide you through a simple setup to install the conda environment  
+4. If you know where the `prefix: ` to the conda environment was set, simply type `source activate /path/to/conda/env/name`  
+    a. To deactivate the environment, type `conda deactivate`.  
+5. To be able to use the Guppy suite of tools, the 
+5. The final step is to edit several lines within the `pipeline/config.yaml` file  
+    a. First, set the `results`, `data`, `reference_database`, and `guppy_container` to their appropriate locations  
+	1) `results` is where you would like results of the pipeline to be stored  
+	2) `data` holds your fast5/fastq files for Guppy  
+	3) `reference_database` is the database you will be using with MiniMap for alignments  
+	4) `guppy_container` is the location of the guppy container you will be using  
+	
+	b. Then set any other values required under the `DEFAULT VALUES` section. If these are not changed, they will remain as-is during the pipeline run  
 
-4. Assuming the `To Start` section was completed, the following command
-can safely be copied and pasted. This will download the container, but it is
-not yet running
-    ```
-    singularity run \
-    --bind $results:/results \
-    --bind $data:/data \
-    --bind $cache_dir /home/$USER/.cache \
-    --env alignment_path=$alignment_path \
-    --env num_basecallers=$num_basecallers \
-    --env threads_per_caller=$threads_per_caller \
-    --env basecall_configuration=$basecall_configuration \
-    --env barcode_kit=$barcode_kit \
-    --env cutadapt_trim_error_rate=$cutadapt_trim_error \
-    --env cutadapt_trim_three_prime_adapter=$cutadapt_trim_three_prime_adapter \
-    --env cutadapt_trim_five_prime_adapter=$cutadapt_trim_five_prime_adapter \
-    --env nanofilt_filtering_min=$nanofilt_filtering_min \
-    --env nanofilt_filtering_max=$nanofilt_filtering_max \
-    --env cluster_cutoff=$cluster_cutoff \
-    --env mapped_reads_divergence_threshold=$mapped_reads_divergence_threshold \
-    --env basecall=$basecall \
-    docker://joshloecker/pipeline:latest
-	```
-   
-    This will run the container
-
-4. If you would like to see a dry-run of the pipeline, append `--dry-run`
-to the end of the `run` command. [Other Snakemake flags](https://snakemake.readthedocs.io/en/stable/executing/cli.html)
-can also be added in this manner.  
-   ```
-   singularity run joshloecker/pipeline --dry-run
-   ```
-    Note: Due to this workflow running in a container, not all flags have been tested
-    nor are confirmed to work as expected.  
-   
-   
-### Docker
-1. If you chose to work with Docker, ensure Docker is already installed on your 
-system by running `docker --version`. If `Docker version . . .` does not appear,
-[install docker here](https://docs.docker.com/get-docker/)  
-
-2. If you would like to start by just downloading the container, run the following  
-    ```docker pull joshloecker/pipeline:latest```
-
-2. Then, run the container using the following command. This can safely be copied
-and pasted, assuming the `To Start` step has been completed
-    ```
-    docker run -it \
-    --name=pipeline \
-    --mount type=bind,source=$results,target=/results \
-    --mount type=bind,source=$data,target=/data \
-    joshloecker/pipeline \
-    --config \
-    alignment_path=$alignment_path \
-    num_basecallers=$num_basecallers \
-    threads_per_caller=$threads_per_caller \
-    basecall_configuration=$basecall_configuration \
-    barcode_kit=$barcode_kit \
-    cutadapt_trim_error_rate=$cutadapt_trim_error_rate \
-    cutadapt_trim_three_prime_adapter=$cutadapt_trim_three_prime_adapter \
-    cutadapt_trim_five_prime_adapter=$cutadapt_trim_five_prime_adapter \
-    nanofilt_filtering_min=$nanofilt_filtering_min \
-    nanofilt_filtering_max=$nanofilt_filtering_max \
-    --env cluster_cutoff=$cluster_cutoff \
-    --env mapped_reads_divergence_threshold=$mapped_reads_divergence_threshold \
-    basecall=$basecall
-    ```
-    This will start the container, or download it if it is not downloaded.
-    <br><br>
-    If you would like to do a dry-run before starting the container, simply add `--dry-run` to the end of the command.
-    You must delete the container (`docker rm pipeline`) and re-run it without `--dry-run` to begin your workflow.
-    Any additional snakemake flags should be able to be entered at the end of 
-    this command as well.
-
-### Workflow
-The following workflow will be completed, relatively in this order
-1. [Oxford Nanopore Basecalling](https://community.nanoporetech.com/protocols/Guppy-protocol/v/gpb_2003_v1_revt_14dec2018) (i.e. guppy_basecaller)
-2. [Oxford Nanopore Barcoding](https://community.nanoporetech.com/protocols/Guppy-protocol/v/gpb_2003_v1_revt_14dec2018) (i.e. guppy_barcoder)
-3. [NanoQC](https://github.com/wdecoster/nanoQC)  
-    a. NanoQC will be called independently on basecalling and barcoding results
-4. [NanoPlot](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiz89ql2cHsAhUjAp0JHUVoCFAQFjAAegQIARAC&url=https%3A%2F%2Fgithub.com%2Fwdecoster%2FNanoPlot&usg=AOvVaw00LEGNovoQzjS5KCUxwD0v)
-5. [Cutadapt](https://cutadapt.readthedocs.io/en/stable/)
-6. [NanoFilt](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwigp9S92cHsAhWSLc0KHYp8C-oQFjAAegQIBBAC&url=https%3A%2F%2Fgithub.com%2Fwdecoster%2Fnanofilt&usg=AOvVaw20npdGb-VRvmFH1SY6-P6C)
-7. [isONclust](https://github.com/ksahlin/isONclust)
-8. [SPOA](https://github.com/rvaser/spoa)
-9. [Minimap Aligner](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjUtqXD2cHsAhVCGM0KHYsKAqcQFjAAegQIARAC&url=https%3A%2F%2Fgithub.com%2Flh3%2Fminimap2&usg=AOvVaw3UvK2vgr0fj_4GS68K8V26) on SPOA and Filtering results
-10. [IsoCon](https://github.com/ksahlin/IsoCon)
-11. [Plotly](https://pypi.org/project/plotly/) Visuals
-
-### Results
-Results from the pipeline will be saved to the path you bound during the **Installation and Running** step (i.e. `/home/Rob/Projects/run_1/results`). 
-From here, you will be able to see each of the folders that are output, such as `basecalling`, `barcoding`, `visuals`, etc.
+Once these steps are done, the pipeline is ready to run. The pipeline can be run in several methods
+1. Dry Runs  
+	a. A dry-run allows you to see what steps need to be done, and ensures preliminary configuration is set up correctly.  
+    b. To perform a dry-run, activate the `mapt_pipeline` conda environment by running the following command: `conda activate mapt_pipeline`  
+    c. Next, call snakemake with a dry-run: `snakemake -j 1 --use-singularity -n`  
+    1) `snakemake`: Call snakemake  
+	2) `-j all` (or `--cores 1`): Use 1 core for the dry-run  
+	3) `--use-singularity`: Use singularity in the pipeline. This allows us to use the Guppy container  
+	4) `-n` (or `--dry-run`): This is the dry-run flag for snakemake  
+	
+	d. This will output a fair amount of information, showing what rules need to be completed  
+2. Interactive Runs  
+   a. If you would like to see the output of jobs as they happen, or you have a short job you would like to ensure is working, Interactive Runs can be useful
+   b. Follow the [guide](https://scinet.usda.gov/guide/ceres/#interactive-mode) here for help on how to set up an interactive run
+	   1) In short, the following structure should be used: `srun --pty -p [QUEUE_CHOICE] -t hh:mm:ss -n [TASKS] -N [NODES] /bin/bash -l`
+   c. It should be noted that if you have an Interactive Run, and your connection to the server is lost, the job will quit immediately. Because of this, it is recommended to use Slurm Jobs instead
+3. Slurm Jobs  
+	a. If you would like to close your connection to the server, Slurm Jobs are the most versatile tool.
+    b. [SciNet User Guide](https://scinet.usda.gov/guide/ceres/)
+        1) [Requesting the proper nodes and cores](https://scinet.usda.gov/guide/ceres/#requesting-the-proper-number-of-nodes-and-cores)
+        2) [Simple how-to on SLURM](https://scinet.usda.gov/guide/ceres/#batch-mode)
+	
+	c. For more SBATCH options, see [this guide](https://osirim.irit.fr/site/en/articles/sbatch-options)
+        1) These options will be listed at the top of the slurm file
+    d. For some simple getting-started scripts, view files under the following folder in SciNet
+        1) `/project/brookings_minion/example_slurm_scripts`
 
 
-### Known Errors
-Deleting files from the `.temp` folder will cause the pipeline to regenerate these files, along with any output downstream.  
-If you experience any other errors, contact [joshua.loecker@jacks.sdstate.edu](mailto:joshua.loecker@jacks.sdstate.edu) for assistance
 
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbOTIyMDg4NzE1XX0=
--->
+Notes to Future Maintainers
+---------------------------
+1. Singularity and Docker must be installed on the same machine to update guppy
+2. Building the Guppy singularity image was first done by building a docker container  
+	a. `docker build --tag [YOUR TAG] .`  
+    b. This was done simply because I was most familiar with docker containers  
+    c. It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
+3. The singularity container is built in the following manner  
+	a. `singularity build --sandbox docker-daemon://[YOUR TAG FROM STEP 2]`  
+	b. The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
+	1) `singularity build --sandbox docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
+    
+	c. 
