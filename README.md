@@ -73,23 +73,14 @@ If step 2 has been completed for your group already, you are ready to activate t
 Running the Pipeline
 --------------------
 Once these steps are done, the pipeline is ready to run. The pipeline can be run in several methods
-1. Dry Runs  
-	a. A dry-run allows you to see what steps need to be done, and ensures preliminary configuration is set up correctly.  
-    b. To perform a dry-run, activate the `mapt_pipeline` conda environment by running the following command: `conda activate mapt_pipeline`  
-    c. Next, call snakemake with a dry-run: `snakemake -j 1 --use-singularity -n`  
-    1) `snakemake`: Call snakemake  
-	2) `-j all` (or `--cores 1`): Use 1 core for the dry-run  
-	3) `--use-singularity`: Use singularity in the pipeline. This allows us to use the Guppy container  
-	4) `-n` (or `--dry-run`): This is the dry-run flag for snakemake  
-	
-	d. This will output a fair amount of information, showing what rules need to be completed  
-2. Interactive Runs  
+
+1. Interactive Runs  
     a. If you would like to see the output of jobs as they happen, or you have a short job you would like to ensure is working, Interactive Runs can be useful  
     b. Follow the [guide](https://scinet.usda.gov/guide/ceres/#interactive-mode) here for help on how to set up an interactive run  
     1) In short, the following structure should be used: `srun --pty -p [QUEUE_CHOICE] -t hh:mm:ss -n [TASKS] -N [NODES] /bin/bash -l`  
    
 	c. It should be noted that if you have an Interactive Run, and your connection to the server is lost, the job will quit immediately. Because of this, it is recommended to use Slurm Jobs instead  
-3. Slurm Jobs  
+2. Slurm Jobs  
 	a. If you would like to close your connection to the server, Slurm Jobs are the most versatile tool.  
     b. [SciNet User Guide](https://scinet.usda.gov/guide/ceres/)  
     1) [Requesting the proper nodes and cores](https://scinet.usda.gov/guide/ceres/#requesting-the-proper-number-of-nodes-and-cores)  
@@ -100,6 +91,17 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
     1) SciNet: `/project/brookings_minion/example_slurm_scripts/`
 	2) GitHub: [Example SLURM Scripts](https://github.com/JoshLoecker/pipeline/tree/master/Example%20SLURM%20Scripts)
 
+3. Dry Runs
+    a. Dry-Runs can be done in Interactive Runs or Slurm Jobs.
+	a. A dry-run allows you to see what steps need to be done, and ensures preliminary configuration is set up correctly.  
+    b. To perform a dry-run, activate the `mapt_pipeline` conda environment by running the following command: `conda activate mapt_pipeline`  
+    c. Next, call snakemake with a dry-run: `snakemake -j 1 --use-singularity -n`  
+    1) `snakemake`: Call snakemake  
+	2) `-j all` (or `--cores 1`): Use 1 core for the dry-run  
+	3) `--use-singularity`: Use singularity in the pipeline. This allows us to use the Guppy container  
+	4) `-n` (or `--dry-run`): This is the dry-run flag for snakemake  
+	
+	d. This will output a fair amount of information, showing what rules need to be completed  
 
 Notes to Future Maintainers
 ---------------------------
