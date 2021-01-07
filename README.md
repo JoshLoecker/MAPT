@@ -1,5 +1,5 @@
 Pipeline (MAPT)
-===============
+---------------
 
 Naming
 ------
@@ -81,10 +81,11 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 	
 	d. This will output a fair amount of information, showing what rules need to be completed  
 2. Interactive Runs  
-   a. If you would like to see the output of jobs as they happen, or you have a short job you would like to ensure is working, Interactive Runs can be useful
-   b. Follow the [guide](https://scinet.usda.gov/guide/ceres/#interactive-mode) here for help on how to set up an interactive run
-	   1) In short, the following structure should be used: `srun --pty -p [QUEUE_CHOICE] -t hh:mm:ss -n [TASKS] -N [NODES] /bin/bash -l`
-   c. It should be noted that if you have an Interactive Run, and your connection to the server is lost, the job will quit immediately. Because of this, it is recommended to use Slurm Jobs instead
+    a. If you would like to see the output of jobs as they happen, or you have a short job you would like to ensure is working, Interactive Runs can be useful  
+    b. Follow the [guide](https://scinet.usda.gov/guide/ceres/#interactive-mode) here for help on how to set up an interactive run  
+    1) In short, the following structure should be used: `srun --pty -p [QUEUE_CHOICE] -t hh:mm:ss -n [TASKS] -N [NODES] /bin/bash -l`  
+   
+	c. It should be noted that if you have an Interactive Run, and your connection to the server is lost, the job will quit immediately. Because of this, it is recommended to use Slurm Jobs instead  
 3. Slurm Jobs  
 	a. If you would like to close your connection to the server, Slurm Jobs are the most versatile tool.  
     b. [SciNet User Guide](https://scinet.usda.gov/guide/ceres/)  
@@ -94,21 +95,30 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 	c. For more SBATCH options, see [this guide](https://osirim.irit.fr/site/en/articles/sbatch-options)    
 	d. For some simple getting-started scripts, view the example slurm scripts in one of the two locations:
     1) SciNet: `/project/brookings_minion/example_slurm_scripts/`
-	2) GitHub: []
-    
-
+	2) GitHub: [Example SLURM Scripts](https://github.com/JoshLoecker/pipeline/tree/master/Example%20SLURM%20Scripts)
 
 
 Notes to Future Maintainers
 ---------------------------
-1. Singularity and Docker must be installed on the same machine to update guppy
-2. Building the Guppy singularity image was first done by building a docker container  
-	a. `docker build --tag [YOUR TAG] .`  
-    b. This was done simply because I was most familiar with docker containers  
-    c. It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
-3. The singularity container is built in the following manner  
-	a. `singularity build --sandbox docker-daemon://[YOUR TAG FROM STEP 2]`  
-	b. The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
-	1) `singularity build --sandbox docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
-    
-	c. 
+### How to build a new Guppy container
+This can be done in one of two ways.
+1. Automated Method  
+    a. This is probably the most preferred method.  
+    b. To start, update the `ARG version=. . .` in the `Dockerfile` to the newest version of guppy. The newest version can be found on [Oxford Nanopore Downloads](https://community.nanoporetech.com/downloads)  
+    c. Next, execute the script `buildGuppy.sh` under the `setup` folder  
+    d. This will go through the process of downloading the specified version of Guppy in a new docker image, and create a new singularity container from the docker image
+    e. Once the script is done, the resulting singularity image needs to be uploaded to SciNet for use on the cluster
+2. Manual Method
+	a. This method is more intensive, but may be required if something breaks in the automated method  
+    b. First, singularity and docker must be installed on the same machine to update guppy  
+    c. Building a new Guppy singularity container is first done by creating a docker image  
+        1) `docker build --tag [YOUR TAG]`  
+        2) This was done simply because I was most familiar with docker containers    
+        3) It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
+        4) The `Dockerfile` located in this repository is what the image should be built upon  
+	d. The singularity container is built in the following manner  
+		a. `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker-daemon://[YOUR TAG FROM STEP 2]`  
+		1) The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
+		2) `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
+	
+4. This will ultimately generate a singularity container with the name `[GUPPY_CONTAINER_NAME]`. It can be run as an executable.
