@@ -61,14 +61,17 @@ If step 2 has been completed for your group already, you are ready to activate t
     a. To deactivate the environment, type `conda deactivate`.  
 5. To be able to use the Guppy suite of tools, the 
 5. The final step is to edit several lines within the `pipeline/config.yaml` file  
-    a. First, set the `results`, `data`, `reference_database`, and `guppy_container` to their appropriate locations  
+    a. First, set the `results`, `basecall_files` (or `barcode_files`), `reference_database`, and `guppy_container` to their appropriate locations  
 	1) `results` is where you would like results of the pipeline to be stored.  
-	2) `data` holds your fast5/fastq files for Guppy. Point this directly to the fast5/fastq files.  
+	2) `basecall_files` holds your fast5/fastq files for Guppy.
+	   a) If you are going to skip basecalling and do only barcoding, the `basecall_files` config can be left empty (i.e. `""`)
 	3) `reference_database` is the database you will be using with MiniMap for alignments.  
 	4) `guppy_container` is the location of the guppy container you will be using.  
 	
 	b. Then set any other values required under the `DEFAULT VALUES` section. If these are not changed, they will remain as-is during the pipeline run  
 
+Running the Pipeline
+--------------------
 Once these steps are done, the pipeline is ready to run. The pipeline can be run in several methods
 1. Dry Runs  
 	a. A dry-run allows you to see what steps need to be done, and ensures preliminary configuration is set up correctly.  

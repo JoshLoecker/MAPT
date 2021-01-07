@@ -24,4 +24,3 @@ dependencies:
   - pip:
       - isONclust
 name: mapt_pipeline
-prefix: /home/joshua.loecker/.conda/envs/

@@ -3,7 +3,8 @@
 # 3) This is the path to the reference database for MiniMap
 # Paths should have a trailing forward slash (/) for proper usage
 results: "results/"
-data: "data/"
+basecall_files: "data/fast5/"
+barcode_files: "data/fastq/"
 reference_database: "data/zymogen_alignment_file.fasta"
 guppy_container: "/90daydata/shared/ncarl_minion/guppy_container"
 
@@ -11,7 +12,7 @@ guppy_container: "/90daydata/shared/ncarl_minion/guppy_container"
 # -------- DEFAULT VALES --------
 basecall:
     # should basecalling be done?
-    perform_basecall: False
+    perform_basecall: True
     # number of basecallers to use
     num_callers: 1
     # threads per basecaller to use

@@ -113,7 +113,7 @@ def plotly_box_whisker(wildcards):
     return config["results"] + "visuals/plotly/plotly.box.whisker.html"
 
 
-FAST5_FILES = glob_wildcards(config["data"] + "fast5/" + "{fast5_file}.fast5").fast5_file
+FAST5_FILES = glob_wildcards(config["basecall_files"] + "{fast5_file}.fast5").fast5_file
 
 rule all:
     input:
@@ -156,7 +156,7 @@ rule all:
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input:
-            config["data"]
+            config["basecall_files"]
         output:
             output=directory(config["results"] + "basecall/")
         container: config["guppy_container"]
@@ -182,7 +182,7 @@ def barcode_input(wildcards):
     if config["basecall"]["perform_basecall"]:
         return rules.basecall.output[0]
     else:
-        return config["data"]
+        return config["barcode_files"]
 checkpoint barcode:
     input:
         barcode_input
