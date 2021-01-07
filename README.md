@@ -62,10 +62,10 @@ If step 2 has been completed for your group already, you are ready to activate t
 5. To be able to use the Guppy suite of tools, the 
 5. The final step is to edit several lines within the `pipeline/config.yaml` file  
     a. First, set the `results`, `data`, `reference_database`, and `guppy_container` to their appropriate locations  
-	1) `results` is where you would like results of the pipeline to be stored  
-	2) `data` holds your fast5/fastq files for Guppy  
-	3) `reference_database` is the database you will be using with MiniMap for alignments  
-	4) `guppy_container` is the location of the guppy container you will be using  
+	1) `results` is where you would like results of the pipeline to be stored.  
+	2) `data` holds your fast5/fastq files for Guppy. Point this directly to the fast5/fastq files.  
+	3) `reference_database` is the database you will be using with MiniMap for alignments.  
+	4) `guppy_container` is the location of the guppy container you will be using.  
 	
 	b. Then set any other values required under the `DEFAULT VALUES` section. If these are not changed, they will remain as-is during the pipeline run  
 
@@ -108,17 +108,20 @@ This can be done in one of two ways.
     c. Next, execute the script `buildGuppy.sh` under the `setup` folder  
     d. This will go through the process of downloading the specified version of Guppy in a new docker image, and create a new singularity container from the docker image
     e. Once the script is done, the resulting singularity image needs to be uploaded to SciNet for use on the cluster
-2. Manual Method
+2. Manual Method  
 	a. This method is more intensive, but may be required if something breaks in the automated method  
     b. First, singularity and docker must be installed on the same machine to update guppy  
     c. Building a new Guppy singularity container is first done by creating a docker image  
-        1) `docker build --tag [YOUR TAG]`  
-        2) This was done simply because I was most familiar with docker containers    
-        3) It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
-        4) The `Dockerfile` located in this repository is what the image should be built upon  
-	d. The singularity container is built in the following manner  
-		a. `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker-daemon://[YOUR TAG FROM STEP 2]`  
-		1) The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
-		2) `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
+    1) `docker build --tag [YOUR TAG]`  
+    2) This was done simply because I was most familiar with docker containers    
+    3) It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
+    4) The `Dockerfile` located in this repository is what the image should be built upon  
 	
-4. This will ultimately generate a singularity container with the name `[GUPPY_CONTAINER_NAME]`. It can be run as an executable.
+	d. The singularity container is built in the following manner  
+	1) `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker-daemon://[YOUR TAG FROM STEP 2]`  
+	2) The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
+	3) `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
+	
+	e. This will ultimately generate a singularity container with the name `[GUPPY_CONTAINER_NAME]`.  
+	f. It can be run as an executable in the following format `singularity exec [GUPPY_CONTAINER_NAME] [COMMAND]`
+    1) See [singularity exec](https://singularity.lbl.gov/docs-exec), [singularity run](https://singularity.lbl.gov/docs-run), and [singularity shell](https://singularity.lbl.gov/docs-shell) for more information

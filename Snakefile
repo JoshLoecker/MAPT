@@ -156,7 +156,7 @@ rule all:
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input:
-            config["data"] + "fast5"
+            config["data"]
         output:
             output=directory(config["results"] + "basecall/")
         container: config["guppy_container"]
@@ -182,7 +182,7 @@ def barcode_input(wildcards):
     if config["basecall"]["perform_basecall"]:
         return rules.basecall.output[0]
     else:
-        return os.path.join(config["data"], "fastq")
+        return config["data"]
 checkpoint barcode:
     input:
         barcode_input
