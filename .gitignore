@@ -10,3 +10,5 @@
 /containers/
 /.tests/
 /singularity/
+/statistics/profiling
+/statistics/stress_test
