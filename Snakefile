@@ -7,6 +7,7 @@ from pprint import pprint
 import shutil
 import pandas as pd
 import numpy as np
+import gzip
 
 configfile: "config.yaml"
 
@@ -34,7 +35,7 @@ def barcode_merge_files(wildcards):
         if Path(full_path).is_dir():
             barcodes.add(folder)
 
-    return_merged_files = [config["results"] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
+    return_merged_files = [config["results"] + "barcode/" + barcode + ".merged.fastq.gz" for barcode in barcodes]
     return return_merged_files
 def nanoqc_basecall_data(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
@@ -158,7 +159,8 @@ if config["basecall"]["perform_basecall"]:
         input:
             config["basecall_files"]
         output:
-            output=directory(config["results"] + "basecall/")
+            output=directory(config["results"] + "basecall/"),
+            rule_complete = config["results"] + ".temp/basecall_complete"
         container: config["guppy_container"]
         params:
             config=config["basecall"]["configuration"],
@@ -171,16 +173,20 @@ if config["basecall"]["perform_basecall"]:
             guppy_basecaller \
             --config {params.config} \
             --input_path {input} \
-            --save_path {output} \
+            --save_path {output.output} \
             --num_callers {params.callers} \
             --cpu_threads_per_caller {params.threads_per_caller} \
             --recursive
+            
+            gzip --best {output.output}/*.fastq
+            touch {output.rule_complete}
             """
 
 
 def barcode_input(wildcards):
     if config["basecall"]["perform_basecall"]:
-        return rules.basecall.output[0]
+        output = checkpoints.basecall.get(**wildcards).output
+        return output
     else:
         return config["barcode_files"]
 checkpoint barcode:
@@ -195,7 +201,7 @@ checkpoint barcode:
     shell:
         r"""
         guppy_barcoder \
-        -i {input} \
+        -i {input[0]} \
         -s {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
         --recursive 
@@ -210,26 +216,26 @@ rule merge_files:
     input:
         merge_files_input
     output:
-        config["results"] + "barcode/{barcode}.merged.fastq"
+        config["results"] + "barcode/{barcode}.merged.fastq.gz"
     params:
-        input_folder=config["results"] + ".barcodeTempOutput",
-        save_folder=config["results"] + "barcode"
+        temp_file = config["results"] + "barcode/{barcode}.merged.fastq"
     shell:
         r"""
         for item in {input}; do
-            cat $item >> {output}
+            cat $item >> {params.temp_file}
+            gzip {params.temp_file}
         done
         """
 
 
 def collate_basecall_fastq_files_input(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return glob.glob(config["results"] + "basecall/*.fastq")
+    return glob.glob(config["results"] + "basecall/*.fastq.gz")
 rule collate_basecall_fastq_files:
     input:
         collate_basecall_fastq_files_input
     output:
-        temp(config["results"] + ".temp/basecall.temp.merged.files.fastq")
+        fastsq_gz = temp(config["results"] + ".temp/basecall.temp.merged.files.fastq.gz")
     shell:
         r"""        
         # concatenate each file in the params directory to the output file
@@ -283,13 +289,13 @@ rule NanoQCBarcode:
 
 rule NanoPlotBasecall:
     input:
-        rules.collate_basecall_fastq_files.output[0]
+        rules.collate_basecall_fastq_files.output.fastsq_gz
     output:
         directory(config["results"] + "visuals/nanoplot/basecall/")
     run:
         # if we are not basecalling, the input file will have 0 lines
         # if this is the case, do nothing
-        if len(open(str(input)).readlines()) != 0:
+        if os.stat(str(input)).st_size != 0:
             subprocess.run(["NanoPlot", "--fastq", str(input), "-o", str(output)])
         else:
             pass
@@ -422,14 +428,15 @@ rule isONclustClusterFastq:
         --clusters "{input.pipeline_output}/final_clusters.tsv"
                 
         touch "{output.rule_complete}"
+        gzip {output.cluster_output}/*.fastq
         """
 
 
 rule remove_low_reads:
     input:
         previous_rule_complete = rules.isONclustClusterFastq.output.rule_complete,
-        cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
-            file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
+        cluster_data = expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq.gz",
+            file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq.gz").file)
     output:
         rule_complete = touch(config["results"] + ".temp/RemoveLowClustersDone")
     params:
@@ -439,20 +446,23 @@ rule remove_low_reads:
         os.makedirs(params.output_folder, exist_ok=True)
         input_data = str(input.cluster_data).split(" ")
         for file in input_data:
-            lines_in_file = open(file, 'r').readlines()
+            lines_in_file = gzip.open(file, 'rt').readlines()
             count_lines_in_file = len(lines_in_file)
             count_reads_in_file = count_lines_in_file / 4
 
             # keep files that are equal to OR GREATER than the cutoff
             if count_reads_in_file < params.cluster_cutoff:
-                shutil.move(src=file, dst=str(params.output_folder))
+                # copy the file, then remove it
+                # doing this prevents errors about the destination file already existing
+                shutil.copy(src=file, dst=str(params.output_folder))
+                os.remove(file)
 
 
 rule temp_spoa:
     input:
         complete_rule=rules.remove_low_reads.output.rule_complete,
-        cluster_data=expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq",
-            file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq").file)
+        cluster_data=expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq.gz",
+            file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq.gz").file)
     output:
         temp_output=directory(config["results"] + ".temp/spoa")
     run:
@@ -460,17 +470,14 @@ rule temp_spoa:
         os.mkdir(output.temp_output)
         input_data = str(input.cluster_data).split(" ")
         for file in input_data:
-            if ".fastq" in file:
-                # convert fastq file names to fasta
-                fastq_to_fasta = file[:-1] + "a"
-                fastq_to_fasta = os.path.basename(fastq_to_fasta)
+            if ".fastq.gz" in file:
 
-                # get our temporary output path generated and create the file
-                temp_output = os.path.join(output.temp_output,fastq_to_fasta)
+                basename = os.path.basename(file)
+                output_file = os.path.join(output.temp_output, basename)
 
                 # run spoa on the current isOnclust file, putting output into the temp spoa file
-                with open(temp_output,'w') as output_stream:
-                    subprocess.run(["spoa", file, "-r", "0"],stdout=output_stream,universal_newlines=True)
+                with gzip.open(output_file,'wb') as output_stream:
+                    subprocess.run(["spoa", file, "-r", "0"], stdout=output_stream, universal_newlines=True)
 rule spoa:
     input:
         rules.temp_spoa.output.temp_output
@@ -478,6 +485,7 @@ rule spoa:
         config["results"] + "spoa/consensus.sequences.fasta"
     run:
         for file in os.listdir(str(input)):
+            print(f"HERE: {file}")
             # we do not want the `.snakemake_timestamp` file to be included in this
             if ".snakemake_timestamp" not in file:
                 file_path = os.path.join(str(input),file)
@@ -487,12 +495,12 @@ rule spoa:
 
                 # overwrite first line in file with `>cluster_{file_basename}`
                 # read lines
-                file_lines = open(file_path,'r').readlines()
+                file_lines = gzip.open(file_path,'rt').readlines()
                 # replace first line
                 file_lines[0] = f">cluster_{file_basename}\n"
 
                 # append new lines to the output file
-                open(str(output),'a').writelines(file_lines)
+                gzip.open(str(output),'wb').writelines(file_lines)
 
 
 rule guppy_aligner:
@@ -694,7 +702,7 @@ def count_reads_barcode_input(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output[1]
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     files = return_barcode_numbers(checkpoint_output)
-    merged_barcode_files = expand(rules.merge_files.output,barcode=files)
+    merged_barcode_files = expand(rules.merge_files.output, barcode=files)
     return merged_barcode_files
 def count_reads_cutadapt_input(wildcards):
     cutadapt_done = rules.cutadaptDone.output[0]

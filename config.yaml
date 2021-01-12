@@ -6,7 +6,7 @@ results: "results/"
 basecall_files: "data/fast5/"
 barcode_files: "data/fastq/"
 reference_database: "data/zymogen_alignment_file.fasta"
-guppy_container: "/90daydata/shared/ncarl_minion/singularity/guppy_container"
+guppy_container: "data/guppy_container"
 
 
 # -------- DEFAULT VALES --------
@@ -16,7 +16,7 @@ basecall:
     # number of basecallers to use
     num_callers: 1
     # threads per basecaller to use
-    threads_per_caller: 12
+    threads_per_caller: 6
     # set this variable to the configuration name you would like to use with basecalling
     # additionally, set the number of callers and threads per caller to use with basecalling
     configuration: "dna_r9.4.1_450bps_fast.cfg"

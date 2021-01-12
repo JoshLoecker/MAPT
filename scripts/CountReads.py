@@ -7,13 +7,19 @@ As a result, it is easier to make one function more robust than to copy and past
 import csv
 import os
 from collections import OrderedDict
+import gzip
 
 # iterate through and open each file in the input stream
 total_reads_dict = {}
 for file_path in snakemake.input:
 
     # get the total number of lines in the file
-    file_lines = open(file_path, 'r').readlines()
+    # if the file is a .fastq.gz file, we will get a `UnicodeDecodeError`
+    # use gzip instead in this case
+    try:
+        file_lines = open(file_path, 'r').readlines()
+    except UnicodeDecodeError:
+        file_lines = gzip.open(file_path, "rt").readlines()
     total_lines = len(file_lines)
 
     # we know that fastq files have four lines per read, and fasta files have two lines per read
