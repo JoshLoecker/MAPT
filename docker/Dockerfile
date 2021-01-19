@@ -1,5 +1,5 @@
 FROM ubuntu:latest as guppy
-ARG version=4.4.0
+ARG version=4.4.1
 
 # Ubuntu-20 GPU
 ADD https://mirror.oxfordnanoportal.com/software/analysis/ont_guppy_${version}-1~focal_amd64.deb /guppy.deb
