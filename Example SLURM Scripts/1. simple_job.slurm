@@ -22,7 +22,7 @@
 										# %J: jobid.stepid of the running job. (e.g. "128.0")
 										# %j: jobid of the running job.
 										# %N: short hostname. This will create a separate IO file per node.
-										# %n: Node identifier relative to current job (e.g. "0" is the first node of the running job) This will create a separate IO 		file # per node.
+										# %n: Node identifier relative to current job (e.g. "0" is the first node of the running job) This will create a separate IO file # per node.
 										# %s: stepid of the running job.
 										# %t: task identifier (rank) relative to current job. This will create a separate IO file per task.
 										# %u: User name.

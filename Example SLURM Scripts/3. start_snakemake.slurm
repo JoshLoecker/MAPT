@@ -22,7 +22,7 @@
 										# %J: jobid.stepid of the running job. (e.g. "128.0")
 										# %j: jobid of the running job.
 										# %N: short hostname. This will create a separate IO file per node.
-										# %n: Node identifier relative to current job (e.g. "0" is the first node of the running job) This will create a separate IO 		file # per node.
+										# %n: Node identifier relative to current job (e.g. "0" is the first node of the running job) This will create a separate IO file # per node.
 										# %s: stepid of the running job.
 										# %t: task identifier (rank) relative to current job. This will create a separate IO file per task.
 										# %u: User name.
@@ -39,6 +39,10 @@
 source ~/.bashrc
 
 # activate conda environment
+# This may fail for several reasons
+# 1) You do not have a conda environment named `mapt_pipeline`
+# 2) A conda environment IS named mapt_pipeline, but cannot be found by conda.
+# 3) To fix this, replace mapt_pipeline with the `prefix` location of your mapt_pipeline equivalent
 conda activate mapt_pipeline
 
 # change to pipeline directory
