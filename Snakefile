@@ -217,13 +217,17 @@ rule merge_files:
     output:
         config["results"] + "barcode/{barcode}.merged.fastq.gz"
     params:
-        temp_file = config["results"] + "barcode/{barcode}.merged.fastq"
+        temp_file = config["results"] + "barcode/{barcode}.merged.fastq",
+        barcode_output = config["results"] + ".temp/barcodeTempOutput"
     shell:
         r"""
         for item in {input}; do
             cat $item >> {params.temp_file}
             gzip {params.temp_file}
         done
+        
+        # remove barcode files, as they have been merged into the output file
+        rm -rf {params.barcode_output}
         """
 
 
