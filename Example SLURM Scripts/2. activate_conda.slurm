@@ -31,10 +31,6 @@
 
 # In this script we are simply going to demonstrate the process of activating a conda environment
 
-# First, we must source our .bashrc file.
-# This is required because SLURM jobs are sent to a separate server, which does not know about our conda environments.
-source ~/.bashrc
-
 # Next, we are going to show all conda environments. Because the SLURM job does not have any active environments at the start, it will show an asterisk (*) on the `base` environment
 printf "Before activation\n"
 conda info --envs
@@ -45,8 +41,7 @@ conda info --envs
 # 1) You do not have a conda environment named `mapt_pipeline`
 # 2) A conda environment IS named mapt_pipeline, but cannot be found by conda.
 # 3) To fix this, replace mapt_pipeline with the `prefix` location of your mapt_pipeline equivalent
-conda activate mapt_pipeline
-
+conda activate /project/brookings_minion/conda-envs/mapt_pipeline
 
 # Show the active environments after activation
 printf "\n"

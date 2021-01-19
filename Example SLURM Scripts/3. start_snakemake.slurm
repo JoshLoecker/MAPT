@@ -33,22 +33,21 @@
 # If you would like to view these, navigate to `/90daydata/shared/ncarl_minion/joshl/pipeline` and view the `config.yaml` file
 
 
-
-
-# Source our bashrc so conda can be used
-source ~/.bashrc
-
 # activate conda environment
 # This may fail for several reasons
 # 1) You do not have a conda environment named `mapt_pipeline`
 # 2) A conda environment IS named mapt_pipeline, but cannot be found by conda.
 # 3) To fix this, replace mapt_pipeline with the `prefix` location of your mapt_pipeline equivalent
-conda activate mapt_pipeline
+conda activate /project/brookings_minion/conda-envs/mapt_pipeline
 
 # change to pipeline directory
-cd "/home/joshua.loecker/ncarl_minion/pipeline"
+cd /project/brookings_minion/pipeline/
 
-# start snakemake with a dry-run
+# show snakemake with a dry-run
 snakemake -j all --use-singularity -n
 printf "\n"
 printf "pipeline complete"
+
+# NOTE
+# This will not work as-is due to extra setup being required in the following file
+# /project/brookings_minion/pipeline/config.yaml
