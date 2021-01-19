@@ -8,7 +8,7 @@ prefix_name=$(tail < "../environment.yaml" | grep "prefix: ")
 prefix_name="${prefix_name:8}"  # take data after 'prefix: ' (i.e. prefix name)
 
 # Get a list of current environments
-current_conda_envs=$(conda env list)
+current_conda_envs=$(conda info --envs)
 
 # we have not found an environment with the name 'mapt_pipeline', we need to create it
 if [[ "$current_conda_envs" != *"$prefix_name"* ]]; then
