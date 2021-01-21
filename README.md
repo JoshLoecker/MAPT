@@ -82,7 +82,8 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 
 1. Interactive Runs  
     a. If you would like to see the output of jobs as they happen, or you have a short job you would like to ensure is working, Interactive Runs can be useful  
-    b. Follow the [guide](https://scinet.usda.gov/guide/ceres/#interactive-mode) here for help on how to set up an interactive run  
+    b. Follow the [guide](https://scinet.usda.gov/guide/ceres/#interactive-mode) here for help on how to set up an interactive run
+    1) A list of available partitions & queues can be [found here](https://scinet.usda.gov/guide/ceres/#partitions-or-queues)
     1) In short, the following structure should be used: `srun --pty -p [QUEUE_CHOICE] -t hh:mm:ss -n [TASKS] -N [NODES] /bin/bash -l`  
    
 	c. It should be noted that if you have an Interactive Run, and your connection to the server is lost, the job will quit immediately. Because of this, it is recommended to use Slurm Jobs instead  
