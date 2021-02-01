@@ -3,7 +3,7 @@ Pipeline (MAPT)
 
 Naming
 ------
-I would like to name this project as it has been my first, and most in-depth, project to date. 
+This has been my most notable, and in-depth, project to date. As a result, I feel it should have a proper name.
 Due to the nature of this project revolving around mapping noisy microbial reads (hopefully) down to the species level, 
 the following name seemed appropriate: Microbial Automated Processing Tool, or MAPT for short.
 
