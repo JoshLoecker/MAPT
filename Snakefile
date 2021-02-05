@@ -168,9 +168,8 @@ if config["basecall"]["perform_basecall"]:
             threads_per_caller=config["basecall"]["threads_per_caller"]
         shell:
             r"""
-            echo Basecalling
-            
-            singularity exec --nv {guppy_container} guppy_basecaller \
+            singularity exec --nv {params.guppy_container}  \
+            guppy_basecaller \
             --config {params.config} \
             --input_path {input} \
             --save_path {output.output} \
@@ -196,15 +195,17 @@ checkpoint barcode:
     output:
         output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
-    container: config["guppy_container"]
     params:
+        guppy_container = config["guppy_container"],
         barcode_kit=config["barcode"]["kit"]
     shell:
         r"""
+        singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
-        -i {input[0]} \
-        -s {output.output_directory} \
+        --input_path {input[0]} \
+        --save_path {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
+        --device auto \
         --recursive 
 
         touch {output.barcode_complete_file}
