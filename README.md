@@ -107,42 +107,36 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 
 ## Notes to Future Maintainers
 ### How to build a new Guppy container
-To start, singularity and docker must be installed on the same machine to update guppy  
 
-This can be done in one of two ways.
-1. Automated Method  
-    a. This is probably the most preferred method.  
-    b. To start, set the `ARG version=. . .` in one of two places:
-    1) In the `Dockerfile`  
-	2) In the `buildGuppy.sh` script  
-	3) The newest version can be found on [Oxford Nanopore Downloads](https://community.nanoporetech.com/downloads)  
-    
-	c. Next, execute the script `buildGuppy.sh` under the `setup` folder  
-    d. This will go through the process of downloading the specified version of Guppy in a new docker image, and create a new singularity container from the docker image  
-    e. Once the script is done, the resulting singularity image needs to be uploaded to SciNet for use on the cluster  
-2. Manual Method  
-	a. This method is more intensive, but may be required if something breaks in the automated method
-    b. This section of the guide is simply stepping through each of the commands found within the `buildGuppy.sh` script.  
-    c. Building a new Guppy singularity container is first done by creating a docker image  
-    1) `docker build --tag [YOUR TAG]`  
-    2) This was done simply because I was most familiar with docker containers    
-    3) It may be smart to move the Dockerfile in the `pipeline` repository to a Singularity file  
-    4) The `Dockerfile` located in this repository is what the image should be built upon  
+Building a new guppy container is relatively simple
+1. Go to [SyLabs Cloud Builder](https://cloud.sylabs.io/builder)
+	a. Sign in with one of the options available
+	b. Click on your username in the top right corner
+	c. On the drop down, click "Access Tokens"
+5. Generate a new Access Token
+	a. Copy this token, and save it in a secure location. It will not be able to be accessed again
+6. [Log in to SciNet](https://scinet.usda.gov/guide/ceres/#system-access)
+7. Navigate to /project/brookings_minion/ on SciNet
+	a. There is most likely a file named `guppy_container.sif`
+	b. We are going to be updating this file
+9. Run `singularity remote login` and follow the instructions to enable the remote build server
+10. Update the current singularity file with the new Guppy version
+	a. The current guppy version can be found at [Nanopore Tech Community](https://community.nanoporetech.com/downloads)
+    b. Update the line `GUPPY_VERSION=` with the new version number
+    c. Save and exit this file by typing `CTRL + x` -> `y` -> `ENTER`
+10. Run `singularity build --remote guppy_new_container.sif pipeline/setup/Singularity`
+	a. This will take a bit of time (5 to 10 minutes)
+    b. We are not going to overwrite the old file until we are sure the new one is able to build
+11. **Assuming no errors occurred**, we will overwrite the old container with the new one
+	a. Run `mv guppy_new_container.sif guppy_container.sif`
+12. A new guppy container is available.
+    a. To test it, see the following section
 	
-	d. The singularity container is built in the following manner  
-	1) `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker-daemon://[YOUR TAG FROM STEP 2]`  
-	2) The `docker-daemon` is used for a local docker image. Local images are generally preferred. This means we do not have to upload the resulting container to Dockerhub, then download it to our local machine  
-	3) `singularity build --sandbox [GUPPY_CONTAINER_NAME] docker://[YOUR TAG]` will download a docker container from Dockerhub, if this is preferred.  
-	
-	e. This will ultimately generate a singularity container with the name `[GUPPY_CONTAINER_NAME]`.  
-3. The resulting guppy container (in either method, Automated or Manual) will be located in the script same folder as this process was started. It should be moved to a desirable location for long-term keeping  
-	a. This is most likely going to be the `project` folder for the group, such as `/project/brookings_minion`
-   
+
 ### Running Guppy in a singularity container
 The guppy container can be ran as an executable, even outside snakemake. Use the following format to interact with the container  
 `singularity exec [GUPPY_CONTAINER_NAME] [COMMAND]`  
 1. Examples  
-   a. `singularity exec guppy_container guppy_aligner --help`  
-   b. `singularity exec guppy_container guppy_barcoder -i [INPUT PATH] -s [OUTPUT PATH] --barcode_kits [BARCODE KIT] --recursive`    
-	
-    d. See [singularity exec](https://singularity.lbl.gov/docs-exec), [singularity run](https://singularity.lbl.gov/docs-run), and [singularity shell](https://singularity.lbl.gov/docs-shell) for more information, and various methods of interacting with singularity containers
+   a. Getting help menu of guppy_barcoder: `singularity exec guppy_container guppy_barcoder --help`  
+   b. Running a fast5 through the container: `singularity exec guppy_container.sif guppy_basecaller -i /project/brookings-minion/my_fast5_file.fast5 -o /project/brookings-minion/my_ouput_folder`
+   c. See [singularity exec](https://singularity.lbl.gov/docs-exec), [singularity run](https://singularity.lbl.gov/docs-run), and [singularity shell](https://singularity.lbl.gov/docs-shell) for more information and various methods of interacting with singularity containers

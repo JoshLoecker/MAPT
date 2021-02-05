@@ -6,7 +6,7 @@ results: "results/"
 basecall_files: "data/fast5/"
 barcode_files: "data/fastq/"
 reference_database: "data/zymogen_alignment_file.fasta"
-guppy_container: "data/guppy_container"
+guppy_container: "data/guppy_container.sif"
 
 
 # -------- DEFAULT VALES --------
