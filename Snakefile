@@ -162,19 +162,21 @@ if config["basecall"]["perform_basecall"]:
             rule_complete = config["results"] + ".temp/completeRules/basecallComplete"
         container: config["guppy_container"]
         params:
+            guppy_container = config["guppy_container"],
             config=config["basecall"]["configuration"],
             callers=config["basecall"]["num_callers"],
             threads_per_caller=config["basecall"]["threads_per_caller"]
         shell:
             r"""
-            echo Basecalling           
-
-            guppy_basecaller \
+            echo Basecalling
+            
+            singularity exec --nv {guppy_container} guppy_basecaller \
             --config {params.config} \
             --input_path {input} \
             --save_path {output.output} \
             --num_callers {params.callers} \
             --cpu_threads_per_caller {params.threads_per_caller} \
+            --device auto \
             --recursive
             
             gzip --best {output.output}/*.fastq
