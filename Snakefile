@@ -160,7 +160,6 @@ if config["basecall"]["perform_basecall"]:
         output:
             output=directory(config["results"] + "basecall/"),
             rule_complete = config["results"] + ".temp/completeRules/basecallComplete"
-        container: config["guppy_container"]
         params:
             guppy_container = config["guppy_container"],
             config=config["basecall"]["configuration"],
