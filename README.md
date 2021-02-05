@@ -1,4 +1,4 @@
-Pipeline (MAPT)
+MAPT
 ---------------
 
 Naming
