@@ -1,15 +1,12 @@
-MAPT
----------------
+# MAPT
 
-Naming
-------
+### Naming
 This has been my most notable, and in-depth, project to date. As a result, I feel it should have a proper name.
 Due to the nature of this project revolving around mapping noisy microbial reads (hopefully) down to the species level, 
 the following name seemed appropriate: Microbial Automated Processing Tool, or MAPT for short.
 
 
-Usage
------
+### Usage
 
 This is a workflow/pipeline aimed to streamline post-processing of noisy reads from [Oxford Nanopore MinION Sequencing Data](https://www.nanoporetech.com). The following software will need to be installed in a conda environment. A startup-script is provided in the GitHub repository. This is explained further on this page.
 
@@ -27,8 +24,7 @@ The page to the GitHub and Docker repositories are as follows, if they are neede
 - GitHub: [https://github.com/JoshLoecker/pipeline](https://github.com/JoshLoecker/pipeline)
 - Docker: [https://hub.docker.com/repository/docker/joshloecker/pipeline](https://hub.docker.com/repository/docker/joshloecker/pipeline)
 
-Installation & Setup
---------------------
+### Installation & Setup
 
 This project was built and testing on the following versions of Singularity and Docker. Reproducibility and stability cannot be guaranteed on earlier versions.
 1. Singularity (version 3.6.4-1.el7 or higher)
@@ -76,8 +72,7 @@ If step 2 has been completed for your group already, you are ready to activate t
 
 **NOTE**: Any values not changed during in the `pipeline/config.yaml` file will remain as-is during the execution of the pipeline. This **will** lead to unexpected outcomes.
 
-Running the Pipeline
---------------------
+### Running the Pipeline
 Once these steps are done, the pipeline is ready to run. The pipeline can be run in several methods
 
 1. Interactive Runs  
@@ -110,8 +105,7 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 	
 	d. This will output a fair amount of information, showing what rules need to be completed. The pipeline can then be ran following point 1 or 2 above.  
 
-Notes to Future Maintainers
----------------------------
+## Notes to Future Maintainers
 ### How to build a new Guppy container
 To start, singularity and docker must be installed on the same machine to update guppy  
 
@@ -152,5 +146,3 @@ The guppy container can be ran as an executable, even outside snakemake. Use the
    b. `singularity exec guppy_container guppy_barcoder -i [INPUT PATH] -s [OUTPUT PATH] --barcode_kits [BARCODE KIT] --recursive`    
 	
     d. See [singularity exec](https://singularity.lbl.gov/docs-exec), [singularity run](https://singularity.lbl.gov/docs-run), and [singularity shell](https://singularity.lbl.gov/docs-shell) for more information, and various methods of interacting with singularity containers
-
-### 
