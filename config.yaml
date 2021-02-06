@@ -13,13 +13,8 @@ guppy_container: "data/guppy_container.sif"
 basecall:
     # should basecalling be done?
     perform_basecall: True
-    # number of basecallers to use
-    num_callers: 1
-    # threads per basecaller to use
-    threads_per_caller: 6
     # set this variable to the configuration name you would like to use with basecalling
-    # additionally, set the number of callers and threads per caller to use with basecalling
-    configuration: "dna_r9.4.1_450bps_fast.cfg"
+    configuration: "dna_r9.4.1_450bps_hac.cfg"
 
 barcode:
     # set the barcode_kit variable to the name of the barcoding kit you will be using
@@ -45,6 +40,6 @@ isONclust:
 
 nanofilt:
     # Minimum and maximum filtering length to be used
-    min_filter: 1000
-    max_filter: 2000
+    max_filter: 1700
+    min_filter: 1200
     min_quality: 7
