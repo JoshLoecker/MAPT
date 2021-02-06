@@ -165,14 +165,28 @@ if config["basecall"]["perform_basecall"]:
             config=config["basecall"]["configuration"]
         shell:
             r"""
-            singularity exec --nv {params.guppy_container}  \
-            guppy_basecaller \
-            --config {params.config} \
-            --input_path {input} \
-            --save_path {output.output} \
-            --device "cuda:all" \
-            --recursive
+            # We are going to try to resume guppy_basecaller, otherwise simply execute guppy_basecaller
             
+            command="singularity exec --nv {params.guppy_container}  \
+                guppy_basecaller \
+                --config {params.config} \
+                --input_path {input} \
+                --save_path {output.output} \
+                --device "cuda:all" \
+                --recursive"
+
+            # try to resume guppy_basecaller with `resuming` output
+            eval "$command --resume"
+            error_output="$?"
+ 
+            # if we do not get a successful completion of guppy, run without resuming
+            # an error WILL occur on the first run of the pipeline, as there is no log output for guppy to read
+            # I have no better solution for skipping the "resume" option on the first run
+            if [[ error_output -gt 0 ]]; then
+                eval "$command"
+            fi
+            
+            # zip output
             gzip --best {output.output}/*.fastq
             touch {output.rule_complete}
             """
