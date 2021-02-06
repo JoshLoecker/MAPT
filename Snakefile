@@ -165,7 +165,7 @@ if config["basecall"]["perform_basecall"]:
             config=config["basecall"]["configuration"]
         shell:
             r"""
-            # We are going to try to resume guppy_basecaller, otherwise simply execute guppy_basecaller
+            # Try to resume guppy_basecaller, otherwise simply execute guppy_basecaller
             
             command="singularity exec --nv {params.guppy_container}  \
                 guppy_basecaller \
