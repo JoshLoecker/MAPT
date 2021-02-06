@@ -165,13 +165,23 @@ if config["basecall"]["perform_basecall"]:
             config=config["basecall"]["configuration"]
         shell:
             r"""
-            singularity exec --nv {params.guppy_container}  \
-            guppy_basecaller \
-            --config {params.config} \
-            --input_path {input} \
-            --save_path {output.output} \
-            --device "cuda:all" \
-            --recursive
+            # We are going to try to resume guppy_basecaller, otherwise simply execute guppy_basecaller
+            command="singularity exec --nv {params.guppy_container}  \
+                guppy_basecaller \
+                --config {params.config} \
+                --input_path {input} \
+                --save_path {output.output} \
+                --device "cuda:all" \
+                --recursive"
+            # evaluate with `resuming` output
+            eval "$command --resume"
+            error_output="$?"
+ 
+            # if we do not get a successful completion of guppy, run without resuming           
+            if [[ error_output -gt 0 ]]; then
+                eval "$command"
+            fi
+            
             
             gzip --best {output.output}/*.fastq
             touch {output.rule_complete}
