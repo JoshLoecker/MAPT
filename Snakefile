@@ -176,16 +176,10 @@ if config["basecall"]["perform_basecall"]:
                 --device "cuda:all" \
                 --recursive"
 
-            # try to resume guppy_basecaller with `resuming` output
-            eval "$command --resume"
-            error_output="$?"
- 
-            # if we do not get a successful completion of guppy, run without resuming
-            # an error WILL occur on the first run of the pipeline, as there is no log output for guppy to read
-            # I have no better solution for skipping the "resume" option on the first run
-            if [[ error_output -gt 0 ]]; then
-                eval "$command"
-            fi
+            # try to resume basecalling
+            # if this fails, perform normal basecalling
+            # this is ugly, but I am not sure of any other method to try resuming basecalling, and trying again without resuming
+            eval "$command --resume || $command"
             
             # zip output
             gzip --best {output.output}/*.fastq
