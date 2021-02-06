@@ -117,7 +117,8 @@ FAST5_FILES = glob_wildcards(config["basecall_files"] + "{fast5_file}.fast5").fa
 
 rule all:
     input:
-        barcode_merge_files,# basecall, barcode, and merge files in a checkpoint
+        config["results"] + ".temp/completeRules/basecallComplete",  # basecalling
+        barcode_merge_files,# barcode and merge files
         nanoqc_basecall_data,# nanoqc after basecall
         nanoqc_barcode_classified,# nanoqc classified barcodes
         nanoqc_barcode_unclassified,# nanoqc unclassified barcodes
