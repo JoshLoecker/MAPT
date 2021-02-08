@@ -198,24 +198,23 @@ def barcode_input(wildcards):
     if config["basecall"]["perform_basecall"]:
         output = checkpoints.basecall.get(**wildcards).output
         return [output, config["results"] + "basecall/"]
-
     else:
         return config["barcode_files"]
 checkpoint barcode:
     input:
-        basecall_complete = barcode_input[0],
-        basecall_output = barcode_input[1]
+        barcode_input
     output:
         output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
     params:
+        basecall_output = barcode_input[1],
         guppy_container = config["guppy_container"],
         barcode_kit=config["barcode"]["kit"]
     shell:
         r"""
         singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
-        --input_path {input.basecall_output} \
+        --input_path {input} \
         --save_path {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
         --device auto \
