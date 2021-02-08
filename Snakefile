@@ -198,6 +198,7 @@ def barcode_input(wildcards):
     if config["basecall"]["perform_basecall"]:
         output = checkpoints.basecall.get(**wildcards).output
         return [output, config["results"] + "basecall/"]
+
     else:
         return config["barcode_files"]
 checkpoint barcode:
