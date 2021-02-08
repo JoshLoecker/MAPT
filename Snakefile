@@ -154,14 +154,21 @@ rule all:
         plotly_histogram_mapping,# plotly mapping histogram
         plotly_box_whisker  # plotly box and whisker plot
 
+
+"""
+We are placing the output in the parameters section instead of the output section because snakemake will delete the output folder
+    if the job is terminated (i.e. out of time on SciNet)
+This is the only available option of not deleting output when snakemake is terminated
+From: https://stackoverflow.com/questions/55419603/how-to-prevent-snakemake-from-deleting-output-folders-from-failed-jobs
+"""
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input:
             config["basecall_files"]
         output:
-            output=directory(config["results"] + "basecall/"),
             rule_complete = config["results"] + ".temp/completeRules/basecallComplete"
         params:
+            output = directory(config["results"] + "basecall/"),
             guppy_container = config["guppy_container"],
             config=config["basecall"]["configuration"]
         shell:
@@ -172,7 +179,7 @@ if config["basecall"]["perform_basecall"]:
                 guppy_basecaller \
                 --config {params.config} \
                 --input_path {input} \
-                --save_path {output.output} \
+                --save_path {params.output} \
                 --device "cuda:all" \
                 --recursive"
 
@@ -182,7 +189,7 @@ if config["basecall"]["perform_basecall"]:
             eval "$command --resume || $command"
             
             # zip output
-            gzip --best {output.output}/*.fastq
+            gzip --best {params.output}/*.fastq
             touch {output.rule_complete}
             """
 
@@ -195,7 +202,8 @@ def barcode_input(wildcards):
         return config["barcode_files"]
 checkpoint barcode:
     input:
-        barcode_input
+        basecall_complete = barcode_input,
+        basecall_output = config["results"] + "basecall/"
     output:
         output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
@@ -206,7 +214,7 @@ checkpoint barcode:
         r"""
         singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
-        --input_path {input[0]} \
+        --input_path {input.basecall_output} \
         --save_path {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
         --device auto \
