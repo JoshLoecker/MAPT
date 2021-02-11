@@ -166,11 +166,12 @@ if config["basecall"]["perform_basecall"]:
         input:
             config["basecall_files"]
         output:
+            #output = directory(config["results"] + "basecall/"),
             rule_complete = config["results"] + ".temp/completeRules/basecallComplete"
         params:
-            output = directory(config["results"] + "basecall/"),
             guppy_container = config["guppy_container"],
-            config=config["basecall"]["configuration"]
+            config=config["basecall"]["configuration"],
+            output = config["results"] + "basecall/"
         shell:
             r"""
             # Try to resume guppy_basecaller, otherwise simply execute guppy_basecaller
@@ -197,7 +198,7 @@ if config["basecall"]["perform_basecall"]:
 def barcode_input(wildcards):
     if config["basecall"]["perform_basecall"]:
         output = checkpoints.basecall.get(**wildcards).output
-        return [output, config["results"] + "basecall/"]
+        return output
     else:
         return config["barcode_files"]
 checkpoint barcode:
@@ -207,14 +208,14 @@ checkpoint barcode:
         output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
     params:
-        basecall_output = barcode_input[1],
         guppy_container = config["guppy_container"],
-        barcode_kit=config["barcode"]["kit"]
+        barcode_kit=config["barcode"]["kit"],
+        basecall_output=config["results"] + "basecall/"
     shell:
         r"""
         singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
-        --input_path {input} \
+        --input_path {params.basecall_output} \
         --save_path {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
         --device auto \
