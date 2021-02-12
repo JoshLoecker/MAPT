@@ -181,7 +181,7 @@ if config["basecall"]["perform_basecall"]:
                 --config {params.config} \
                 --input_path {input} \
                 --save_path {params.output} \
-                --device "cuda:all" \
+                --device 'cuda:all' \
                 --recursive"
 
             # try to resume basecalling
@@ -213,14 +213,16 @@ checkpoint barcode:
         basecall_output=config["results"] + "basecall/"
     shell:
         r"""
-        singularity exec --nv {params.guppy_container} \
+        command="singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
         --input_path {params.basecall_output} \
         --save_path {output.output_directory} \
         --barcode_kits {params.barcode_kit} \
-        --device auto \
-        --recursive 
-
+        --recursive"
+        
+        # try to execute barcoding with a GPU, otherwise continue without
+        eval "$command --device 'cuda:all' || $command"
+        
         touch {output.barcode_complete_file}
         """
 
