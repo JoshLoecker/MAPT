@@ -28,7 +28,7 @@ def return_barcode_numbers(path: str):
     return barcode_numbers
 def barcode_merge_files(wildcards):
     barcode_done = checkpoints.barcode.get(**wildcards).output
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.barcode.params.temp_barcode_output
     barcodes = set()  # a set is like a list but only stores unique values
     for folder in os.listdir(checkpoint_output):
         full_path = os.path.join(checkpoint_output,folder)
