@@ -205,7 +205,7 @@ checkpoint barcode:
     input:
         barcode_input
     output:
-        output = config["results"] + ".temp/barcodeTempOutput/",
+        output = directory(config["results"] + ".temp/barcodeTempOutput/"),
         barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
     params:
         guppy_container = config["guppy_container"],
