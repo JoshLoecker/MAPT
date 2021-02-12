@@ -27,7 +27,7 @@ def return_barcode_numbers(path: str):
             barcode_numbers.add(item)
     return barcode_numbers
 def barcode_merge_files(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
+    barcode_done = checkpoints.barcode.get(**wildcards).output
     checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
     barcodes = set()  # a set is like a list but only stores unique values
     for folder in os.listdir(checkpoint_output):
@@ -190,7 +190,7 @@ if config["basecall"]["perform_basecall"]:
             eval "$command --resume || $command"
             
             # zip output
-            gzip --best {params.output}/*.fastq
+            gzip --best -f {params.output}/*.fastq
             touch {output.rule_complete}
             """
 
@@ -205,18 +205,18 @@ checkpoint barcode:
     input:
         barcode_input
     output:
-        output_directory=temp(directory(config["results"] + ".temp/barcodeTempOutput/")),
         barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
     params:
         guppy_container = config["guppy_container"],
         barcode_kit=config["barcode"]["kit"],
-        basecall_output=config["results"] + "basecall/"
+        basecall_output=config["results"] + "basecall/",
+        temp_barcode_output = config["results"] + ".temp/barcodeTempOutput/"
     shell:
         r"""
         command="singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
         --input_path {params.basecall_output} \
-        --save_path {output.output_directory} \
+        --save_path {params.temp_barcode_output} \
         --barcode_kits {params.barcode_kit} \
         --recursive"
         
@@ -241,7 +241,7 @@ rule merge_files:
         r"""
         for item in {input}; do
             cat $item >> {params.temp_file}
-            gzip {params.temp_file}
+            gzip -f {params.temp_file}  # force overwrite of the file
         done
         
         # remove barcode files, as they have been merged into the output file
@@ -358,7 +358,7 @@ rule cutadapt:
         --output {params.temp_fastq} \
         {input}
         
-        gzip {params.temp_fastq}
+        gzip -f {params.temp_fastq}
         """
 rule cutadaptDone:
     input:
@@ -391,7 +391,7 @@ rule filtering:
         --quality {params.min_quality} \
         --length {params.min_length} \
         --maxlength {params.max_length} | \
-        gzip > {output.filtering_files}
+        gzip -f {output.filtering_files}
         """
 
 
@@ -460,7 +460,7 @@ rule isONclustClusterFastq:
         --clusters "{input.pipeline_output}/final_clusters.tsv"
                 
         # gzip output and touch rule_complete file
-        gzip {output.cluster_output}/*.fastq
+        gzip -f {output.cluster_output}/*.fastq
         touch "{output.rule_complete}"
         """
 
@@ -538,7 +538,7 @@ rule spoa:
                 os.remove(file_path)
 
         # gzip output file
-        subprocess.run(["gzip", str(params.temp_fasta)])
+        subprocess.run(["gzip", "-f", str(params.temp_fasta)])
 
 
 
