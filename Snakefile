@@ -401,7 +401,8 @@ def merge_filtering_input(wildcards):
         barcode=files)
 rule merge_filtering_files:
     input:
-        merge_filtering_input
+        merge_filtering_input,
+        expand(rules.filtering.output, barcode=return_barcode_numbers(config["results"] + "{barcode}.filter.fastq").barcode)
     output:
         config["results"] + ".temp/merge.filtering.files.fastq"
     params:
