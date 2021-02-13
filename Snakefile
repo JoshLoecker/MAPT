@@ -190,7 +190,7 @@ if config["basecall"]["perform_basecall"]:
             eval "$command --resume || $command"
             
             # zip output
-            gzip --best -f {params.output}/*.fastq
+            # gzip --best -f {params.output}/*.fastq
             touch {output.rule_complete}
             """
 
@@ -245,7 +245,7 @@ rule merge_files:
         
         for item in {input}; do
             cat $item >> {params.temp_file}
-            gzip --best -f {params.temp_file}
+            # gzip --best -f {params.temp_file}
         done
         """
 
@@ -359,7 +359,7 @@ rule cutadapt:
         --output {params.temp_fastq} \
         {input}
         
-        gzip --best -f {params.temp_fastq}
+        # gzip --best -f {params.temp_fastq}
         """
 rule cutadaptDone:
     input:
@@ -389,11 +389,11 @@ rule filtering:
         r"""
         touch {output}
         
-        gunzip -c {input} | NanoFilt \
+        NanoFilt \
         --quality {params.min_quality} \
         --length {params.min_length} \
-        --maxlength {params.max_length} | \
-        gzip --best -f {output.filtering_files}
+        --maxlength {params.max_length} > {output.filtering_files}
+        # gzip --best -f {output.filtering_files}
         """
 
 
@@ -414,9 +414,8 @@ rule merge_filtering_files:
         r"""
         
         for file in {input}; do
-            cat "$file" >> {params.temp_gzip_output}
+            cat "$file" >> {output}
         done
-        gunzip {params.temp_gzip_output}
         """
 
 
@@ -462,7 +461,7 @@ rule isONclustClusterFastq:
         --clusters "{input.pipeline_output}/final_clusters.tsv"
                 
         # gzip output and touch rule_complete file
-        gzip --best -f {output.cluster_output}/*.fastq
+        # gzip --best -f {output.cluster_output}/*.fastq
         touch "{output.rule_complete}"
         """
 
@@ -540,7 +539,7 @@ rule spoa:
                 os.remove(file_path)
 
         # gzip output file
-        subprocess.run(["gzip", "--best", "-f", str(params.temp_fasta)])
+        # subprocess.run(["gzip", "--best", "-f", str(params.temp_fasta)])
 
 
 
