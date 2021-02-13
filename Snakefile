@@ -239,10 +239,6 @@ rule merge_files:
         barcode_output = config["results"] + ".temp/barcodeTempOutput"
     shell:
         r"""
-        echo "MERGE FILES"
-        echo {input}
-        echo {output}
-        
         for item in {input}; do
             cat $item >> {params.temp_file}
             # gzip --best -f {params.temp_file}
@@ -412,10 +408,11 @@ rule merge_filtering_files:
         temp_gzip_output = config["results"] + ".temp/merge.filtering.files.fastq"
     shell:
         r"""
-        
-        for file in {input}; do
-            cat "$file" >> {output}
-        done
+        echo MERGE FILTERING INPUT
+        echo {input}
+        # for file in {input}; do
+        #     cat "$file" >> {output}
+        # done
         """
 
 
