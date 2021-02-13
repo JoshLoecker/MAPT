@@ -243,15 +243,10 @@ rule merge_files:
         echo {input}
         echo {output}
         
-        
-        
         for item in {input}; do
             cat $item >> {params.temp_file}
             gzip --best -f {params.temp_file}
         done
-        
-        # remove barcode files, as they have been merged into the output file
-        rm -rf {params.barcode_output}
         """
 
 
