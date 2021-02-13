@@ -241,7 +241,7 @@ rule merge_files:
         r"""
         for item in {input}; do
             cat $item >> {params.temp_file}
-            gzip -f {params.temp_file}  # force overwrite of the file
+            gzip --best -f {params.temp_file}
         done
         
         # remove barcode files, as they have been merged into the output file
@@ -358,7 +358,7 @@ rule cutadapt:
         --output {params.temp_fastq} \
         {input}
         
-        gzip -f {params.temp_fastq}
+        gzip --best -f {params.temp_fastq}
         """
 rule cutadaptDone:
     input:
@@ -391,7 +391,7 @@ rule filtering:
         --quality {params.min_quality} \
         --length {params.min_length} \
         --maxlength {params.max_length} | \
-        gzip -f {output.filtering_files}
+        gzip --best -f {output.filtering_files}
         """
 
 
@@ -460,7 +460,7 @@ rule isONclustClusterFastq:
         --clusters "{input.pipeline_output}/final_clusters.tsv"
                 
         # gzip output and touch rule_complete file
-        gzip -f {output.cluster_output}/*.fastq
+        gzip --best -f {output.cluster_output}/*.fastq
         touch "{output.rule_complete}"
         """
 
@@ -538,7 +538,7 @@ rule spoa:
                 os.remove(file_path)
 
         # gzip output file
-        subprocess.run(["gzip", "-f", str(params.temp_fasta)])
+        subprocess.run(["gzip", "--best", "-f", str(params.temp_fasta)])
 
 
 
