@@ -124,6 +124,7 @@ if __name__ == '__main__':
     for i, path in enumerate(silva_paths):
         statistics_data = parser(path)
         database_name = return_database_name(path)
+        # write headers on first pass
         if i == 0:
             csv_writer(statistics_data, database_name, header=True)
         else:
@@ -133,6 +134,7 @@ if __name__ == '__main__':
     for i, path in enumerate(modified_zymo_paths):
         statistics_data = parser(path)
         database_name = return_database_name(path)
+        # write headers on first pass
         if i == 0:
             csv_writer(statistics_data, database_name, header=True)
         else:
@@ -142,6 +144,7 @@ if __name__ == '__main__':
     for i, path in enumerate(zymo_paths):
         statistics_data = parser(path)
         database_name = return_database_name(path)
+        # write headers on first pass
         if i == 0:
             csv_writer(statistics_data, database_name, header=True)
         else:

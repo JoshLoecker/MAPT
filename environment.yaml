@@ -10,7 +10,6 @@ dependencies:
   - nanofilt=2.7.*
   - nanoqc=0.9.*
   - minimap2=2.*
-  - seqkit=0.13.*
   - cutadapt=3.*
   - plotly=4.8.*
   - spoa=4.*
