@@ -8,7 +8,6 @@ import pandas as pd
 
 configfile: "config.yaml"
 
-
 def return_barcodes(wildcards):
     """
     This will return barcode numbers from the barcode output folder
@@ -45,11 +44,12 @@ rule all:
     input:
         config["results"] + "visuals/nanoplot/barcode/classified",
         config["results"] + "visuals/nanoplot/barcode/unclassified",
+
         config["results"] + "visuals/nanoqc/barcode/classified",
         config["results"] + "visuals/nanoqc/barcode/unclassified",
+
         basecall_visuals,
         config["results"] + "isONclust/cluster_fastq",
-        config["results"] + ".temp/complete/isONclust.cluster.fastq.complete",
         config["results"] + "LowClusterReads",
         config["results"] + "spoa/consensus.sequences.fasta",
         minimap_from_filter,
@@ -84,7 +84,7 @@ rule all:
         config["results"] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html",
         config["results"] + "visuals/plotly/histograms/plotly.filtering.histogram.html",
         config["results"] + "visuals/plotly/histograms/plotly.mapping.histogram.html",
-        config["results"] + "visuals/plotly/plotly.box.whisker.html",
+        config["results"] + "visuals/plotly/plotly.box.whisker.html"
 
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
@@ -92,7 +92,6 @@ if config["basecall"]["perform_basecall"]:
         output:
             data=directory(config["results"] + "basecall"),
             complete=touch(config["results"] + ".temp/complete/basecall.complete")
-
         params:
             temp_output=config["results"] + ".temp/basecall",
             config=config["basecall"]["configuration"]
@@ -151,12 +150,10 @@ if config["basecall"]["perform_basecall"]:
 
 def barcode_input(wildcards):
     return config["results"] + "basecall"
-
-
 checkpoint barcode:
     input: config["results"] + "basecall"
     output:
-        complete=config["results"] + ".temp/complete/barcode.complete"
+        complete=touch(config["results"] + ".temp/complete/barcode.complete")
     params:
         data=directory(config["results"] + ".temp/barcode"),
         guppy_container=config["guppy_container"],
@@ -169,13 +166,11 @@ checkpoint barcode:
         --barcode_kits {params.barcode_kit} \
         --recursive
 
-        touch {output}
+        # touch {output}
         """
-
 
 def merge_barcodes_input(wildcards):
     return glob.glob(config["results"] + f".temp/barcode/{wildcards.barcode}/*.fastq")
-
 
 rule merge_barcodes:
     input:
@@ -209,7 +204,6 @@ rule trim:
         {input}
         """
 
-
 # NanoFilt
 checkpoint filter:
     input:
@@ -231,12 +225,9 @@ checkpoint filter:
         {input} > {output.filter}
         """
 
-
 def return_filter_files(wildcards):
     barcodes = return_barcodes(wildcards)
     return expand(config["results"] + "filter/{barcode}.filter.fastq",barcode=barcodes)
-
-
 rule filter_gather:
     input: return_filter_files
     output: temp(config["results"] + ".temp/merge.filter.fastq")
@@ -245,12 +236,9 @@ rule filter_gather:
         cat {input} > {output}
         """
 
-
 def barcode_class_unclass_gather_input(wildcards):
     barcodes = return_barcodes(wildcards)
     return expand(config["results"] + "barcode/{barcode}.merged.fastq",barcode=barcodes)
-
-
 rule barcode_class_unclass_gather:
     input:
         barcode_class_unclass_gather_input
@@ -280,7 +268,6 @@ rule NanoQCBarcode:
         nanoQC -o {output.classified} {input.classified}
         nanoQC -o {output.unclassified} {input.unclassified}
         """
-
 rule NanoPlotBarcode:
     input:
         classified=rules.barcode_class_unclass_gather.output.classified,
@@ -313,7 +300,6 @@ rule isONClustPipeline:
         --mapped_threshold {params.mapped_threshold} \
         --outfolder {output.data}
         """
-
 checkpoint isONclustClusterFastq:
     input:
         pipeline_output=rules.isONClustPipeline.output.data,
@@ -358,8 +344,6 @@ def move_low_reads_input(wildcards):
                 # only get the file name (remove the extension)
                 files_to_move.add(file.name.split(".")[0])
     return expand(checkpoint_output[0] + "/{file_move}.fastq",file_move=files_to_move)
-
-
 checkpoint move_low_reads:
     input:
         move_low_reads_input
@@ -380,8 +364,6 @@ def spoa_input(wildcards):
     isonclust_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
     move_low_reads_output = checkpoints.move_low_reads.get(**wildcards).output
     return glob.glob(f"{isonclust_output[0]}/*.fastq")
-
-
 rule spoa:
     input:
         spoa_input
@@ -418,8 +400,6 @@ rule spoa:
 def minimap_from_filtering_input(wildcards):
     checkpoint_output = checkpoints.filter.get(**wildcards).output
     return glob.glob(config["results"] + f"filter/{wildcards.barcode}.filter.fastq")
-
-
 rule minimap_from_filtering:
     input:
         minimap_from_filtering_input
