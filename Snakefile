@@ -1,322 +1,277 @@
-import os
-from pathlib import Path
 import glob
-from multiprocessing import cpu_count
-from pprint import pprint
+import random
+import os
+import re
 import shutil
+from pprint import pprint
 import pandas as pd
-import numpy as np
-import gzip
 
 configfile: "config.yaml"
 
-def return_barcode_numbers(path: str):
-    """
-    This function will return a list of barcode numbers from the input path
-    The input path should contain barcode folder names
-    Returns: A list of strings containing directory names
-    """
 
-    barcode_set = set()
-    for folder in os.scandir(path):
-        if folder.is_dir():
-            barcode_set.add(folder.name)
-    return barcode_set
-def barcode_merge_files(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    barcodes = set()  # a set is like a list but only stores unique values
-    for folder in os.scandir(checkpoint_output):
+def return_barcodes(wildcards):
+    """
+    This will return barcode numbers from the barcode output folder
+    Simple pass through the `wildcards` parameter
+    :param wildcards: The wildcards parameter used in checkpoint outputs
+    :return:
+    """
+    checkpoint_output = checkpoints.barcode.get(**wildcards).output
+    barcodes = set()
+    for folder in os.scandir(config["results"] + ".temp/barcode"):
         if folder.is_dir():
             barcodes.add(folder.name)
+    return barcodes
+def merge_barcodes(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return [config["results"] + "barcode/" + barcode + ".merged.fastq" for barcode in barcodes]
+def basecall_visuals(wildcards):
+    """
+    If we are running basecalling, then NanoQC and NanoPlot rules should be ran
+    :return:
+    """
+    if config["basecall"]["perform_basecall"]:
+        return [config["results"] + "visuals/nanoqc/basecall/",
+                config["results"] + "visuals/nanoplot/basecall/"
+                ]
+    else:
+        return []
+def minimap_from_filter(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",barcode=barcodes)
 
-    return_merged_files = [config["results"] + "barcode/" + barcode + ".merged.fastq.gz" for barcode in barcodes]
-    return return_merged_files
-def nanoqc_basecall_data(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/nanoqc/basecall/"
-def nanoqc_barcode_classified(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/nanoqc/barcode/classified"
-def nanoqc_barcode_unclassified(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/nanoqc/barcode/unclassified"
-def cutadapt(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return expand(
-        config["results"] + "cutadapt/{barcode}.cutadapt.fastq.gz",
-        barcode=return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput"))
-def filtering(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return expand(config["results"] + "filter/{barcode}.filter.fastq.gz",
-        barcode=return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput"))
-def merge_filtering(wildcards):
-    checkpoint_output = checkpoints.filtering.get(**wildcards).output
-    return config["results"] + ".temp/merge.filtering.fastq.gz"
-def isONclust_pipeline(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "isONclust/pipeline/"
-def isONclust_cluster_fastq(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "isONclust/cluster_fastq/"
-def minimap_aligner_from_filtering(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    return expand(
-        config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",
-        barcode=return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput"))
-def minimap_aligner_from_spoa(wildcards):
-    return config["results"] + "alignment/minimap/from_spoa/spoa.minimap.sam"
-def id_reads(wildcards):
-    checkpoint_output = rules.isONclustClusterFastq.output.rule_complete
-    return [config["results"] + "id_reads/mapped_reads/mapped_seq_id.csv",
-            config["results"] + "id_reads/mapped_reads/minimap_output.csv",
-            config["results"] + "id_reads/mapped_reads/mapped_consensus.csv"]
-def spoa(wildcards):
-    barcode_done = checkpoints.temp_spoa.get(**wildcards).output[1]
-    return config["results"] + "spoa/consensus.sequences.fasta.gz"
-def nanoplot_basecall(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/nanoplot/basecall/"
-def nanoplot_barcode_classified(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/nanoplot/barcode/classified"
-def nanoplot_barcode_unclassified(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/nanoplot/barcode/unclassified"
-def plotly_histogram_barcode(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/plotly/histograms/plotly.barcode.histogram.html"
-def plotly_histogram_cutadapt(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html"
-def plotly_histogram_filtering(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
-def plotly_histogram_mapping(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/plotly/histograms/plotly.mapping.histogram.html"
-def plotly_box_whisker(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return config["results"] + "visuals/plotly/plotly.box.whisker.html"
 
 rule all:
     input:
-        config["results"] + ".temp/completeRules/basecallComplete",# basecalling
-        barcode_merge_files, # barcode and merge files
-        cutadapt, # cutadapt on merged files
-        filtering, # nanofilt on cutadapt files
-        nanoqc_basecall_data,# nanoqc after basecall
-        nanoqc_barcode_classified,# nanoqc classified barcodes
-        nanoqc_barcode_unclassified,# nanoqc unclassified barcodes
-        isONclust_pipeline,# cluster reads
-        isONclust_cluster_fastq,# clustering reads
-        minimap_aligner_from_filtering, # minimap from filtering
-        minimap_aligner_from_spoa, # minimap from spoa clustering
-        id_reads, # id reads through python script
-        config["results"] + "id_reads/filter_id_reads/withinDivergence.csv",  # filter id_reads that are inside divergence
-        config["results"] + "id_reads/filter_id_reads/outsideDivergence.csv",  # filter id_reads that are outside divergence
-        config["results"] + "id_reads/filter_id_reads/nanDivergence.csv",  # filter id_reads that have no divergence
-        config["results"] + "id_reads/OTU/withinDivergenceOTU.csv",  # create OTU table of values within divergence
-        config["results"] + "id_reads/OTU/outsideDivergenceOTU.csv",  # create OTU table of values outside divergence
-        config["results"] + "id_reads/OTU/nanDivergenceOTU.csv",  # create OTU table of id_reads that have no divergence
-        config["results"] + ".temp/completeRules/removeLowClustersComplete",  # remove clusters with low reads
-        config["results"] + "id_reads/simple_mapped_reads/simpleMappedWithinDivergence.csv",  # create simplified mapped_seq_id csv within divergence value
-        config["results"] + "id_reads/simple_mapped_reads/simpleMappedOutsideDivergence.csv",  # create simplified mapped_seq_id csv outside divergence value
-        config["results"] + "id_reads/simple_mapped_reads/simpleMappedNaNDivergence.csv",  # create simplified mapped_seq_id csv without divergence value
-        config["results"] + "id_reads/cluster_summary/clusterSummaryWithinDivergence.csv",  # create a cluster summary file; csv files with data within/outside/no divergence data are created
+        config["results"] + "visuals/nanoplot/barcode/classified",
+        config["results"] + "visuals/nanoplot/barcode/unclassified",
+        config["results"] + "visuals/nanoqc/barcode/classified",
+        config["results"] + "visuals/nanoqc/barcode/unclassified",
+        basecall_visuals,
+        config["results"] + "isONclust/cluster_fastq",
+        config["results"] + ".temp/complete/isONclust.cluster.fastq.complete",
+        config["results"] + "LowClusterReads",
+        config["results"] + "spoa/consensus.sequences.fasta",
+        minimap_from_filter,
+        config["results"] + "alignment/minimap/from_spoa/spoa.minimap.sam",
+
+        config["results"] + "id_reads/mapped_reads/mapped_seq_id.csv",
+        config["results"] + "id_reads/mapped_reads/minimap_output.csv",
+        config["results"] + "id_reads/mapped_reads/mapped_consensus.csv",
+
+        config["results"] + "id_reads/filter_id_reads/withinDivergence.csv",
+        config["results"] + "id_reads/filter_id_reads/outsideDivergence.csv",
+        config["results"] + "id_reads/filter_id_reads/nanDivergence.csv",
+
+        config["results"] + "id_reads/OTU/withinDivergenceOTU.csv",
+        config["results"] + "id_reads/OTU/outsideDivergenceOTU.csv",
+        config["results"] + "id_reads/OTU/nanDivergenceOTU.csv",
+
+        config["results"] + "id_reads/simple_mapped_reads/simpleMappedWithinDivergence.csv",
+        config["results"] + "id_reads/simple_mapped_reads/simpleMappedOutsideDivergence.csv",
+        config["results"] + "id_reads/simple_mapped_reads/simpleMappedNaNDivergence.csv",
+
+        config["results"] + "id_reads/cluster_summary/clusterSummaryWithinDivergence.csv",
         config["results"] + "id_reads/cluster_summary/clusterSummaryOutsideDivergence.csv",
         config["results"] + "id_reads/cluster_summary/clusterSummaryNaNDivergence.csv",
-        #spoa, # partial order alignment
-        nanoplot_basecall,# nanoplot for basecall files
-        nanoplot_barcode_classified,# nanoplot for classified barcode files
-        nanoplot_barcode_unclassified,# nanoplot for unclassified barcode files
-        plotly_histogram_barcode,# plotly barcode histogram
-        plotly_histogram_cutadapt,# plotly cutadapt histogram
-        plotly_histogram_filtering,# plotly filtering histogram
-        plotly_histogram_mapping,# plotly mapping histogram
-        plotly_box_whisker  # plotly box and whisker plot
 
+        config["results"] + "count_reads/count.reads.barcode.csv",
+        config["results"] + "count_reads/count.reads.cutadapt.csv",
+        config["results"] + "count_reads/count.reads.filter.csv",
+        config["results"] + "count_reads/count.reads.mapping.csv",
 
+        config["results"] + "visuals/plotly/histograms/plotly.barcode.histogram.html",
+        config["results"] + "visuals/plotly/histograms/plotly.cutadapt.histogram.html",
+        config["results"] + "visuals/plotly/histograms/plotly.filtering.histogram.html",
+        config["results"] + "visuals/plotly/histograms/plotly.mapping.histogram.html",
+        config["results"] + "visuals/plotly/plotly.box.whisker.html",
 
-"""
-We are placing the output in the parameters section instead of the output section because snakemake will delete the output folder
-    if the job is terminated (i.e. out of time on SciNet)
-This is the only available option of not deleting output when snakemake is terminated
-From: https://stackoverflow.com/questions/55419603/how-to-prevent-snakemake-from-deleting-output-folders-from-failed-jobs
-"""
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
-        input:
-            config["basecall_files"]
+        input: config["basecall_files"]
         output:
-            rule_complete=touch(config["results"] + ".temp/completeRules/basecallComplete")
+            data=directory(config["results"] + "basecall"),
+            complete=touch(config["results"] + ".temp/complete/basecall.complete")
+
         params:
-            guppy_container=config["guppy_container"],
-            config=config["basecall"]["configuration"],
-            output=config["results"] + "basecall"
+            temp_output=config["results"] + ".temp/basecall",
+            config=config["basecall"]["configuration"]
         shell:
             r"""
-            # Try to resume guppy_basecaller, otherwise simply execute guppy_basecaller
-            
-            command="singularity exec --nv {params.guppy_container}  \
-                guppy_basecaller \
-                --config {params.config} \
-                --input_path {input} \
-                --save_path {params.output} \
-                --device 'cuda:all' \
-                --recursive"
+            command="guppy_basecaller \
+            --config {params.config} \
+            --input_path {input} \
+            --save_path {params.temp_output} \
+            --recursive"
 
-            local="guppy_basecaller \
-                --config {params.config} \
-                --input_path {input} \
-                --save_path {params.output} \
-                --recursive"
+            eval "singularity exec {config[guppy_container]} $command --resume || \
+                  (rm -rf {params.temp_output} && singularity exec {config[guppy_container]} $command) || \
+                  (rm -rf {params.temp_output} && $command)"
 
-
-            # try to resume basecalling
-            # if this fails, perform normal basecalling
-            # this is ugly, but I am not sure of any other method to try resuming basecalling, and trying again without resuming
-            eval "$command --resume || $command || $local"
-            
-            # zip output
-            gzip --best -f {params.output}/*.fastq
+            mv {params.temp_output} {output.data}
             """
 
-    def collate_basecall_fastq_files_input(wildcards):
-        checkpoint_output = checkpoints.basecall.get(**wildcards).output[0]
-        basecall_output = config["results"] + "basecall"
-        return glob.glob(basecall_output + "/*.fastq.gz")
-    rule collate_basecall_fastq_files:
-        input:
-            collate_basecall_fastq_files_input
-        output:
-            fastq_gz = temp(config["results"] + ".temp/basecall.merged.files.fastq.gz")
-        params:
-            temp_fastq = config["results"] + ".temp/basecall.merged.files.fastq"
+
+    def collate_basecall_input(wildcards):
+        checkpoint_output = checkpoints.basecall.get(**wildcards).output
+        return glob.glob(checkpoint_output[0] + "/*.fastq")
+
+
+    rule collate_basecall:
+        input: collate_basecall_input
+        output: fastq_gz=temp(config["results"] + ".temp/basecall.merged.files.fastq")
+        params: temp_fastq=config["results"] + ".temp/basecall.merged.files.fastq"
         shell:
             r"""
             for file in {input}; do
-                gunzip --stdout "$file" >> {params.temp_fastq}
+                cat "$file" >> {params.temp_fastq}
             done
-            
-            gzip --best -f {params.temp_fastq}
+            """
+
+    rule NanoQCBasecall:
+        input:
+            rules.collate_basecall.output.fastq_gz
+        output:
+            directory(config["results"] + "visuals/nanoqc/basecall/")
+        shell:
+            r"""
+            nanoQC -o {output} {input}
+            """
+
+    rule NanoPlotBasecall:
+        input:
+            rules.collate_basecall.output.fastq_gz
+        output:
+            directory(config["results"] + "visuals/nanoplot/basecall/")
+        shell:
+            r"""
+            NanoPlot --fastq {input} -o {output}
             """
 
 
 def barcode_input(wildcards):
-    if config["basecall"]["perform_basecall"]:
-        output = checkpoints.basecall.get(**wildcards).output
-        return output
-    else:
-        return config["barcode_files"]
+    return config["results"] + "basecall"
+
+
 checkpoint barcode:
-    input:
-        barcode_input
+    input: config["results"] + "basecall"
     output:
-        output=directory(config["results"] + ".temp/barcodeTempOutput/"),
-        barcode_complete_file=config["results"] + ".temp/completeRules/barcodingComplete"
+        complete=config["results"] + ".temp/complete/barcode.complete"
     params:
+        data=directory(config["results"] + ".temp/barcode"),
         guppy_container=config["guppy_container"],
-        barcode_kit=config["barcode"]["kit"],
-        basecall_output=config["results"] + "basecall/"
+        barcode_kit=config["barcode"]["kit"]
     shell:
         r"""
-        command="singularity exec --nv {params.guppy_container} \
         guppy_barcoder \
-        --input_path {params.basecall_output} \
-        --save_path {output.output} \
+        --input_path {input} \
+        --save_path {params.data} \
         --barcode_kits {params.barcode_kit} \
-        --recursive"
-        
-        local_command="guppy_barcoder \
-        --input_path {params.basecall_output} \
-        --save_path {output.output} \
-        --barcode_kits {params.barcode_kit} \
-        --recursive"
-        
-        # try to execute barcoding with a GPU, otherwise continue without
-        eval "$command --device 'cuda:all' || $command || $local_command"
-        
-        touch {output.barcode_complete_file}
+        --recursive
+
+        touch {output}
         """
 
 
-def merge_files_input(wildcards):
-    return glob.glob(config["results"] + f".temp/barcodeTempOutput/{wildcards.barcode}/*.fastq")
-rule merge_files:
+def merge_barcodes_input(wildcards):
+    return glob.glob(config["results"] + f".temp/barcode/{wildcards.barcode}/*.fastq")
+
+
+rule merge_barcodes:
     input:
-        merge_files_input
+        merge_barcodes_input
     output:
-        config["results"] + "barcode/{barcode}.merged.fastq.gz"
-    params:
-        temp_file=config["results"] + "barcode/{barcode}.merged.fastq",
-        barcode_output=config["results"] + ".temp/barcodeTempOutput"
+        merged=config["results"] + "barcode/{barcode}.merged.fastq"
     shell:
         r"""
-        for item in {input}; do
-            cat $item >> {params.temp_file}
-            gzip --best -f {params.temp_file}
-        done
-        """
-rule merge_files_done:
-    input:
-        expand(rules.merge_files.output,
-            barcode=glob_wildcards(config["results"] + ".temp/barcodeTempOutput/{barcode}/*.fastq").barcode)
-    output:
-        touch(config["results"] + ".temp/completeRules/mergeFilesDone")
-    shell:
-        """
-        # this is to ensure filtering is done before continuing.
-        # Attempting to use filtering with a checkpoint results in the inability to fill the wildcard `barcode`
+        cat {input} > {output}
         """
 
-
-def merge_barcode_files(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output
-    barcode_numbers = return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput/")
-    return expand(config["results"] + "barcode/{barcode}.merged.fastq.gz", barcode=barcode_numbers)
-rule create_classified_unclassified_file:
+# cutadapt
+rule trim:
     input:
-        merge_barcode_files
+        rules.merge_barcodes.output.merged
     output:
-        classified=temp(config["results"] + ".temp/barcode.classified.merged.fastq.gz"),
-        unclassified=temp(config["results"] + ".temp/barcode.unclassified.merged.fastq.gz")
+        trimmed=config["results"] + "trim/{barcode}.trim.fastq"
     params:
-        classified = temp(config["results"] + ".temp/barcode.classified.merged.fastq"),
-        unclassified = temp(config["results"] + ".temp/barcode.unclassified.merged.fastq")
+        three_prime_adapter=config["cutadapt"]["three_prime_adapter"],
+        five_prime_adapter=config["cutadapt"]["five_prime_adapter"],
+        error_rate=config["cutadapt"]["error_rate"]
     shell:
         r"""
-        # The '=~' operator is a regex match
+        cutadapt \
+        --revcomp \
+        --quiet \
+        --adapter {params.three_prime_adapter} \
+        --front {params.five_prime_adapter} \
+        --error-rate {params.error_rate} \
+        --output {output.trimmed} \
+        {input}
+        """
+
+
+# NanoFilt
+checkpoint filter:
+    input:
+        rules.trim.output.trimmed
+    output:
+        filter=config["results"] + "filter/{barcode}.filter.fastq"
+    params:
+        min_quality=config["nanofilt"]["min_quality"],
+        min_length=config["nanofilt"]["min_filter"],
+        max_length=config["nanofilt"]["max_filter"]
+    shell:
+        r"""
+        touch {output}
+
+        NanoFilt \
+        --quality {params.min_quality} \
+        --length {params.min_length} \
+        --maxlength {params.max_length} \
+        {input} > {output.filter}
+        """
+
+
+def return_filter_files(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "filter/{barcode}.filter.fastq",barcode=barcodes)
+
+
+rule filter_gather:
+    input: return_filter_files
+    output: temp(config["results"] + ".temp/merge.filter.fastq")
+    shell:
+        r"""
+        cat {input} > {output}
+        """
+
+
+def barcode_class_unclass_gather_input(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "barcode/{barcode}.merged.fastq",barcode=barcodes)
+
+
+rule barcode_class_unclass_gather:
+    input:
+        barcode_class_unclass_gather_input
+    output:
+        classified=temp(config["results"] + ".temp/barcode.merged.classified.fastq"),
+        unclassified=temp(config["results"] + ".temp/barcode.merged.unclassified.fastq")
+    shell:
+        r"""
         for file in {input}; do
-            if [[ "$file" =~ barcode[0-9]{{2}}.merged ]]; then
-                gunzip --stdout "$file" >> {params.classified}
-            elif [[ "$file" =~ unclassified.merged ]]; then
-                gunzip --stdout "$file" >> {params.unclassified}
+            if [[ "$file" =~ barcode[0-9]{{2}} ]]; then
+                cat "$file" >> {output.classified}
+            elif [[ "$file" =~ unclassified ]]; then
+                cat "$file" >> {output.unclassified}
             fi
         done
-        
-        gzip --best -f {params.classified}
-        gzip --best -f {params.unclassified}
-        
-        """
-
-rule NanoQCBasecall:
-    input:
-        rules.collate_basecall_fastq_files.output.fastq_gz
-    output:
-        directory(config["results"] + "visuals/nanoqc/basecall/")
-    shell:
-        r"""
-        nanoQC -o {output} {input}
         """
 
 rule NanoQCBarcode:
     input:
-        classified=rules.create_classified_unclassified_file.output.classified,
-        unclassified=rules.create_classified_unclassified_file.output.unclassified
+        classified=rules.barcode_class_unclass_gather.output.classified,
+        unclassified=rules.barcode_class_unclass_gather.output.unclassified
     output:
         classified=directory(config["results"] + "visuals/nanoqc/barcode/classified"),
         unclassified=directory(config["results"] + "visuals/nanoqc/barcode/unclassified")
@@ -326,26 +281,10 @@ rule NanoQCBarcode:
         nanoQC -o {output.unclassified} {input.unclassified}
         """
 
-if config["basecall"]["perform_basecall"]:
-    rule NanoPlotBasecall:
-        input:
-            rules.collate_basecall_fastq_files.output.fastq_gz
-        output:
-            directory(config["results"] + "visuals/nanoplot/basecall/")
-        params:
-            temp_gunzip_file=config["results"] + ".temp/nanoplot.basecall.gunzip"
-        shell:
-            r"""
-            NanoPlot --fastq {input} -o {output}
-            # gunzip --stdout {input} > {params.temp_gunzip_file}
-            # NanoPlot --fastq {params.temp_gunzip_file} -o {output}
-            # rm {params.temp_gunzip_file}
-            """
-
 rule NanoPlotBarcode:
     input:
-        classified=rules.create_classified_unclassified_file.output.classified,
-        unclassified=rules.create_classified_unclassified_file.output.unclassified
+        classified=rules.barcode_class_unclass_gather.output.classified,
+        unclassified=rules.barcode_class_unclass_gather.output.unclassified
 
     output:
         classified=directory(config["results"] + "visuals/nanoplot/barcode/classified"),
@@ -356,298 +295,181 @@ rule NanoPlotBarcode:
         NanoPlot --fastq {input.unclassified} -o {output.unclassified}
         """
 
-
-rule cutadapt:
-    input:
-        rules.merge_files.output[0]
-    output:
-        cutadapt_file=config["results"] + "cutadapt/{barcode}.cutadapt.fastq.gz"
-    params:
-        three_prime_adapter=config["cutadapt"]["three_prime_adapter"],
-        five_prime_adapter=config["cutadapt"]["five_prime_adapter"],
-        error_rate=config["cutadapt"]["error_rate"],
-        temp_fastq=config["results"] + "cutadapt/{barcode}.cutadapt.fastq"
-
-    shell:
-        r"""
-        cutadapt \
-        --revcomp \
-        --quiet \
-        --cores 0 \
-        --adapter {params.three_prime_adapter} \
-        --front {params.five_prime_adapter} \
-        --error-rate {params.error_rate} \
-        --output {params.temp_fastq} \
-        {input}
-        
-        gzip --best -f {params.temp_fastq}
-        """
-rule cutadaptDone:
-    input:
-        expand(rules.cutadapt.output,
-            barcode=glob_wildcards(config["results"] + ".temp/barcodeTempOutput/{barcode}/*.fastq").barcode)
-    output:
-        touch(config["results"] + ".temp/completeRules/cutadaptDone")
-    shell:
-        """
-        # this is to ensure cutadapt is done before continuing.
-        # Attempting to use cutadapt with a checkpoint results in the inability to fill the wildcard `barcode`
-        """
-
-
-rule filtering:
-    input:
-        rules.cutadapt.output.cutadapt_file
-    output:
-        filtering_files=config["results"] + "filter/{barcode}.filter.fastq.gz"
-    params:
-        min_quality=config["nanofilt"]["min_quality"],
-        min_length=config["nanofilt"]["min_filter"],
-        max_length=config["nanofilt"]["max_filter"],
-        temp_fastq=config["results"] + "filter/{barcode}.filter.fastq"
-    shell:
-        r"""
-        touch {output}
-        
-        gunzip --stdout {input} > {params.temp_fastq}
-        
-        NanoFilt \
-        --quality {params.min_quality} \
-        --length {params.min_length} \
-        --maxlength {params.max_length} {params.temp_fastq} > {output.filtering_files}
-        
-        gzip --best -f {params.temp_fastq}
-        """
-
-def filtering_files_output(wildcards):
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    return expand(config["results"] + "filter/{barcode}.filter.fastq.gz",
-        barcode=glob_wildcards(os.path.join(checkpoint_output, "{barcode}/*.fastq")).barcode)
-rule merge_filtering:
-    input:
-        filtering_files_output
-    output:
-        merged_filtering = config["results"] + ".temp/merge.filtering.fastq.gz"
-    shell:
-        r"""
-        echo {input}
-        for file in {input}; do
-            cat "$file" >> {output.merged_filtering}
-        done
-        """
-
 rule isONClustPipeline:
-    input:
-        rules.merge_filtering.output.merged_filtering
+    input: rules.filter_gather.output
     output:
         data=directory(config["results"] + "isONclust/pipeline/"),
-        rule_complete=config["results"] + ".temp/completeRules/isONClustPipelineComplete"
+        rule_complete=touch(config["results"] + ".temp/complete/isONClustPipeline.complete")
     params:
         aligned_threshold=config["isONclust"]["aligned_threshold"],
         min_fraction=config["isONclust"]["min_fraction"],
-        mapped_threshold=config["isONclust"]["mapped_threshold"],
-        temp_fastq_input = config["results"] + ".temp/merge.filtering.isONclustPipeline.fastq"
+        mapped_threshold=config["isONclust"]["mapped_threshold"]
     shell:
         r"""
-        gunzip --stdout {input} > {params.temp_fastq_input}
-        
         isONclust --ont \
-        --fastq {params.temp_fastq_input} \
+        --fastq {input} \
         --aligned_threshold {params.aligned_threshold} \
         --min_fraction {params.min_fraction} \
         --mapped_threshold {params.mapped_threshold} \
         --outfolder {output.data}
-        
-        rm -rf {params.temp_fastq_input}
-        touch {output.rule_complete}
         """
 
-rule isONclustClusterFastq:
+checkpoint isONclustClusterFastq:
     input:
         pipeline_output=rules.isONClustPipeline.output.data,
         isONClustComplete=rules.isONClustPipeline.output.rule_complete,
-        merged_filtering_reads=rules.merge_filtering.output.merged_filtering
+        merged_filtering_reads=rules.filter_gather.output
     output:
         cluster_output=directory(config["results"] + "isONclust/cluster_fastq"),
-        rule_complete=config["results"] + ".temp/completeRules/isONclustClusterFastqComplete"
+        rule_complete=touch(config["results"] + ".temp/complete/isONclust.cluster.fastq.complete")
     params:
-        min_quality=config["nanofilt"]["min_quality"],  # use same quality as NanoFilt (i.e. rule filtering)
-        temp_fastq_input = config["results"] + ".temp/merge.filtering.isONclustClusterFastq.fastq"
+        min_quality=config["nanofilt"]["min_quality"],# use same quality as NanoFilt (i.e. rule filtering)
+        temp_fastq_input=config["results"] + ".temp/merge.filtering.isONclustClusterFastq.fastq"
     shell:
         r"""
-        gunzip --stdout {input.merged_filtering_reads} > {params.temp_fastq_input}
-        
         isONclust \
         --q "{params.min_quality}" \
         write_fastq \
-        --fastq {params.temp_fastq_input} \
+        --fastq {input.merged_filtering_reads} \
         --outfolder "{output.cluster_output}" \
         --clusters "{input.pipeline_output}/final_clusters.tsv"
-                
-        gzip --best -f {output.cluster_output}/*.fastq
-        rm -f {params.temp_fastq_input}
-        touch {output.rule_complete}
         """
 
 
-rule remove_low_reads:
+def move_low_reads_input(wildcards):
+    """
+    We are filtering the *.fastq files from checkpoint.isONclustClusterFastq in this function
+    Files that have fewer reads than config["cluster"]["min_reads_per_cluster"] will be added to files_to_move
+    These files will be returned in a list to checkpoint move_low_reads
+    :param wildcards:
+    :return:
+    """
+    checkpoint_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
+    files_to_move = set()
+    for file in os.scandir(checkpoint_output[0]):
+        if ".fastq" in file.name:
+
+            lines_in_file = open(file.path,"r").readlines()
+            count_lines_in_file = len(lines_in_file)
+            count_reads_in_file = count_lines_in_file / 4
+
+            # keep files that are equal to OR GREATER than the cutoff
+            if count_reads_in_file < config["cluster"]["min_reads_per_cluster"]:
+                # only get the file name (remove the extension)
+                files_to_move.add(file.name.split(".")[0])
+    return expand(checkpoint_output[0] + "/{file_move}.fastq",file_move=files_to_move)
+
+
+checkpoint move_low_reads:
     input:
-        previous_rule_complete = rules.isONclustClusterFastq.output.rule_complete,
-        cluster_data = rules.isONclustClusterFastq.output.cluster_output
+        move_low_reads_input
     output:
-        rule_complete=touch(config["results"] + ".temp/completeRules/removeLowClustersComplete")
-    params:
-        cluster_cutoff=config["cluster"]["min_reads_per_cluster"],
-        output_folder=config["results"] + "TooFewReadsInCluster",
-        temp_fastq = config["results"] + ".temp/remove_low_reads"
-    run:
-        os.makedirs(params.output_folder, exist_ok=True)
-        os.makedirs(params.temp_fastq, exist_ok=True)
-        temp_output_file = os.path.join(params.temp_fastq, "temp.fastq")
-
-        for file in os.scandir(str(input.cluster_data)):
-            if ".fastq" in file.name:
-                file_path = os.path.join(str(input.cluster_data),str(file.name))
-
-                # try to unzip input file
-                try:
-                    shell(f"gunzip --stdout {file_path} > {temp_output_file}")
-                except Exception as e:
-                    shell(f"cat {file_path} > {temp_output_file}")
-
-                lines_in_file = open(temp_output_file, "r").readlines()
-                count_lines_in_file = len(lines_in_file)
-                count_reads_in_file = count_lines_in_file / 4
-                # keep files that are equal to OR GREATER than the cutoff
-                if count_reads_in_file < params.cluster_cutoff:
-                    # copy the file, then remove it
-                    # doing this prevents errors about the destination file already existing
-                    shutil.copy(src=file_path, dst=str(params.output_folder))
-
-        # remove unzipped file
-        shell(f"rm {temp_output_file}")
-
-
-checkpoint temp_spoa:
-    input:
-        complete_rule=rules.remove_low_reads.output.rule_complete,
-        cluster_data=expand(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq.gz",
-            file=glob_wildcards(rules.isONclustClusterFastq.output.cluster_output + "{file}.fastq.gz").file)
-    output:
-        temp_output=directory(config["results"] + ".temp/spoa"),
-        rule_complete=config["results"] + ".temp/completeRules/tempSpoaComplete"
+        data=directory(config["results"] + "LowClusterReads"),
+        complete=touch(config["results"] + ".temp/complete/remove.low.reads.complete")
     shell:
         r"""
-        echo HERE
-        echo {input}
-        mkdir -p {output.temp_output}
-        for file in {input.cluster_data}; do
-            file_basename=$(basename -- "$file")
-            output_file="{output.temp_output}/$file_basename"            
-            spoa "$file" -r 0 > "$output_file"
+        mkdir -p {output.data}
+        for file in {input}; do
+            file_name=$(basename "$file")
+            mv "$file" {output.data}/"$file_name"
         done
-        
-        # touch {output.rule_complete}
         """
 
+
 def spoa_input(wildcards):
-    checkpoint_output = checkpoints.temp_spoa.get(**wildcards).output
-    fasta_files = glob_wildcards(config["results"] + "/.temp/spoa/*.fastq")
-    return fasta_files
+    isonclust_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
+    move_low_reads_output = checkpoints.move_low_reads.get(**wildcards).output
+    return glob.glob(f"{isonclust_output[0]}/*.fastq")
+
+
 rule spoa:
     input:
         spoa_input
     output:
-        config["results"] + "spoa/consensus.sequences.fasta.gz"
+        config["results"] + "spoa/consensus.sequences.fasta"
     params:
-        temp_fasta=config["results"] + "spoa/consensus.sequences.fasta"
+        temp_spoa=config["results"] + ".temp/spoa.temp.fasta"
     run:
-        os.makedirs(config["results"] + "spoa", exist_ok=True)
-        for file in str(input):
-            # we do not want the `.snakemake_timestamp` file to be included in this
-            if ".snakemake_timestamp" not in file:
+        os.makedirs(config["results"] + "spoa",exist_ok=True)
 
-                # get file name without extension
-                cluster_number = file.split(".")[0]
+        # remove temp output (in case it exists from previous run)
+        shell("rm -f {params.temp_spoa}")
 
-                # overwrite first line in file with `>cluster_{cluster_number}`
-                file_lines = open(str(file),"r").readlines()
-                file_lines[0] = f">cluster_{cluster_number}\n"
+        for file in str(input).split(" "):
 
-                # append new lines to output file
-                open(str(params.temp_fasta),"a").writelines(file_lines)
+            # perform spoa
+            shell("spoa {input} -r 0 > {params.temp_spoa}")
 
-                # remove file under results/.temp/spoa/*.fastq, it is no longer required
-                # os.remove(str(file))
+            # get file name without extension (i.e. /path/to/file/35.fasta -> 35)
+            basename = os.path.basename(file)
+            cluster_number = basename.split(".")[0]
 
-        shell("gzip --best -f {params.temp_fasta}")
+            # overwrite first line in file with `>cluster_{cluster_number}`
+            file_lines = open(str(params.temp_spoa),"r").readlines()
+            file_lines[0] = f">cluster_{cluster_number}\n"
+
+            # append new lines to output file
+            open(str(output),"a").writelines(file_lines)
+
+        # remove temp output, it is no longer needed
+        shell("rm -f {params.temp_spoa}")
 
 
-rule minimap_aligner_from_filtering:
+def minimap_from_filtering_input(wildcards):
+    checkpoint_output = checkpoints.filter.get(**wildcards).output
+    return glob.glob(config["results"] + f"filter/{wildcards.barcode}.filter.fastq")
+
+
+rule minimap_from_filtering:
     input:
-        rules.filtering.output[0]
+        minimap_from_filtering_input
     output:
         config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam"
     params:
-        alignment_reference=config["reference_database"],
-        temp_fastq = config["results"] + ".temp/minimap/{barcode}.temp.minimap.fastq"
+        alignment_reference=config["reference_database"]
     shell:
         r"""
-        mkdir -p {config[results]}.temp/minimap
-        touch {output}
-        touch {params.temp_fastq}
-        
-        gunzip --stdout {input} > {params.temp_fastq}
-        
         minimap2 \
         -ax map-ont \
         {params.alignment_reference} \
-        {params.temp_fastq} > {output}
-        
-        rm -f {params.temp_fastq}
+        {input} > {output}
         """
 
-rule minimap_aligner_from_spoa:
+rule minimap_from_spoa:
     input:
         rules.spoa.output[0]
     output:
         config["results"] + "alignment/minimap/from_spoa/spoa.minimap.sam"
     params:
-        alignment_reference=config["reference_database"],
-        temp_fastq = config["results"] + ".temp/minimap/temp_spoa.fastq"
+        alignment_reference=config["reference_database"]
     shell:
         r"""
-        touch {output}
-        
-        gunzip --stdout {input} > {params.temp_fastq}
-
         minimap2 \
         -ax map-ont \
         {params.alignment_reference} \
-        {params.temp_fastq} > {output}
-        
-        rm -r {params.temp_fastq}
+        {input} > {output}
         """
+
+
+# TODO: It appears that mapped_consensus_csv is missing a header for the first column
+def filtering_output(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "filter/{barcode}.filter.fastq",barcode=barcodes)
 
 
 rule id_reads:
     input:
-        filtering=expand(rules.filtering.output[0],
-            barcode=glob_wildcards(config["results"] + "filter/{barcode}.filter.fastq").barcode),
+        filtering=filtering_output,
         clustering=rules.isONClustPipeline.output[0],
-        minimap=rules.minimap_aligner_from_spoa.output[0]
+        minimap=rules.minimap_from_spoa.output[0]
     output:
-        #id_reads_tsc = config["results"] + "id_reads/id_reads.tsv",
         mapped_seq_id_csv=config["results"] + "id_reads/mapped_reads/mapped_seq_id.csv",
         minimap_output=config["results"] + "id_reads/mapped_reads/minimap_output.csv",
         mapped_consensus_csv=config["results"] + "id_reads/mapped_reads/mapped_consensus.csv"
-
     params:
         results_folder=config["results"]
     script:
         "scripts/id_reads.py"
-
 
 rule filter_id_reads_mapped_sequence:
     input:
@@ -672,7 +494,6 @@ rule filter_id_reads_mapped_sequence:
         outside_bounds_data.to_csv(path_or_buf=str(output.outside_divergence),header=header_data,index=False)
         nan_data.to_csv(path_or_buf=str(output.nan_divergence),header=header_data,index=False)
 
-
 rule otu_from_filter_id_reads:
     input:
         within_divergence=rules.filter_id_reads_mapped_sequence.output.within_divergence,
@@ -685,8 +506,7 @@ rule otu_from_filter_id_reads:
     script:
         "scripts/generateOTU.py"
 
-
-rule make_simple_mapped_sequence_id:
+rule simple_mapped_sequence_id:
     input:
         rules.id_reads.output.mapped_seq_id_csv
     output:
@@ -697,7 +517,6 @@ rule make_simple_mapped_sequence_id:
         divergence_threshold=config["cluster"]["divergence_threshold"]
     script:
         "scripts/simpleMappedSequenceID.py"
-
 
 rule cluster_summary:
     input:
@@ -713,23 +532,8 @@ rule cluster_summary:
 
 
 def count_reads_barcode_input(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    files = return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput")
-    merged_barcode_files = expand(rules.merge_files.output,barcode=files)
-    return merged_barcode_files
-
-
-def count_reads_cutadapt_input(wildcards):
-    cutadapt_done = rules.cutadaptDone.output[0]
-    cutadapt_output = rules.cutadapt.output[0]
-    barcode_numbers = return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput")
-    return expand(cutadapt_output,barcode=barcode_numbers)
-def count_minimap_reads(wildcards):
-    barcode_done = checkpoints.barcode.get(**wildcards).output[1]
-    checkpoint_output = checkpoints.barcode.get(**wildcards).output[0]
-    files = return_barcode_numbers(config["results"] + ".temp/barcodeTempOutput")
-    return expand(config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",barcode=files)
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "barcode/{barcode}.merged.fastq",barcode=barcodes)
 
 
 rule count_reads_barcode:
@@ -742,6 +546,12 @@ rule count_reads_barcode:
     script:
         "scripts/CountReads.py"
 
+
+def count_reads_cutadapt_input(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "trim/{barcode}.trim.fastq",barcode=barcodes)
+
+
 rule count_reads_cutadapt:
     input:
         count_reads_cutadapt_input
@@ -752,15 +562,27 @@ rule count_reads_cutadapt:
     script:
         "scripts/CountReads.py"
 
-rule count_reads_filtering:
+
+def count_filtering_input(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "filter/{barcode}.filter.fastq",barcode=barcodes)
+
+
+rule count_filtering:
     input:
-        filtering_files_output
+        count_filtering_input
     output:
         config["results"] + "count_reads/count.reads.filter.csv"
     params:
         process="filtering"
     script:
         "scripts/CountReads.py"
+
+
+def count_minimap_reads(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(config["results"] + "alignment/minimap/from_filtering/{barcode}.minimap.sam",barcode=barcodes)
+
 
 rule count_reads_mapping:
     input:
@@ -795,7 +617,7 @@ rule plotly_cutadapt_histogram:
 
 rule plotly_filtering_histogram:
     input:
-        rules.count_reads_filtering.output[0]
+        rules.count_filtering.output[0]
     output:
         config["results"] + "visuals/plotly/histograms/plotly.filtering.histogram.html"
     params:
@@ -817,7 +639,7 @@ rule plotly_box_whisker_generation:
     input:
         rules.count_reads_barcode.output[0],
         rules.count_reads_cutadapt.output[0],
-        rules.count_reads_filtering.output[0],
+        rules.count_filtering.output[0],
         rules.count_reads_mapping.output[0]
     output:
         config["results"] + "visuals/plotly/plotly.box.whisker.html"
