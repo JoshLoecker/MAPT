@@ -1,7 +1,5 @@
-# 1) This is where results will be saved. In docker, it is mapped to the host folder
-# 2) This is the data folder. It contains items such as fast5/fastq input files, alignment files, etc.
-# 3) This is the path to the reference database for MiniMap
-# Paths should have a trailing forward slash (/) for proper usage
+# Modify The following paths based on your input/output
+# `barcode_files` is only required if you have set `basecall:perform_bascall` to false
 results: "results/"
 basecall_files: "data/fast5/"
 barcode_files: "data/fastq/"
