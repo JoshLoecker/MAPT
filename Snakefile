@@ -105,7 +105,8 @@ if config["basecall"]["perform_basecall"]:
             --recursive \
             --device auto"
 
-            eval "$command"
+            # try to resume basecalling. If this does not work, remove the output and try normally
+            eval "$command --resume || (rm -rf {params.temp_output} && $command)"
 
 
             mv {params.temp_output} {output.data}
@@ -166,8 +167,6 @@ checkpoint barcode:
         --save_path {params.data} \
         --barcode_kits {params.barcode_kit} \
         --recursive
-
-        # touch {output}
         """
 
 def merge_barcodes_input(wildcards):
