@@ -102,7 +102,7 @@ if config["basecall"]["perform_basecall"]:
             --input_path {input} \
             --save_path {params.temp_output} \
             --recursive \
-            --device auto"
+            --device 'cuda:0,1'"
 
             # try to resume basecalling. If this does not work, remove the output and try normally
             eval "$command --resume || (rm -rf {params.temp_output} && $command)"
