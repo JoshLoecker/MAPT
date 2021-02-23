@@ -1,4 +1,3 @@
-
 Bootstrap: docker
 From: ubuntu
 
@@ -13,14 +12,15 @@ From: ubuntu
     apt update
     apt install wget --yes
 
-    # download guppy and save it at ~/guppy.deb
-    wget -O /guppy.deb "$DOWNLOAD_LINK"
+    # download guppy
+    cd /
+    wget "$DOWNLOAD_LINK"
 
     # install guppy and its dependencies
-    apt install /guppy.deb --yes
+    apt install /ont*.deb --yes
 
     # do some cleanup on items that are no longer needed
-    rm /guppy.deb
+    rm -f /ont*.deb
     apt purge wget --yes
     apt clean
     apt autoclean

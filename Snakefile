@@ -86,6 +86,7 @@ rule all:
         config["results"] + "visuals/plotly/histograms/plotly.mapping.histogram.html",
         config["results"] + "visuals/plotly/plotly.box.whisker.html"
 
+
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input: config["basecall_files"]
@@ -101,11 +102,11 @@ if config["basecall"]["perform_basecall"]:
             --config {params.config} \
             --input_path {input} \
             --save_path {params.temp_output} \
-            --recursive"
+            --recursive \
+            --device auto"
 
-            eval "singularity exec {config[guppy_container]} $command --resume || \
-                  (rm -rf {params.temp_output} && singularity exec {config[guppy_container]} $command) || \
-                  (rm -rf {params.temp_output} && $command)"
+            eval "$command"
+
 
             mv {params.temp_output} {output.data}
             """
