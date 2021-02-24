@@ -25,4 +25,4 @@ dependencies:
   - requests=2.25.*         # required to obtain latest guppy version
   - pip:
       - isONclust
-prefix: /Users/joshl/Downloads/test_pipeline
+prefix: /project/brookings_minion/conda-envs/mapt

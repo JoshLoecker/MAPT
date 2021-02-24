@@ -87,28 +87,53 @@ rule all:
 
 
 if config["basecall"]["perform_basecall"]:
+    def gather_files():
+        file_paths = []
+        for file in os.scandir(config["basecall_files"]):
+            if ".fast5" in file.name:
+                file_paths.append(file.path)
+        return file_paths
+    def set_one(wildcards):
+        file_paths = gather_files()
+        group_one = file_paths[:len(file_paths)//2]
+        return group_one
+    def set_two(wildcards):
+        file_paths = gather_files()
+        group_two = file_paths[len(file_paths)//2:]
+        return group_two
     checkpoint basecall:
-        input: config["basecall_files"]
+        input:
+            set_one = set_one,
+            set_two = set_two
         output:
             data=directory(os.path.join(config["results"], "basecall")),
             complete=touch(os.path.join(config["results"], ".temp/complete/basecall.complete"))
         params:
-            temp_output=os.path.join(config["results"], ".temp/basecall"),
+            one_temp_in = os.path.join(config["results"] + ".temp/basecall/input/set.one"),
+            two_temp_in = os.path.join(config["results"] + ".temp/basecall/input/set.two"),
+            one_temp_out=os.path.join(config["results"], ".temp/basecall/output/set.one"),
+            two_temp_out=os.path.join(config["results"], ".temp/basecall/output/set.two"),
             config=config["basecall"]["configuration"]
         shell:
             r"""
-            command="guppy_basecaller \
-            --config {params.config} \
-            --input_path {input} \
-            --save_path {params.temp_output} \
-            --recursive \
-            --device 'cuda:0,1'"
+            mkdir -p {params.one_temp_in} {params.two_temp_in}
+            for file in {input.set_one}; do
+                ln -f "$file" {params.one_temp_in}
+            done
+            for file in {input.set_two}; do
+                ln -f "$file" {params.two_temp_in}
+            done
+            
+            guppy_basecaller --config {params.config} --input_path {params.one_temp_in} --save_path {params.one_temp_out} &
+            guppy_one=$!
+            
+            guppy_basecaller --config {params.config} --input_path {params.two_temp_in} --save_path {params.two_temp_out} &
+            guppy_two=$!
+            
+            wait $guppy_one $guppy_two
 
-            # try to resume basecalling. If this does not work, remove the output and try normally
-            eval "$command --resume || (rm -rf {params.temp_output} && $command)"
 
-
-            mv {params.temp_output} {output.data}
+            # mv {params.temp_output} {output.data}
             """
 
 
