@@ -41,7 +41,9 @@ def minimap_from_filter(wildcards):
 
 rule all:
     input:
-        os.path.join(config["results"], "visuals/nanoplot/barcode/classified"),
+        os.path.join(config["results"],".temp/complete/basecall.complete"),
+        os.path.join(config["results"],"basecall")
+"""        os.path.join(config["results"], "visuals/nanoplot/barcode/classified"),
         os.path.join(config["results"], "visuals/nanoplot/barcode/unclassified"),
 
         os.path.join(config["results"], "visuals/nanoqc/barcode/classified"),
@@ -83,7 +85,7 @@ rule all:
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html"),
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.filtering.histogram.html"),
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.mapping.histogram.html"),
-        os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
+        os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")"""
 
 
 if config["basecall"]["perform_basecall"]:
@@ -106,7 +108,6 @@ if config["basecall"]["perform_basecall"]:
             set_one = set_one,
             set_two = set_two
         output:
-            data=directory(os.path.join(config["results"], "basecall")),
             complete=touch(os.path.join(config["results"], ".temp/complete/basecall.complete"))
         params:
             one_temp_in = os.path.join(config["results"] + ".temp/basecall/input/set.one"),
@@ -124,24 +125,53 @@ if config["basecall"]["perform_basecall"]:
                 ln -f "$file" {params.two_temp_in}
             done
             
-            guppy_basecaller --config {params.config} --input_path {params.one_temp_in} --save_path {params.one_temp_out} &
+            command_one="guppy_basecaller --config {params.config} --input_path {params.one_temp_in} --save_path {params.one_temp_out}"
+            eval "$command_one --resume || (rm -rf {params.one_temp_out} && $command_one) &"
             guppy_one=$!
             
-            guppy_basecaller --config {params.config} --input_path {params.two_temp_in} --save_path {params.two_temp_out} &
+            command_two="guppy_basecaller --config {params.config} --input_path {params.two_temp_in} --save_path {params.two_temp_out}"
+            eval "$command_two --resume || (rm -rf {params.two_temp_out} && $command_two) &"
             guppy_two=$!
             
             wait $guppy_one $guppy_two
+            """
 
-
-            # mv {params.temp_output} {output.data}
+    def basecall_set_one(wildcards):
+        checkpoint_output = checkpoints.basecall.get(**wildcards).output
+        return os.path.join(config["results"], ".temp/basecall/output/set.one")
+    def basecall_set_two(wildcards):
+        checkpoint_output = checkpoints.basecall.get(**wildcards).output
+        return os.path.join(config["results"], ".temp/basecall/output/set.two")
+    rule move_basecall:
+        input:
+            set_one = basecall_set_one,
+            set_two = basecall_set_two
+        output:
+            directory(os.path.join(config["results"], "basecall"))
+        shell:
+            r"""
+            # merge fastq files
+            # find all file names
+            for file in $(ls {input.set_one}); do
+                basename=$(basename -- "$file")
+                if [[ -f {input.set_two}/$basename ]]; then
+                    if [[ "$file" =~ .fastq ]]; then
+                        cat "$file" >> {output}/"$file"
+                    elif [[ "$file" == sequencing_summary.txt ]]; then
+                        cat "$file" >> {output}/"$file"
+                    elif [[ "$file" == sequencing_summary.txt.prev ]]; then
+                        cat "$file" >> {output}/"$file"
+                    elif [[ "$file" == sequencing_telemetry.js ]]; then
+                        cat "$file" >> {output}/"$file"
+                    fi
+                fi
+            done
             """
 
 
     def collate_basecall_input(wildcards):
         checkpoint_output = checkpoints.basecall.get(**wildcards).output
         return glob.glob(checkpoint_output[0] + "/*.fastq")
-
-
     rule collate_basecall:
         input: collate_basecall_input
         output: fastq_gz=temp(os.path.join(config["results"], ".temp/basecall.merged.files.fastq"))
