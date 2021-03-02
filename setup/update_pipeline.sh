@@ -8,8 +8,9 @@
 cd ../
 snakefile_present=$(ls snakefile > /dev/null 2>&1)
 
+
 if [[ "$snakefile_present" != "0" ]]; then
-    echo "Execute this script inside the 'pipeline/setup' directory that was cloned from GitHub"
+    echo "Error 1: Execute this script inside the 'pipeline/setup' directory that was cloned from GitHub"
     exit 1
 fi
 

@@ -113,32 +113,45 @@ Once these steps are done, the pipeline is ready to run. The pipeline can be run
 	
 	d. This will output a fair amount of information, showing what rules need to be completed. The pipeline can then be ran following point 1 or 2 above.  
 
+### Updating the Pipeline  
+It may be worthwhile to ensure you have the latest version of the pipeline available by getting the latest changes from GitHub.  
+1. Navigate to the directory that you cloned the pipeline to  
+2. Within the pipeline directory, navigate the the `setup` folder  
+3. Execute the `update_pipeline.sh` script by typing: `./update_pipeline.sh`  
+	a. Note the additional `./`. This is required
+
 ## Notes to Future Maintainers
 ### How to build a new Guppy container
 
-Building a new guppy container is relatively simple
-1. Go to [SyLabs Cloud Builder](https://cloud.sylabs.io/builder)
-	a. Sign in with one of the options available
-	b. Click on your username in the top right corner
-	c. On the drop down, click "Access Tokens"
-2. Generate a new Access Token
-	a. Copy this token, and save it in a secure location. It will not be able to be accessed again
-3. [Log in to SciNet](https://scinet.usda.gov/guide/ceres/#system-access)
-4. Navigate to /project/brookings_minion/ on SciNet
-	a. There is most likely a file named `guppy_container.sif`
-	b. We are going to be updating this file
-5. Run `singularity remote login` and follow the instructions to enable the remote build server
+Building a new guppy container is relatively simple  
+1. Go to [SyLabs Cloud Builder](https://cloud.sylabs.io/builder)  
+	a. Sign in with one of the options available  
+	b. Click on your username in the top right corner  
+	c. On the drop down, click "Access Tokens"  
+2. Generate a new Access Token  
+	a. Copy this token, and save it in a secure location. It will not be able to be accessed again  
+3. [Log in to SciNet](https://scinet.usda.gov/guide/ceres/#system-access)  
+4. Navigate to /project/brookings_minion/ on SciNet  
+	a. There is most likely a file named `guppy_container.sif`  
+	b. We are going to be updating this file  
+5. Run `singularity remote login` and follow the instructions to enable the remote build server  
 6. Update the current singularity file with the new Guppy version  
 	a. The current guppy version can be found at [Nanopore Tech Community](https://community.nanoporetech.com/downloads)  
     b. Copy the link next to `Ubuntu 20 GPU`. While SciNet is running under CentOS 7, this container is using Ubuntu 20, as it is what I am most familiar with. There is minimal overhead to running a linux distribution in a container under a linux host ([see this source](https://stackoverflow.com/questions/21889053/what-is-the-runtime-performance-cost-of-a-docker-container))  
 	c. Navigate to `pipeline/setup/` and edit the `Singularity` file  
-    d. Update the line `DOWNLOAD_LINK=` with the link you have copied  
+    d. Update the line `DOWNLOAD_LINK=` with the link you have copied, under the `%post` section.  
     e. Save and exit this file by typing `CTRL + x` -> `y` -> `ENTER`  
-7. Run `singularity build --remote guppy_new_container.sif pipeline/setup/Singularity`
-	a. This will take a bit of time (5 to 10 minutes)
+7. Run `singularity build --remote guppy_new_container.sif pipeline/setup/Singularity`  
+	a. This will take a bit of time (about 10 minutes)  
     b. We are not going to overwrite the old file until we are sure the new one is able to build
 8. **Assuming no errors occurred**, we will overwrite the old container with the new one
 	a. Run `mv guppy_new_container.sif guppy_container.sif`
+9. During the build process, several tests are run
+    a. Guppy Basecaller and Guppy Barcoder version are checked (command below). This ensures the binaries are available
+    1) `guppy_basecaller --version`
+	2) `guppy_barcoder --version`
+	
+    b. If this fails, the container is not usable
 9. A new guppy container is available.
     a. To test it, see the following section
 	
