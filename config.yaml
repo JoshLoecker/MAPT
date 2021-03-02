@@ -4,7 +4,7 @@ results: "results/"
 basecall_files: "data/fast5/"
 barcode_files: "data/fastq/"
 reference_database: "data/zymogen_alignment_file.fasta"
-guppy_container: "data/guppy_container.sif"
+guppy_container: "/project/brookings_minion/guppy_container.sif"
 
 
 # -------- DEFAULT VALES --------
@@ -12,7 +12,7 @@ basecall:
     # should basecalling be done?
     perform_basecall: True
     # set this variable to the configuration name you would like to use with basecalling
-    configuration: "dna_r9.4.1_450bps_fast.cfg"
+    configuration: "dna_r9.4.1_450bps_hac.cfg"
 
 barcode:
     # set the barcode_kit variable to the name of the barcoding kit you will be using
