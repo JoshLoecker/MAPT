@@ -6,7 +6,7 @@
 #   3) Move the configuration file back into the pipeline directory
 
 cd ../
-snakefile_present=$(ls snakefile > /dev/null 2>&1)
+snakefile_present=$(ls Snakefile > /dev/null 2>&1)
 
 
 if [[ "$snakefile_present" != "0" ]]; then

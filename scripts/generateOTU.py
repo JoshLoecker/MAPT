@@ -36,7 +36,7 @@ for index, (in_file, out_file) in enumerate(zip(input_files, output_files)):
     groupings = dict()
     for i, (barcode, cluster) in enumerate(zip(divergence_df["barcode"], divergence_df["cluster"])):
         # get barcode-otu mapping
-        if "unclassified" not in barcode:
+        if "unclassified" not in str(barcode):
             mapping = f"bc{barcode}-otu{cluster}"
         else:
             continue  # continue to next item if barcode == unclassified
