@@ -6,10 +6,10 @@
 #   3) Move the configuration file back into the pipeline directory
 
 cd ../
-snakefile_present=$(ls Snakefile > /dev/null 2>&1)
+snakefile_present=$(ls Snakefile)
 
 
-if [[ "$snakefile_present" != "0" ]]; then
+if [[ -z "$snakefile_present" ]]; then
     echo "Error 1: Execute this script inside the 'pipeline/setup' directory that was cloned from GitHub"
     exit 1
 fi
