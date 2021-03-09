@@ -14,6 +14,6 @@ if [[ -z "$snakefile_present" ]]; then
     exit 1
 fi
 
-mv config.yaml ~/.config.yaml
+mv config.yaml ~/.config.backup.yaml
 git pull
-mv ~/.config.yaml ./config.yaml
+mv ~/.config.backup.yaml ./config.yaml
