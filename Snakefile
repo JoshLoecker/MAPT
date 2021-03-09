@@ -101,7 +101,9 @@ if config["basecall"]["perform_basecall"]:
             --config {params.config} \
             --input_path {input} \
             --save_path {params.temp_output} \
+            --cpu_threads_per_caller 12 \
             --recursive"
+            # --gpu_runners_per_device 72 \
             #--device 'cuda:0,1'"
 
             # try to resume basecalling. If this does not work, remove the output and try normally
@@ -289,7 +291,8 @@ rule isONClustPipeline:
     params:
         aligned_threshold=config["isONclust"]["aligned_threshold"],
         min_fraction=config["isONclust"]["min_fraction"],
-        mapped_threshold=config["isONclust"]["mapped_threshold"]
+        mapped_threshold=config["isONclust"]["mapped_threshold"],
+        min_shared = config["isONclust"]["min_shared"]
     shell:
         r"""
         isONclust --ont \
@@ -297,6 +300,7 @@ rule isONClustPipeline:
         --aligned_threshold {params.aligned_threshold} \
         --min_fraction {params.min_fraction} \
         --mapped_threshold {params.mapped_threshold} \
+        --min_shared {params.min_shared} \
         --outfolder {output.data}
         """
 checkpoint isONclustClusterFastq:

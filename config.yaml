@@ -32,9 +32,10 @@ cutadapt:
     five_prime_adapter: "TTTCTGTTGGTGCTGATATTGCAGRGTTYGATYMTGGCTCAG"
 
 isONclust:
-    aligned_threshold:  0.90
-    min_fraction:  0.55
-    mapped_threshold:  0.65
+    aligned_threshold:  0.85
+    min_fraction:  0.95
+    mapped_threshold:  0.70
+    min_shared: 55
 
 nanofilt:
     # Minimum and maximum filtering length to be used
