@@ -86,6 +86,9 @@ rule all:
         os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
 
 
+"""
+Request 2 NVIDIA GPUs, and pass them both to guppy_basecaller
+"""
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input: config["basecall_files"]
@@ -95,6 +98,8 @@ if config["basecall"]["perform_basecall"]:
         params:
             temp_output=os.path.join(config["results"], ".temp/basecall"),
             config=config["basecall"]["configuration"]
+        container: config["guppy_container"]
+        resources: nvidia_gpu=2
         shell:
             r"""
             command="guppy_basecaller \
@@ -102,9 +107,8 @@ if config["basecall"]["perform_basecall"]:
             --input_path {input} \
             --save_path {params.temp_output} \
             --cpu_threads_per_caller 12 \
-            --recursive"
-            # --gpu_runners_per_device 72 \
-            #--device 'cuda:0,1'"
+            --recursive \
+            --device 'cuda:0,1'"
 
             # try to resume basecalling. If this does not work, remove the output and try normally
             eval "$command --resume || (rm -rf {params.temp_output} && $command)"
