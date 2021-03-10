@@ -14,6 +14,7 @@ basecall:
     # should basecalling be done?
     perform_basecall: True
     # set this variable to the configuration name you would like to use with basecalling
+    # Fast basecalling is dna_r9.4.1_450bps_fast.cfg
     configuration: "dna_r9.4.1_450bps_hac.cfg"
 
 barcode:
