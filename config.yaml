@@ -3,11 +3,11 @@
 results: "results/"
 basecall_files: "data/fast5/"
 barcode_files: ""
-reference_database: "data/zymogen_alignment_file.fasta"
+reference_database: "data/zymogen_file.fasta"
 
 
 # -------- DEFAULT VALES --------
-# 'guppy_container:' not be changed, unless you know another instance of the guppy_container exists
+# 'guppy_container:' not be changed, unless you know of another instance of guppy_container
 guppy_container: "/project/brookings_minion/guppy_container.sif"
 
 basecall:
