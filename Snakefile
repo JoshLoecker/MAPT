@@ -152,7 +152,7 @@ checkpoint barcode:
     input: os.path.join(config["results"], "basecall")
     output: complete=touch(os.path.join(config["results"], ".temp/complete/barcode.complete"))
     params:
-        data=directory(os.path.join(config["results"], ".temp/barcode")),
+        data=temp(directory(os.path.join(config["results"], ".temp/barcode"))),
         guppy_container=config["guppy_container"],
         barcode_kit=config["barcode"]["kit"]
     shell:
@@ -164,17 +164,10 @@ checkpoint barcode:
         --recursive
         """
 
-#def merge_barcodes_input(wildcards):
-#    return glob.glob(os.path.join(config["results"], f".temp/barcode/{wildcards.barcode}/*.fastq"))
 rule merge_barcodes:
-    input:
-        lambda wildcards: glob.glob(os.path.join(config["results"], ".temp", "barcode", wildcards.barcode, "*.fastq"))
-        #merge_barcodes_input
+    input: lambda wildcards: glob.glob(os.path.join(config["results"], ".temp", "barcode", wildcards.barcode, ".fastq"))
     output: merged=os.path.join(config["results"], "barcode/{barcode}.merged.fastq")
-    shell:
-        r"""
-        cat {input} > {output}
-        """
+    shell: "cat {input} > {output}"
 
 # cutadapt
 rule trim:
@@ -215,26 +208,16 @@ checkpoint filter:
         {input} > {output.filter}
         """
 
-def return_filter_files(wildcards):
-    barcodes = return_barcodes(wildcards)
-    return expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"),barcode=barcodes)
 rule filter_gather:
-    input:
-        lambda wildcards: expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"),
-            barcode=return_barcodes(wildcards))
-        #return_filter_files
+    input: lambda wildcards: expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"), barcode=return_barcodes(wildcards))
     output: temp(os.path.join(config["results"], ".temp/merge.filter.fastq"))
-    shell:
-        r"""
-        cat {input} > {output}
-        """
+    shell: "cat {input} > {output}"
 
 def barcode_class_unclass_gather_input(wildcards):
     barcodes = return_barcodes(wildcards)
     return expand(os.path.join(config["results"], "barcode/{barcode}.merged.fastq"),barcode=barcodes)
 rule barcode_class_unclass_gather:
-    input:
-        barcode_class_unclass_gather_input
+    input: barcode_class_unclass_gather_input
     output:
         classified=temp(os.path.join(config["results"], ".temp/barcode.merged.classified.fastq")),
         unclassified=temp(os.path.join(config["results"], ".temp/barcode.merged.unclassified.fastq"))
@@ -403,12 +386,9 @@ rule minimap_from_filtering:
         """
 
 rule minimap_from_spoa:
-    input:
-        rules.spoa.output[0]
-    output:
-        os.path.join(config["results"], "alignment/minimap/from_spoa/spoa.minimap.sam")
-    params:
-        alignment_reference=config["reference_database"]
+    input: rules.spoa.output[0]
+    output: os.path.join(config["results"], "alignment/minimap/from_spoa/spoa.minimap.sam")
+    params: alignment_reference=config["reference_database"]
     shell:
         r"""
         minimap2 \
@@ -419,9 +399,6 @@ rule minimap_from_spoa:
 
 
 # TODO: It appears that mapped_consensus_csv is missing a header for the first column
-# def filtering_output(wildcards):
-#     barcodes = return_barcodes(wildcards)
-#     return expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"),barcode=barcodes)
 rule id_reads:
     input:
         filtering=lambda wildcards: expand(os.path.join(config["results"], "filter", "{barcode}.filter.fastq"), barcode=return_barcodes(wildcards)),
