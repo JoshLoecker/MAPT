@@ -6,7 +6,6 @@ import shutil
 from pprint import pprint
 import pandas as pd
 # TODO: gzip all fastq files
-# TODO: use 'conda:' directive to give each rule a conda environment
 configfile: "config.yaml"
 
 def return_barcodes(wildcards):
