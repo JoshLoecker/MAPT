@@ -6,6 +6,7 @@ import shutil
 from pprint import pprint
 import pandas as pd
 # TODO: gzip all fastq files
+# TODO: use 'conda:' directive to give each rule a conda environment
 configfile: "config.yaml"
 
 def return_barcodes(wildcards):
@@ -49,6 +50,7 @@ rule all:
 
         basecall_visuals,
         os.path.join(config["results"], "isONclust/cluster_fastq"),
+        os.path.join(config["results"],"isONclust/pipeline"),
         os.path.join(config["results"], "LowClusterReads"),
         os.path.join(config["results"], "spoa/consensus.sequences.fasta"),
         minimap_from_filter,
@@ -98,7 +100,6 @@ if config["basecall"]["perform_basecall"]:
         params:
             temp_output=os.path.join(config["results"], ".temp/basecall"),
             config=config["basecall"]["configuration"]
-
         container: config["guppy_container"]
         resources: nvidia_gpu=2
         shell:
@@ -106,9 +107,8 @@ if config["basecall"]["perform_basecall"]:
             command="guppy_basecaller \
             --config {params.config} \
             --input_path {input} \
-            --save_path {params.temp_output} \
-            --recursive \
-            --device 'cuda:0,1'"
+            --save_path {params.temp_output}
+            #--device 'cuda:0,1'"
 
             # try to resume basecalling. If this does not work, remove the output and try normally
             eval "$command --resume || (rm -rf {params.temp_output} && $command)"
@@ -346,9 +346,9 @@ checkpoint move_low_reads:
     shell:
         r"""
         mkdir -p {output.data}
-        for file in {input}; do
-            file_name=$(basename "$file")
-            mv "$file" {output.data}/"$file_name"
+        for file_path in {input}; do
+            file_name=$(basename -- "$file_path")
+            mv "$file_path" {output.data}/"$file_name"
         done
         """
 
@@ -486,9 +486,6 @@ rule cluster_summary:
     script: "scripts/clusterSummary.py"
 
 
-#def count_reads_barcode_input(wildcards):
-#    barcodes = return_barcodes(wildcards)
-#    return expand(os.path.join(config["results"], "barcode/{barcode}.merged.fastq"),barcode=barcodes)
 rule count_reads_barcode:
     input:
         lambda wildcards: expand(os.path.join(config["results"], "barcode", "{barcode}.merged.fastq"), barcode=return_barcodes(wildcards))
@@ -498,9 +495,6 @@ rule count_reads_barcode:
     script: "scripts/CountReads.py"
 
 
-#def count_reads_cutadapt_input(wildcards):
-#    barcodes = return_barcodes(wildcards)
-#    return expand(os.path.join(config["results"], "trim/{barcode}.trim.fastq"),barcode=barcodes)
 rule count_reads_cutadapt:
     input:
         #count_reads_cutadapt_input
@@ -509,9 +503,7 @@ rule count_reads_cutadapt:
     params: process="cutadapt"
     script: "scripts/CountReads.py"
 
-#def count_filtering_input(wildcards):
-#    barcodes = return_barcodes(wildcards)
-#    return expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"),barcode=barcodes)
+
 rule count_filtering:
     input:
         #count_filtering_input
@@ -521,9 +513,6 @@ rule count_filtering:
     script: "scripts/CountReads.py"
 
 
-#def count_minimap_reads(wildcards):
-#    barcodes = return_barcodes(wildcards)
-#    return expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"),barcode=barcodes)
 rule count_reads_mapping:
     input:
         #count_minimap_reads

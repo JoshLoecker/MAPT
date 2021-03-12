@@ -3,7 +3,7 @@
 results: "results/"
 basecall_files: "data/fast5/"
 barcode_files: ""
-reference_database: "data/zymogen_file.fasta"
+reference_database: "data/zymogen_reference.fasta"
 
 
 # -------- DEFAULT VALES --------
