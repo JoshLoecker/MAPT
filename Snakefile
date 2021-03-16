@@ -106,7 +106,7 @@ if config["basecall"]["perform_basecall"]:
             command="guppy_basecaller \
             --config {params.config} \
             --input_path {input} \
-            --save_path {params.temp_output}
+            --save_path {params.temp_output} \
             --device 'cuda:0,1'"
 
             # try to resume basecalling. If this does not work, remove the output and try normally
