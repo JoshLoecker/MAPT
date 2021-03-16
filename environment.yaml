@@ -21,7 +21,5 @@ dependencies:
   - automake=1.16.*         # required by isOnclust
   - libtool=2.4.*           # required by isOnclust
   - xlsxwriter=1.3.*        # required by statistics generation
-  - beautifulsoup4=4.9.*    # required to obtain latest guppy version
-  - requests=2.25.*         # required to obtain latest guppy version
   - pip:
       - isONclust
