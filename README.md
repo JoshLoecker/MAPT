@@ -6,6 +6,9 @@ Due to the nature of this project revolving around mapping noisy microbial reads
 the following name seemed appropriate: Microbial Automated Processing Tool, or MAPT for short.
 
 
+[Please view the Wiki](https://github.com/JoshLoecker/MAPT/wiki) for more detailed information  
+(Note: The Wiki contains most of the basics as of now, but this README will stay up until the Wiki is complete)  
+
 ### Usage
 
 This is a workflow/pipeline aimed to streamline post-processing of noisy reads from [Oxford Nanopore MinION Sequencing Data](https://www.nanoporetech.com). The following software will need to be installed in a conda environment. A startup-script is provided in the GitHub repository. This is explained further on this page.
@@ -19,7 +22,6 @@ The following software will be used (not necessarily in this order, and this lis
 - spoa
 - NanoPlot
 - Plotly Graphs
-
 
 ### Installation & Setup
 
