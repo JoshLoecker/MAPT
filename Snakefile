@@ -34,9 +34,9 @@ def basecall_visuals(wildcards):
                 os.path.join(config["results"], "visuals/nanoplot/basecall/")]
     else:
         return []
-def minimap_from_filter(wildcards):
-    barcodes = return_barcodes(wildcards)
-    return expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"), barcode=barcodes)
+# def minimap_from_filter(wildcards):
+    # barcodes = return_barcodes(wildcards)
+    # return expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"), barcode=barcodes)
 
 
 rule all:
@@ -52,7 +52,7 @@ rule all:
         os.path.join(config["results"],"isONclust/pipeline"),
         os.path.join(config["results"], "LowClusterReads"),
         os.path.join(config["results"], "spoa/consensus.sequences.fasta"),
-        minimap_from_filter,
+        # minimap_from_filter,
         os.path.join(config["results"], "alignment/minimap/from_spoa/spoa.minimap.sam"),
 
         os.path.join(config["results"], "id_reads/mapped_reads/mapped_seq_id.csv"),
@@ -94,10 +94,13 @@ if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input: config["basecall_files"]
         output:
-            data=directory(os.path.join(config["results"], "basecall")),
-            complete=touch(os.path.join(config["results"], ".temp/complete/basecall.complete"))
+            # data=directory(os.path.join(config["results"], "basecall")),
+            # complete=touch(os.path.join(config["results"], ".temp/complete/basecall.complete"))
+            data=directory(config["barcode_files"]),
+            complete=touch(os.path.join(config["results"], ".temp/complete/fastq.complete"))
         params:
-            temp_output=os.path.join(config["results"], ".temp/basecall"),
+            # temp_output=os.path.join(config["results"], ".temp/basecall"),
+            temp_output=os.path.join(config["results"], ".temp/fastq"),
             config=config["basecall"]["configuration"]
         container: config["guppy_container"]
         resources: nvidia_gpu=2
@@ -117,16 +120,19 @@ if config["basecall"]["perform_basecall"]:
             mv {params.temp_output} {output.data}
             """
 
-
+    # TODO run these regardless of whether basecalling. Might not need to collabe_basecall_input
     def collate_basecall_input(wildcards):
         checkpoint_output = checkpoints.basecall.get(**wildcards).output
         return glob.glob(os.path.join(checkpoint_output[0], "*.fastq"))
     rule collate_basecall:
         input: collate_basecall_input
+        ## input: config["barcode_files"]
         output: fastq_gz=temp(os.path.join(config["results"], ".temp/basecall.merged.files.fastq"))
 
         shell:
             r"""
+            # cd {input}
+            # for file in *; do
             for file in {input}; do
                 cat "$file" >> {output.fastq_gz}
             done
@@ -149,12 +155,14 @@ if config["basecall"]["perform_basecall"]:
 
 
 checkpoint barcode:
-    input: os.path.join(config["results"], "basecall")
+    # input: os.path.join(config["results"], "basecall")
+    input: config["barcode_files"]
     output: complete=touch(os.path.join(config["results"], ".temp/complete/barcode.complete"))
     params:
         data=temp(directory(os.path.join(config["results"], ".temp/barcode"))),
         guppy_container=config["guppy_container"],
         barcode_kit=config["barcode"]["kit"]
+    container: config["guppy_container"]
     shell:
         r"""
         guppy_barcoder \
@@ -164,12 +172,13 @@ checkpoint barcode:
         --recursive
         """
 
+# because guppy will give multiple files for each barcode, based on the source .fast5
 rule merge_barcodes:
     input: lambda wildcards: glob.glob(os.path.join(config["results"], ".temp", "barcode", wildcards.barcode, ".fastq"))
     output: merged=os.path.join(config["results"], "barcode/{barcode}.merged.fastq")
     shell: "cat {input} > {output}"
 
-# cutadapt
+# cutadapt.
 rule trim:
     input: rules.merge_barcodes.output.merged
     output: trimmed=os.path.join(config["results"], "trim/{barcode}.trim.fastq")
@@ -181,7 +190,7 @@ rule trim:
         r"""
         cutadapt \
         --revcomp \
-        --quiet \
+        #--quiet \
         --adapter {params.three_prime_adapter} \
         --front {params.five_prime_adapter} \
         --error-rate {params.error_rate} \
@@ -263,18 +272,23 @@ rule isONClustPipeline:
         data=directory(os.path.join(config["results"], "isONclust", "pipeline")),
         rule_complete=touch(os.path.join(config["results"], ".temp", "complete", "isONClustPipeline.complete"))
     params:
+        min_quality=config["nanofilt"]["min_quality"],# use same quality as NanoFilt (i.e. rule filtering)
         aligned_threshold=config["isONclust"]["aligned_threshold"],
         min_fraction=config["isONclust"]["min_fraction"],
         mapped_threshold=config["isONclust"]["mapped_threshold"],
         min_shared = config["isONclust"]["min_shared"]
+    threads: 99999  # pass available threads to isonclust. This number is a maximum.
     shell:
         r"""
-        isONclust --ont \
+        isONclust \
+        --ont \
         --fastq {input} \
+        --q "{params.min_quality}" \
         --aligned_threshold {params.aligned_threshold} \
         --min_fraction {params.min_fraction} \
         --mapped_threshold {params.mapped_threshold} \
         --min_shared {params.min_shared} \
+        -t {threads}
         --outfolder {output.data}
         """
 checkpoint isONclustClusterFastq:
@@ -286,12 +300,10 @@ checkpoint isONclustClusterFastq:
         cluster_output=directory(os.path.join(config["results"], "isONclust/cluster_fastq")),
         rule_complete=touch(os.path.join(config["results"], ".temp/complete/isONclust.cluster.fastq.complete"))
     params:
-        min_quality=config["nanofilt"]["min_quality"],# use same quality as NanoFilt (i.e. rule filtering)
         temp_fastq_input=os.path.join(config["results"], ".temp/merge.filtering.isONclustClusterFastq.fastq")
     shell:
         r"""
         isONclust \
-        --q "{params.min_quality}" \
         write_fastq \
         --fastq {input.merged_filtering_reads} \
         --outfolder "{output.cluster_output}" \
@@ -369,21 +381,30 @@ rule spoa:
         # remove temp output, it is no longer needed
         shell("rm -f {params.temp_spoa}")
 
+## TODO: Add a rule that indexes the reference database for minimap2
+# rule minimap_database:
+    # input: alignment_reference=config["reference_database"]
+    # output: os.path.join(config["results"], ".temp/reference_database.mmi")
+    # shell:
+        # r"""
+        # minimap2 -d {output} {input}
+        # """
 
-def minimap_from_filtering_input(wildcards):
-    checkpoint_output = checkpoints.filter.get(**wildcards).output
-    return glob.glob(os.path.join(config["results"], f"filter/{wildcards.barcode}.filter.fastq"))
-rule minimap_from_filtering:
-    input: minimap_from_filtering_input
-    output: os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam")
-    params: alignment_reference=config["reference_database"]
-    shell:
-        r"""
-        minimap2 \
-        -ax map-ont \
-        {params.alignment_reference} \
-        {input} > {output}
-        """
+# TODO: Don't strictly need this.
+# def minimap_from_filtering_input(wildcards):
+    # checkpoint_output = checkpoints.filter.get(**wildcards).output
+    # return glob.glob(os.path.join(config["results"], f"filter/{wildcards.barcode}.filter.fastq"))
+# rule minimap_from_filtering:
+    # input: minimap_from_filtering_input
+    # output: os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam")
+    # params: alignment_reference=config["reference_database"]
+    # shell:
+        # r"""
+        # minimap2 \
+        # -ax map-ont \
+        # {params.alignment_reference} \
+        # {input} > {output}
+        # """
 
 rule minimap_from_spoa:
     input: rules.spoa.output[0]
