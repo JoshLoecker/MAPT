@@ -34,9 +34,9 @@ def basecall_visuals(wildcards):
                 os.path.join(config["results"], "visuals/nanoplot/basecall/")]
     else:
         return []
-# def minimap_from_filter(wildcards):
-    # barcodes = return_barcodes(wildcards)
-    # return expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"), barcode=barcodes)
+def minimap_from_filter(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"), barcode=barcodes)
 
 
 rule all:
@@ -52,7 +52,7 @@ rule all:
         os.path.join(config["results"],"isONclust/pipeline"),
         os.path.join(config["results"], "LowClusterReads"),
         os.path.join(config["results"], "spoa/consensus.sequences.fasta"),
-        # minimap_from_filter,
+        minimap_from_filter,
         os.path.join(config["results"], "alignment/minimap/from_spoa/spoa.minimap.sam"),
 
         os.path.join(config["results"], "id_reads/mapped_reads/mapped_seq_id.csv"),
@@ -190,7 +190,7 @@ rule trim:
         r"""
         cutadapt \
         --revcomp \
-        #--quiet \
+        --quiet \
         --adapter {params.three_prime_adapter} \
         --front {params.five_prime_adapter} \
         --error-rate {params.error_rate} \
@@ -390,21 +390,21 @@ rule spoa:
         # minimap2 -d {output} {input}
         # """
 
-# TODO: Don't strictly need this.
-# def minimap_from_filtering_input(wildcards):
-    # checkpoint_output = checkpoints.filter.get(**wildcards).output
-    # return glob.glob(os.path.join(config["results"], f"filter/{wildcards.barcode}.filter.fastq"))
-# rule minimap_from_filtering:
-    # input: minimap_from_filtering_input
-    # output: os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam")
-    # params: alignment_reference=config["reference_database"]
-    # shell:
-        # r"""
-        # minimap2 \
-        # -ax map-ont \
-        # {params.alignment_reference} \
-        # {input} > {output}
-        # """
+#TODO: Don't strictly need this?
+def minimap_from_filtering_input(wildcards):
+    checkpoint_output = checkpoints.filter.get(**wildcards).output
+    return glob.glob(os.path.join(config["results"], f"filter/{wildcards.barcode}.filter.fastq"))
+rule minimap_from_filtering:
+    input: minimap_from_filtering_input
+    output: os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam")
+    params: alignment_reference=config["reference_database"]
+    shell:
+        r"""
+        minimap2 \
+          -ax map-ont \
+          {params.alignment_reference} \
+          {input} > {output}
+        """
 
 rule minimap_from_spoa:
     input: rules.spoa.output[0]
