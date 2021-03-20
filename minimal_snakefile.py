@@ -24,16 +24,16 @@ def return_barcodes(wildcards):
 def merge_barcodes(wildcards):
     barcodes = return_barcodes(wildcards)
     return expand(os.path.join(config["results"], "barcode/{barcode}.merged.fastq"), barcode=barcodes)
-# def basecall_visuals(wildcards):
-    # """
-    # If we are running basecalling, then NanoQC and NanoPlot rules should be ran
-    # :return:
-    # """
-    # if config["basecall"]["perform_basecall"]:
-        # return [os.path.join(config["results"], "visuals/nanoqc/basecall/"),
-                # os.path.join(config["results"], "visuals/nanoplot/basecall/")]
-    # else:
-        # return []
+def basecall_visuals(wildcards):
+    """
+    If we are running basecalling, then NanoQC and NanoPlot rules should be ran
+    :return:
+    """
+    if config["basecall"]["perform_basecall"]:
+        return [os.path.join(config["results"], "visuals/nanoqc/basecall/"),
+                os.path.join(config["results"], "visuals/nanoplot/basecall/")]
+    else:
+        return []
 # def minimap_from_filter(wildcards):
     # barcodes = return_barcodes(wildcards)
     # return expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"), barcode=barcodes)
@@ -43,9 +43,10 @@ rule all:
     input:
         os.path.join(config["results"], "isONclust/cluster_fastq"),
         os.path.join(config["results"],"isONclust/pipeline"),
-        # os.path.join(config["results"], "LowClusterReads"),
+        os.path.join(config["results"], "LowClusterReads"),
         os.path.join(config["results"], "spoa/consensus.sequences.fasta"),
         # minimap_from_filter,
+        
         os.path.join(config["results"], "alignment/minimap/from_spoa/spoa.minimap.sam"),
 
         os.path.join(config["results"], "id_reads/mapped_reads/mapped_seq_id.csv"),
@@ -68,20 +69,20 @@ rule all:
         os.path.join(config["results"], "id_reads/cluster_summary/clusterSummaryOutsideDivergence.csv"),
         os.path.join(config["results"], "id_reads/cluster_summary/clusterSummaryNaNDivergence.csv"),
         
-        # os.path.join(config["results"], "visuals/nanoplot/barcode/classified"),
-        # os.path.join(config["results"], "visuals/nanoplot/barcode/unclassified"),
+        os.path.join(config["results"], "visuals/nanoplot/barcode/classified"),
+        os.path.join(config["results"], "visuals/nanoplot/barcode/unclassified"),
 
-        # os.path.join(config["results"], "visuals/nanoqc/barcode/classified"),
-        # os.path.join(config["results"], "visuals/nanoqc/barcode/unclassified"),
+        os.path.join(config["results"], "visuals/nanoqc/barcode/classified"),
+        os.path.join(config["results"], "visuals/nanoqc/barcode/unclassified"),
 
-        # basecall_visuals,
-        # os.path.join(config["results"], "count_reads/count.reads.barcode.csv"),
-        # os.path.join(config["results"], "count_reads/count.reads.cutadapt.csv"),
+        basecall_visuals,
+        os.path.join(config["results"], "count_reads/count.reads.barcode.csv"),
+        os.path.join(config["results"], "count_reads/count.reads.cutadapt.csv"),
         # os.path.join(config["results"], "count_reads/count.reads.filter.csv"),
         # os.path.join(config["results"], "count_reads/count.reads.mapping.csv"),
 
-        # os.path.join(config["results"], "visuals/plotly/histograms/plotly.barcode.histogram.html"),
-        # os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html"),
+        os.path.join(config["results"], "visuals/plotly/histograms/plotly.barcode.histogram.html"),
+        os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html"),
         # os.path.join(config["results"], "visuals/plotly/histograms/plotly.filtering.histogram.html"),
         # os.path.join(config["results"], "visuals/plotly/histograms/plotly.mapping.histogram.html"),
         # os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
@@ -120,7 +121,7 @@ if config["basecall"]["perform_basecall"]:
             mv {params.temp_output} {output.data}
             """
 
-    # TODO run these regardless of whether basecalling. Might not need to collabe_basecall_input
+        # TODO run these regardless of whether basecalling. Might not need to collabe_basecall_input
     def collate_basecall_input(wildcards):
         checkpoint_output = checkpoints.basecall.get(**wildcards).output
         return glob.glob(os.path.join(checkpoint_output[0], "*.fastq"))
@@ -138,20 +139,29 @@ if config["basecall"]["perform_basecall"]:
             done
             """
 
-    # rule NanoQCBasecall:
+    rule NanoQCBasecall:
         # input: rules.collate_basecall.output.fastq_gz
-        # output: directory(os.path.join(config["results"], "visuals/nanoqc/basecall/"))
+        input: collate_basecall_input
+        output: directory(os.path.join(config["results"], "visuals/nanoqc/basecall"))
 
         # shell: "nanoQC -o {output} {input}"
+        shell: 
+            r"""
+            cat {input} | nanoQC -o {output}
+            """
 
-    # rule NanoPlotBasecall:
+    rule NanoPlotBasecall:
         # input: rules.collate_basecall.output.fastq_gz
-        # output: directory(os.path.join(config["results"], "visuals/nanoplot/basecall/"))
+        input: collate_basecall_input
+        output: directory(os.path.join(config["results"], "visuals/nanoplot/basecall"))
+        params: temp=os.path.join(config["results"], "visuals", "nanoplot", "basecall", ".tmp")
 
-        # shell:
-            # r"""
-            # NanoPlot --fastq {input} -o {output}
-            # """
+        shell:
+            r"""
+            cat {input} >> {params.temp}
+            NanoPlot --fastq {params.temp} -o {output}
+            rm {params.temp}
+            """
 
 
 checkpoint barcode:
@@ -203,30 +213,76 @@ rule merge_barcodes:
           # cat {input}/*.fastq > {output}
         # fi
         # """
+        
+def barcode_class_unclass_gather_input(wildcards):
+    barcodes = return_barcodes(wildcards)
+    return expand(os.path.join(config["results"], "barcode/{barcode}.merged.fastq"),barcode=barcodes)
+rule barcode_class_unclass_gather:
+    input: barcode_class_unclass_gather_input
+    output:
+        classified=temp(os.path.join(config["results"], ".temp/barcode.merged.classified.fastq")),
+        unclassified=temp(os.path.join(config["results"], ".temp/barcode.merged.unclassified.fastq"))
+    shell:
+        r"""
+        for file in {input}; do
+            if [[ "$file" =~ barcode[0-9]{{2}} ]]; then
+                cat "$file" >> {output.classified}
+            elif [[ "$file" =~ unclassified ]]; then
+                cat "$file" >> {output.unclassified}
+            fi
+        done
+        """
 
+rule NanoQCBarcode:
+    input:
+        classified=rules.barcode_class_unclass_gather.output.classified,
+        unclassified=rules.barcode_class_unclass_gather.output.unclassified
+    output:
+        classified=directory(os.path.join(config["results"], "visuals/nanoqc/barcode/classified")),
+        unclassified=directory(os.path.join(config["results"], "visuals/nanoqc/barcode/unclassified"))
+    shell:
+        r"""
+        nanoQC -o {output.classified} {input.classified}
+        nanoQC -o {output.unclassified} {input.unclassified}
+        """
+rule NanoPlotBarcode:
+    input:
+        classified=rules.barcode_class_unclass_gather.output.classified,
+        unclassified=rules.barcode_class_unclass_gather.output.unclassified
+    output:
+        classified=directory(os.path.join(config["results"], "visuals/nanoplot/barcode/classified")),
+        unclassified=directory(os.path.join(config["results"], "visuals/nanoplot/barcode/unclassified"))
+    shell:
+        r"""
+        NanoPlot --fastq {input.classified} -o {output.classified}
+        NanoPlot --fastq {input.unclassified} -o {output.unclassified}
+        """
+        
 # cutadapt.
 rule trim:
     input: rules.merge_barcodes.output
     # output: trimmed=os.path.join(config["results"], "trim/{barcode}.trim.fastq")
-    output: os.path.join(config["results"], "filter/{barcode}.filter.fastq")
+    output: os.path.join(config["results"], "trim/{barcode}.trim.fastq")
     params:
         three_prime_adapter=config["cutadapt"]["three_prime_adapter"],
         five_prime_adapter=config["cutadapt"]["five_prime_adapter"],
         error_rate=config["cutadapt"]["error_rate"],
         min_length=config["nanofilt"]["min_filter"],
         max_length=config["nanofilt"]["max_filter"]
+    threads: 9999
     shell:
         r"""
         cutadapt \
-        --revcomp \
-        --quiet \
-        --adapter {params.three_prime_adapter} \
-        --front {params.five_prime_adapter} \
-        --error-rate {params.error_rate} \
-        --minimum-length {params.min_length} \
-        --maximum-length {params.max_length} \
-        --output {output} \
-        {input}
+          --revcomp \
+          --quiet \
+          --adapter {params.three_prime_adapter} \
+          --front {params.five_prime_adapter} \
+          --error-rate {params.error_rate} \
+          --minimum-length {params.min_length} \
+          --maximum-length {params.max_length} \
+          --output {output} \
+          --cores={threads} \
+          {input}
         """
 
 # NanoFilt - skip this. Can use cutadapt + isonclust. nanofilt seems to be having some trouble. 
@@ -249,55 +305,12 @@ rule trim:
         # """
 
 rule filter_gather:
-    input: lambda wildcards: expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"), barcode=return_barcodes(wildcards))
-    output: temp(os.path.join(config["results"], ".temp/merge.filter.fastq"))
+    input: lambda wildcards: expand(os.path.join(config["results"], "trim/{barcode}.trim.fastq"), barcode=return_barcodes(wildcards))
+    output: temp(os.path.join(config["results"], ".temp/merge.trim.fastq"))
     shell: r"""
            cat {input} > {output}
            """
 
-# def barcode_class_unclass_gather_input(wildcards):
-    # barcodes = return_barcodes(wildcards)
-    # return expand(os.path.join(config["results"], "barcode/{barcode}.merged.fastq"),barcode=barcodes)
-# rule barcode_class_unclass_gather:
-    # input: barcode_class_unclass_gather_input
-    # output:
-        # classified=temp(os.path.join(config["results"], ".temp/barcode.merged.classified.fastq")),
-        # unclassified=temp(os.path.join(config["results"], ".temp/barcode.merged.unclassified.fastq"))
-    # shell:
-        # r"""
-        # for file in {input}; do
-            # if [[ "$file" =~ barcode[0-9]{{2}} ]]; then
-                # cat "$file" >> {output.classified}
-            # elif [[ "$file" =~ unclassified ]]; then
-                # cat "$file" >> {output.unclassified}
-            # fi
-        # done
-        # """
-
-# rule NanoQCBarcode:
-    # input:
-        # classified=rules.barcode_class_unclass_gather.output.classified,
-        # unclassified=rules.barcode_class_unclass_gather.output.unclassified
-    # output:
-        # classified=directory(os.path.join(config["results"], "visuals/nanoqc/barcode/classified")),
-        # unclassified=directory(os.path.join(config["results"], "visuals/nanoqc/barcode/unclassified"))
-    # shell:
-        # r"""
-        # nanoQC -o {output.classified} {input.classified}
-        # nanoQC -o {output.unclassified} {input.unclassified}
-        # """
-# rule NanoPlotBarcode:
-    # input:
-        # classified=rules.barcode_class_unclass_gather.output.classified,
-        # unclassified=rules.barcode_class_unclass_gather.output.unclassified
-    # output:
-        # classified=directory(os.path.join(config["results"], "visuals/nanoplot/barcode/classified")),
-        # unclassified=directory(os.path.join(config["results"], "visuals/nanoplot/barcode/unclassified"))
-    # shell:
-        # r"""
-        # NanoPlot --fastq {input.classified} -o {output.classified}
-        # NanoPlot --fastq {input.unclassified} -o {output.unclassified}
-        # """
 
 rule isONClustPipeline:
     input: rules.filter_gather.output
@@ -343,7 +356,6 @@ checkpoint isONclustClusterFastq:
         --clusters "{input.pipeline_output}/final_clusters.tsv"
         """
 
-
 # def move_low_reads_input(wildcards):
     # """
     # We are filtering the *.fastq files from checkpoint.isONclustClusterFastq in this function
@@ -365,90 +377,157 @@ checkpoint isONclustClusterFastq:
             # if count_reads_in_file < config["cluster"]["min_reads_per_cluster"]:
                 # # only get the file name (remove the extension)
                 # files_to_move.add(file.name.split(".")[0])
+    # # return expand("{file_move}.fastq", file_move=files_to_move)
     # return expand(os.path.join(checkpoint_output[0], "{file_move}.fastq"), file_move=files_to_move)
+# def move_low_reads_dir(wildcards):
+    # return checkpoints.isONclustClusterFastq.get(**wildcards).output.cluster_output
+
 # checkpoint move_low_reads:
     # input: move_low_reads_input
     # output:
         # data=directory(os.path.join(config["results"], "LowClusterReads")),
         # complete=touch(os.path.join(config["results"], ".temp/complete/remove.low.reads.complete"))
+    # # shell:
+        # # r"""
+        # # mkdir -p {output.data}
+        # # for file_path in {input}; do
+            # # file_name=$(basename -- "$file_path")
+            # # mv "$file_path" {output.data}/"$file_name"
+        # # done
+        # # """
+    # run:
+        # os.makedirs(str({output.data}), exist_ok=True)
+        
+        # for file in str(input).split(" "):
+            # if os.path.exists(file):
+                # basename = os.path.basename(file)
+                # outname = os.path.join(str({output.data}), basename)
+                # os.rename(file, outname)
+
+# Split this into two steps
+def spoa_input(wildcards):
+    # move_low_reads_done = checkpoints.move_low_reads.get(**wildcards).output
+    
+    isonclust_output = checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
+    files = expand(
+        os.path.join(isonclust_output, "{cluster}.fastq"),
+        cluster=glob_wildcards(os.path.join(isonclust_output, "{cluster}.fastq")).cluster
+    )
+    return files
+
+    # return glob.glob(os.path.join(isonclust_output[0], ".fastq"))
+def spoa_directory(wildcards):
+    return checkpoints.isONclustClusterFastq.get(**wildcards).output[0]
+rule spoa:
+    input: 
+        files = spoa_input,
+        directory = spoa_directory
+    # input: os.path.join(spoa_input(wildcards), "{cluster}.fastq")
+    # output: os.path.join(config["results"], "spoa/{cluster}.fasta") # consensus sequence only
+    output: os.path.join(config["results"], "spoa/consensus.sequences.fasta")
+    params: temp_spoa=os.path.join(config["results"], ".temp/spoa")
+    threads: 9999  # to give spoa forks lots of freedom
     # shell:
         # r"""
-        # mkdir -p {output.data}
-        # for file_path in {input}; do
-            # file_name=$(basename -- "$file_path")
-            # mv "$file_path" {output.data}/"$file_name"
-        # done
+        # spoa {input} -r 0 > {output}
         # """
 
-
-def spoa_input(wildcards):
-    isonclust_output = checkpoints.isONclustClusterFastq.get(**wildcards).output
-    # move_low_reads_output = checkpoints.move_low_reads.get(**wildcards).output
-    return glob.glob(os.path.join(isonclust_output[0], "*.fastq"))
-rule spoa:
-    input: spoa_input
-    output: os.path.join(config["results"], "spoa/consensus.sequences.fasta")
-    params: temp_spoa=os.path.join(config["results"], ".temp/spoa.temp.fasta")
+# rule spoa_reorganize:
+    # input: rule.spoa_consensus.output
+    # output: os.path.join(config["results"], "spoa/consensus.sequences.fasta")
+    # shell: 
+        # r"""
+        # echo "test" > {output}
+        # """
     run:
         os.makedirs(os.path.join(config["results"], "spoa"), exist_ok=True)
 
         # remove temp output (in case it exists from previous run)
-        shell("rm -f {params.temp_spoa}")
+        shell("rm -Rf {params.temp_spoa}")
+        
+        # run spoa in parallel. But hack together globbing to avoid bash overflows.
+        shell(
+            r"""
+            mkdir -p {params.temp_spoa}
+            
+            for file in {input.directory}/*.fastq; do 
+              spoa $file -r 0 > {params.temp_spoa}/$(basename -- "$file") & # technically fasta but good enough
+            done
+            """)
 
-        for file in str(input).split(" "):
+        for file in str(input.files).split(" "):
 
             # perform spoa
-            shell("spoa {input} -r 0 > {params.temp_spoa}")
+            # shell("spoa {file} -r 0 > {params.temp_spoa}")
+            # shell("spoa " + file + " -r 0 > {params.temp_spoa}")
 
             # get file name without extension (i.e. /path/to/file/35.fasta -> 35)
             basename = os.path.basename(file)
             cluster_number = basename.split(".")[0]
 
             # overwrite first line in file with `>cluster_{cluster_number}`
-            file_lines = open(str(params.temp_spoa),"r").readlines()
+            filename = os.path.join(params.temp_spoa, basename)
+            file_lines = open(filename, "r").readlines()
+            # file_lines = open(str(params.temp_spoa),"r").readlines()
             file_lines[0] = f">cluster_{cluster_number}\n"
 
             # append new lines to output file
             open(str(output),"a").writelines(file_lines)
 
         # remove temp output, it is no longer needed
-        shell("rm -f {params.temp_spoa}")
+        shell("rm -Rf {params.temp_spoa}")
 
 ## TODO: Add a rule that indexes the reference database for minimap2
-# rule minimap_database:
-    # input: alignment_reference=config["reference_database"]
-    # output: os.path.join(config["results"], ".temp/reference_database.mmi")
-    # shell:
-        # r"""
-        # minimap2 -d {output} {input}
-        # """
+rule minimap_database:
+    input: alignment_reference=config["reference_database"]
+    output: os.path.join(config["results"], ".temp/reference_database.mmi")
+    shell:
+        r"""
+        minimap2 -d {output} {input}
+        """
 
 #TODO: Don't strictly need this?
 # def minimap_from_filtering_input(wildcards):
     # checkpoint_output = checkpoints.filter.get(**wildcards).output
     # return glob.glob(os.path.join(config["results"], f"filter/{wildcards.barcode}.filter.fastq"))
 # rule minimap_from_filtering:
-    # input: minimap_from_filtering_input
-    # output: os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam")
+    # input: 
+        # # files=minimap_from_filtering_input,
+        # files=rules.trim.output,
+        # database=rules.minimap_database.output[0]
+    # output: 
+        # os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam")
     # params: alignment_reference=config["reference_database"]
+    # threads: 9999
     # shell:
         # r"""
         # minimap2 \
-          # -ax map-ont \
-          # {params.alignment_reference} \
-          # {input} > {output}
+        # -ax map-ont \
+        # -t {threads} \
+        # -K 2G \
+        # --secondary=no \
+        # {input.database} \
+        # {input.files} > {output}
         # """
 
+
+# in parallel, allow 2G memory at once
 rule minimap_from_spoa:
-    input: rules.spoa.output[0]
+    input: 
+        files=rules.spoa.output[0],
+        database=rules.minimap_database.output[0]
     output: os.path.join(config["results"], "alignment/minimap/from_spoa/spoa.minimap.sam")
-    params: alignment_reference=config["reference_database"]
+    # params: alignment_reference=config["reference_database"]
+    threads: 9999
     shell:
         r"""
         minimap2 \
         -ax map-ont \
-        {params.alignment_reference} \
-        {input} > {output}
+        -t {threads} \
+        -K 2G \
+        --secondary=no \
+        {input.database} \
+        {input.files} > {output}
         """
 
 
@@ -516,23 +595,22 @@ rule cluster_summary:
     params: divergence_threshold=config["cluster"]["divergence_threshold"]
     script: "scripts/clusterSummary.py"
 
+rule count_reads_barcode:
+    input:
+        lambda wildcards: expand(os.path.join(config["results"], "barcode", "{barcode}.merged.fastq"), barcode=return_barcodes(wildcards))
+        #count_reads_barcode_input
+    output: os.path.join(config["results"], "count_reads/count.reads.barcode.csv")
+    params: process="barcode"
+    script: "scripts/CountReads.py"
 
-# rule count_reads_barcode:
-    # input:
-        # lambda wildcards: expand(os.path.join(config["results"], "barcode", "{barcode}.merged.fastq"), barcode=return_barcodes(wildcards))
-        # #count_reads_barcode_input
-    # output: os.path.join(config["results"], "count_reads/count.reads.barcode.csv")
-    # params: process="barcode"
-    # script: "scripts/CountReads.py"
 
-
-# rule count_reads_cutadapt:
-    # input:
-        # #count_reads_cutadapt_input
-        # lambda wildcards: expand(os.path.join(config["results"], "trim/{barcode}.trim.fastq"), barcode=return_barcodes(wildcards))
-    # output: os.path.join(config["results"], "count_reads/count.reads.cutadapt.csv")
-    # params: process="cutadapt"
-    # script: "scripts/CountReads.py"
+rule count_reads_cutadapt:
+    input:
+        #count_reads_cutadapt_input
+        lambda wildcards: expand(os.path.join(config["results"], "trim/{barcode}.trim.fastq"), barcode=return_barcodes(wildcards))
+    output: os.path.join(config["results"], "count_reads/count.reads.cutadapt.csv")
+    params: process="cutadapt"
+    script: "scripts/CountReads.py"
 
 
 # rule count_filtering:
@@ -554,17 +632,17 @@ rule cluster_summary:
     # script: "scripts/CountReads.py"
 
 
-# rule plotly_barcode_histogram:
-    # input: rules.count_reads_barcode.output[0]
-    # output: os.path.join(config["results"], "visuals/plotly/histograms/plotly.barcode.histogram.html")
-    # params: sub_title="Performed after Merging Files"
-    # script: "scripts/PlotlyHistogram.py"
+rule plotly_barcode_histogram:
+    input: rules.count_reads_barcode.output[0]
+    output: os.path.join(config["results"], "visuals/plotly/histograms/plotly.barcode.histogram.html")
+    params: sub_title="Performed after Merging Files"
+    script: "scripts/PlotlyHistogram.py"
 
-# rule plotly_cutadapt_histogram:
-    # input: rules.count_reads_cutadapt.output[0]
-    # output: os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html")
-    # params: sub_title="Performed after Cutadapt"
-    # script: "scripts/PlotlyHistogram.py"
+rule plotly_cutadapt_histogram:
+    input: rules.count_reads_cutadapt.output[0]
+    output: os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html")
+    params: sub_title="Performed after Cutadapt"
+    script: "scripts/PlotlyHistogram.py"
 
 # rule plotly_filtering_histogram:
     # input: rules.count_filtering.output[0]
@@ -582,7 +660,7 @@ rule cluster_summary:
     # input:
         # rules.count_reads_barcode.output[0],
         # rules.count_reads_cutadapt.output[0],
-        # rules.count_filtering.output[0],
-        # rules.count_reads_mapping.output[0]
+        # # rules.count_filtering.output[0],
+        # # rules.count_reads_mapping.output[0]
     # output: os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
     # script: "scripts/PlotlyBoxWhisker.py"
