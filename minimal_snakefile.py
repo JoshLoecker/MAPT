@@ -534,7 +534,7 @@ rule minimap_from_spoa:
 # TODO: It appears that mapped_consensus_csv is missing a header for the first column
 rule id_reads:
     input:
-        filtering=lambda wildcards: expand(os.path.join(config["results"], "filter", "{barcode}.filter.fastq"), barcode=return_barcodes(wildcards)),
+        filtering=lambda wildcards: expand(os.path.join(config["results"], "trim", "{barcode}.trim.fastq"), barcode=return_barcodes(wildcards)),
         clustering=rules.isONClustPipeline.output[0],
         minimap=rules.minimap_from_spoa.output[0]
         # filtering=filtering_output
