@@ -94,9 +94,7 @@ if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input: config["basecall_files"]
         output:
-            # data=directory(os.path.join(config["results"], "basecall")),
-            # complete=touch(os.path.join(config["results"], ".temp/complete/basecall.complete"))
-            data=directory(config["barcode_files"]),
+            data=directory(os.path.join(config["results"], "basecall")),
             complete=touch(os.path.join(config["results"], ".temp/complete/fastq.complete"))
         params:
             temp_output=os.path.join(config["results"], ".temp/basecall"),
