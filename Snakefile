@@ -83,7 +83,7 @@ rule all:
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.barcode.histogram.html"),
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html"),
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.filtering.histogram.html"),
-        os.path.join(config["results"], "visuals/plotly/histograms/plotly.mapping.histogram.html"),
+        # os.path.join(config["results"], "visuals/plotly/histograms/plotly.mapping.histogram.html"),
         os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
 
 
@@ -535,7 +535,7 @@ rule plotly_box_whisker_generation:
     input:
         rules.count_reads_barcode.output[0],
         rules.count_reads_cutadapt.output[0],
-        rules.count_filtering.output[0],
-        rules.count_reads_mapping.output[0]
+        rules.count_filtering.output[0]
+        # rules.count_reads_mapping.output[0]
     output: os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
     script: "scripts/PlotlyBoxWhisker.py"
