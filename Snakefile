@@ -145,9 +145,14 @@ if config["basecall"]["perform_basecall"]:
         shell: "NanoPlot --fastq {input} -o {output}"
 
 
+def barcode_input(wildcards):
+    if config["basecall"]["perform_basecall"]:
+        checkpoint_output = checkpoints.basecall.get(**wildcards).output
+        return checkpoint_output
+    else:
+        return config["barcode_files"]
 checkpoint barcode:
-    # input: os.path.join(config["results"], "basecall")
-    input: config["barcode_files"]
+    input: barcode_input
     output: complete=touch(os.path.join(config["results"], ".temp/complete/barcode.complete"))
     params:
         data=temp(directory(os.path.join(config["results"], ".temp/barcode"))),
