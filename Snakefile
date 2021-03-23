@@ -95,7 +95,7 @@ if config["basecall"]["perform_basecall"]:
         input: config["basecall_files"]
         output:
             data=directory(os.path.join(config["results"], "basecall")),
-            complete=touch(os.path.join(config["results"], ".temp/complete/fastq.complete"))
+            complete=touch(os.path.join(config["results"], ".temp/complete/basecall.complete"))
         params:
             temp_output=os.path.join(config["results"], ".temp/basecall"),
             config=config["basecall"]["configuration"]
