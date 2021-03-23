@@ -322,9 +322,9 @@ def move_low_reads_input(wildcards):
             count_lines_in_file = len(lines_in_file)
             count_reads_in_file = count_lines_in_file / 4
 
-            # keep files that are equal to OR GREATER than the cutoff
+            # keep files that are EQUAL TO OR GREATER THAN the cutoff
             if count_reads_in_file < config["cluster"]["min_reads_per_cluster"]:
-                # only get the file name (remove the extension)
+                # only get the file name (remove the file extension)
                 files_to_move.add(file.name.split(".")[0])
     return expand(os.path.join(checkpoint_output[0], "{file_move}.fastq"), file_move=files_to_move)
 checkpoint move_low_reads:
@@ -332,14 +332,20 @@ checkpoint move_low_reads:
     output:
         data=directory(os.path.join(config["results"], "LowClusterReads")),
         complete=touch(os.path.join(config["results"], ".temp/complete/remove.low.reads.complete"))
-    shell:
-        r"""
-        mkdir -p {output.data}
-        for path in {input}; do
-            name=$(basename -- "$path")
-            mv "$path" "{output.data}/$name"
-        done
-        """
+    run:
+        shell("mkdir -p {output.data}")
+        for file in input:
+            # get the file name, remove extension
+            name = file.split(".")[0]
+            shutil.move(src=file, dst=os.path.join(output.data, name))
+#     shell:
+#         r"""
+#         mkdir -p {output.data}
+#         for file in {input}; do
+#             name=$(basename -- "$file")
+#             mv "$file" "{output.data}/$name"
+#         done
+#         """
 
 
 def spoa_input(wildcards):
