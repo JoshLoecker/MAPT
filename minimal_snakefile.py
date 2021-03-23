@@ -43,7 +43,7 @@ rule all:
     input:
         os.path.join(config["results"], "isONclust/cluster_fastq"),
         os.path.join(config["results"],"isONclust/pipeline"),
-        os.path.join(config["results"], "LowClusterReads"),
+        # os.path.join(config["results"], "LowClusterReads"),
         os.path.join(config["results"], "spoa/consensus.sequences.fasta"),
         # minimap_from_filter,
         

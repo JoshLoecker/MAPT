@@ -38,5 +38,6 @@ for index, (data_frame, out_file) in enumerate(zip(divergence_data_frames, outpu
         new_data.append([number, size])
 
     new_df = pd.DataFrame(new_data, columns=["cluster", "size"])
+    new_df.drop_duplicates(inplace=True)
     new_df.to_csv(out_file, index=False)
 

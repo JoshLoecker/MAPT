@@ -27,12 +27,13 @@ for index, (data_frame, out_file) in enumerate(zip(divergence_data_frames, outpu
     sequence_length = data_frame["seq_length"]
     divergence = data_frame["divergence"]
     cluster_number = data_frame["cluster"]
+    otu = [f"otu{i}" for i in cluster_number] #PME
 
     new_data = []
-    for i, (ref_id, sequence_length, divergence, cluster_number) in enumerate(zip(ref_id, sequence_length, divergence, cluster_number)):
-        new_data.append([ref_id, sequence_length, divergence, cluster_number])
+    for i, (ref_id, sequence_length, divergence, cluster_number, otu) in enumerate(zip(ref_id, sequence_length, divergence, cluster_number, otu)):
+        new_data.append([ref_id, sequence_length, divergence, cluster_number, otu])
 
-    new_df = pd.DataFrame(new_data, columns=["ref_id", "seq_length", "divergence", "cluster"])
+    new_df = pd.DataFrame(new_data, columns=["ref_id", "seq_length", "divergence", "cluster", "otu"])
     new_df.drop_duplicates(inplace=True)
     new_df.to_csv(out_file, index=False)
 
