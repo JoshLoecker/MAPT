@@ -11,7 +11,7 @@ configfile: "config.yaml"
 def return_barcodes(wildcards):
     """
     This will return barcode numbers from the barcode output folder
-    Simple pass through the `wildcards` parameter
+    Simply pass through the `wildcards` parameter
     :param wildcards: The wildcards parameter used in checkpoint outputs
     :return:
     """
@@ -154,7 +154,7 @@ checkpoint barcode:
     input: barcode_input
     output: complete=touch(os.path.join(config["results"], ".temp/complete/barcode.complete"))
     params:
-        data=temp(directory(os.path.join(config["results"], ".temp/barcode"))),
+        data=directory(os.path.join(config["results"], ".temp/barcode")),
         barcode_kit=config["barcode"]["kit"]
     container: config["guppy_container"]
     shell:
@@ -168,7 +168,7 @@ checkpoint barcode:
 
 # because guppy will give multiple files for each barcode, based on the source .fast5
 rule merge_barcodes:
-    input: lambda wildcards: glob.glob(os.path.join(config["results"], ".temp", "barcode", wildcards.barcode, ".fastq"))
+    input: lambda wildcards: glob.glob(os.path.join(config["results"], f".temp/barcode/{wildcards.barcode}/*.fastq"))
     output: merged=os.path.join(config["results"], "barcode/{barcode}.merged.fastq")
     shell: "cat {input} > {output}"
 
@@ -182,9 +182,9 @@ rule trim:
         error_rate=config["cutadapt"]["error_rate"]
     shell:
         r"""
+        echo HERE {input}
         cutadapt \
         --revcomp \
-        #--quiet \
         --adapter {params.three_prime_adapter} \
         --front {params.five_prime_adapter} \
         --error-rate {params.error_rate} \
@@ -282,7 +282,7 @@ rule isONClustPipeline:
         --min_fraction {params.min_fraction} \
         --mapped_threshold {params.mapped_threshold} \
         --min_shared {params.min_shared} \
-        -t {threads}
+        --t {threads} \
         --outfolder {output.data}
         """
 checkpoint isONclustClusterFastq:
