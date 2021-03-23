@@ -153,8 +153,8 @@ checkpoint barcode:
     output: complete=touch(os.path.join(config["results"], ".temp/complete/barcode.complete"))
     params:
         data=temp(directory(os.path.join(config["results"], ".temp/barcode"))),
-        guppy_container=config["guppy_container"],
         barcode_kit=config["barcode"]["kit"]
+    container: config["guppy_container"]
     shell:
         r"""
         guppy_barcoder \
