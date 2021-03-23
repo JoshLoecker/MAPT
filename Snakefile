@@ -335,9 +335,9 @@ checkpoint move_low_reads:
     shell:
         r"""
         mkdir -p {output.data}
-        for file_path in {input}; do
-            file_name=$(basename -- "$file_path")
-            mv "$file_path" {output.data}/"$file_name"
+        for path in {input}; do
+            name=$(basename -- "$path")
+            mv "$path" "{output.data}/$name"
         done
         """
 
