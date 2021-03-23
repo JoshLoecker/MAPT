@@ -78,7 +78,7 @@ rule all:
         os.path.join(config["results"], "count_reads/count.reads.barcode.csv"),
         os.path.join(config["results"], "count_reads/count.reads.cutadapt.csv"),
         os.path.join(config["results"], "count_reads/count.reads.filter.csv"),
-        os.path.join(config["results"], "count_reads/count.reads.mapping.csv"),
+        # os.path.join(config["results"], "count_reads/count.reads.mapping.csv"),
 
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.barcode.histogram.html"),
         os.path.join(config["results"], "visuals/plotly/histograms/plotly.cutadapt.histogram.html"),
@@ -480,37 +480,28 @@ rule cluster_summary:
 
 
 rule count_reads_barcode:
-    input:
-        lambda wildcards: expand(os.path.join(config["results"], "barcode", "{barcode}.merged.fastq"), barcode=return_barcodes(wildcards))
-        #count_reads_barcode_input
+    input: lambda wildcards: expand(os.path.join(config["results"], "barcode", "{barcode}.merged.fastq"), barcode=return_barcodes(wildcards))
     output: os.path.join(config["results"], "count_reads/count.reads.barcode.csv")
     params: process="barcode"
     script: "scripts/CountReads.py"
 
 
 rule count_reads_cutadapt:
-    input:
-        #count_reads_cutadapt_input
-        lambda wildcards: expand(os.path.join(config["results"], "trim/{barcode}.trim.fastq"), barcode=return_barcodes(wildcards))
+    input: lambda wildcards: expand(os.path.join(config["results"], "trim/{barcode}.trim.fastq"), barcode=return_barcodes(wildcards))
     output: os.path.join(config["results"], "count_reads/count.reads.cutadapt.csv")
     params: process="cutadapt"
     script: "scripts/CountReads.py"
 
 
 rule count_filtering:
-    input:
-        #count_filtering_input
-        lambda wildcards: expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"), barcode=return_barcodes(wildcards))
+    input: lambda wildcards: expand(os.path.join(config["results"], "filter/{barcode}.filter.fastq"), barcode=return_barcodes(wildcards))
     output: os.path.join(config["results"], "count_reads/count.reads.filter.csv")
     params: process="filtering"
     script: "scripts/CountReads.py"
 
 
 rule count_reads_mapping:
-    input:
-        #count_minimap_reads
-        lambda wildcards: expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"),
-            barcode=return_barcodes(wildcards))
+    input: lambda wildcards: expand(os.path.join(config["results"], "alignment/minimap/from_filtering/{barcode}.minimap.sam"), barcode=return_barcodes(wildcards))
     output:os.path.join(config["results"], "count_reads/count.reads.mapping.csv")
     params: process="mapping"
     script: "scripts/CountReads.py"
