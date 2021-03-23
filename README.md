@@ -1,13 +1,13 @@
 # MAPT
 
+[Please view the Wiki](https://github.com/JoshLoecker/MAPT/wiki) for more detailed information  
+(Note: The Wiki contains most of the basics as of now, but this README will stay up until the Wiki is complete)  
+
 ### Naming
 This has been my most notable, and in-depth, project to date. As a result, I feel it should have a proper name.
 Due to the nature of this project revolving around mapping noisy microbial reads (hopefully) down to the species level, 
 the following name seemed appropriate: Microbial Automated Processing Tool, or MAPT for short.
 
-
-[Please view the Wiki](https://github.com/JoshLoecker/MAPT/wiki) for more detailed information  
-(Note: The Wiki contains most of the basics as of now, but this README will stay up until the Wiki is complete)  
 
 ### Usage
 
