@@ -99,8 +99,7 @@ if config["basecall"]["perform_basecall"]:
             data=directory(config["barcode_files"]),
             complete=touch(os.path.join(config["results"], ".temp/complete/fastq.complete"))
         params:
-            # temp_output=os.path.join(config["results"], ".temp/basecall"),
-            temp_output=os.path.join(config["results"], ".temp/fastq"),
+            temp_output=os.path.join(config["results"], ".temp/basecall"),
             config=config["basecall"]["configuration"]
         container: config["guppy_container"]
         resources: nvidia_gpu=2
@@ -128,7 +127,6 @@ if config["basecall"]["perform_basecall"]:
         input: collate_basecall_input
         ## input: config["barcode_files"]
         output: fastq_gz=temp(os.path.join(config["results"], ".temp/basecall.merged.files.fastq"))
-
         shell:
             r"""
             # cd {input}
@@ -141,17 +139,12 @@ if config["basecall"]["perform_basecall"]:
     rule NanoQCBasecall:
         input: rules.collate_basecall.output.fastq_gz
         output: directory(os.path.join(config["results"], "visuals/nanoqc/basecall/"))
-
         shell: "nanoQC -o {output} {input}"
 
     rule NanoPlotBasecall:
         input: rules.collate_basecall.output.fastq_gz
         output: directory(os.path.join(config["results"], "visuals/nanoplot/basecall/"))
-
-        shell:
-            r"""
-            NanoPlot --fastq {input} -o {output}
-            """
+        shell: "NanoPlot --fastq {input} -o {output}"
 
 
 checkpoint barcode:
