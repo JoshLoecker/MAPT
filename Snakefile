@@ -41,6 +41,7 @@ def basecall_visuals(wildcards):
 
 rule all:
     input:
+        merge_barcodes,
         os.path.join(config["results"], "visuals/nanoplot/barcode/classified"),
         os.path.join(config["results"], "visuals/nanoplot/barcode/unclassified"),
 
@@ -87,9 +88,7 @@ rule all:
         os.path.join(config["results"], "visuals/plotly/plotly.box.whisker.html")
 
 
-"""
-Request 2 NVIDIA GPUs, and pass them both to guppy_basecaller
-"""
+# Request 2 NVIDIA GPUs, and pass them both to guppy_basecaller
 if config["basecall"]["perform_basecall"]:
     checkpoint basecall:
         input: config["basecall_files"]
@@ -117,7 +116,7 @@ if config["basecall"]["perform_basecall"]:
             mv {params.temp_output} {output.data}
             """
 
-    # TODO run these regardless of whether basecalling. Might not need to collabe_basecall_input
+    # TODO run these regardless of whether basecalling. Might not need to collate_basecall_input
     def collate_basecall_input(wildcards):
         checkpoint_output = checkpoints.basecall.get(**wildcards).output
         return glob.glob(os.path.join(checkpoint_output[0], "*.fastq"))
