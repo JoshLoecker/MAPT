@@ -51,6 +51,7 @@ rule all:
         basecall_visuals,
         os.path.join(config["results"], "isONclust/cluster_fastq"),
         os.path.join(config["results"],"isONclust/pipeline"),
+        os.path.join(config["results"], "isONclust/barcodes/cluster"),
         os.path.join(config["results"], "LowClusterReads"),
         os.path.join(config["results"], "spoa/consensus.sequences.fasta"),
         # minimap_from_filter,
@@ -259,6 +260,53 @@ rule NanoPlotBarcode:
         NanoPlot --fastq {input.classified} -o {output.classified}
         NanoPlot --fastq {input.unclassified} -o {output.unclassified}
         """
+
+rule gather_barcodes:
+    input: lambda wildcards: expand(os.path.join(config["results"], "barcode/{barcode}.merged.fastq"), barcode=return_barcodes(wildcards))
+    output: gathered = temp(os.path.join(config["results"], ".temp/marged.barcodes.fastq"))
+    shell: "cat {input} > {output}"
+rule isONclustBarcodes:
+    input: rules.gather_barcodes.output.gathered
+    output:
+        data = directory(os.path.join(config["results"], "isONclust/barcodes/origins")),
+        rule_complete = touch(os.path.join(config["results"], ".temp/complete/isONclustBarcodes.complete"))
+    params:
+        min_quality=config["nanofilt"]["min_quality"],# use same quality as NanoFilt (i.e. rule filtering)
+        aligned_threshold=config["isONclust"]["aligned_threshold"],
+        min_fraction=config["isONclust"]["min_fraction"],
+        mapped_threshold=config["isONclust"]["mapped_threshold"],
+        min_shared = config["isONclust"]["min_shared"]
+    threads: 99999
+    shell:
+        r"""
+        isONclust \
+        --ont \
+        --fastq {input} \
+        --q "{params.min_quality}" \
+        --aligned_threshold {params.aligned_threshold} \
+        --min_fraction {params.min_fraction} \
+        --mapped_threshold {params.mapped_threshold} \
+        --min_shared {params.min_shared} \
+        --t {threads} \
+        --outfolder {output.data}
+        """
+checkpoint isONclustBarcodeCluster:
+    input:
+        origin_data = rules.isONclustBarcodes.output.data,
+        isONClustBarcodeComplete = rules.isONclustBarcodes.output.rule_complete,
+        merged_barcode_reads = rules.gather_barcodes.output.gathered
+    output:
+        cluster_output = directory(os.path.join(config["results"], "isONclust/barcodes/cluster")),
+        rule_complete = touch(os.path.join(config["results"], ".temp/complete/isOnclustBarcodeCluster.complete"))
+    shell:
+        r"""
+        isONclust \
+        write_fastq \
+        --fastq {input.merged_barcode_reads} \
+        --outfolder "{output.cluster_output}" \
+        --clusters "{input.origin_data}/final_clusters.tsv"
+        """
+
 
 rule isONClustPipeline:
     input: rules.filter_gather.output
