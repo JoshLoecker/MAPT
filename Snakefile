@@ -53,7 +53,7 @@ rule all:
         os.path.join(config["results"],"isONclust","barcodes","origins"),
         os.path.join(config["results"],"isONclust","barcodes","cluster"),
         os.path.join(config["results"],"isONclust","merged_barcodes","origins"),
-        os.path.join(config["results"],"isOnclust","merged_barcodes","cluster"),
+        os.path.join(config["results"],"isONclust","merged_barcodes","cluster"),
         os.path.join(config["results"],"LowClusterReads","barcodes"),
         os.path.join(config["results"],"LowClusterReads","merged_barcodes"),
         os.path.join(config["results"], "spoa", "consensus.sequences.fasta"),
@@ -301,7 +301,7 @@ checkpoint isONclust_barcode_cluster:
         merged_barcode_reads = rules.merge_gathered_barcodes.output.gathered
     output:
         cluster_output = directory(os.path.join(config["results"], "isONclust", "barcodes", "cluster")),
-        rule_complete = touch(os.path.join(config["results"], ".temp", "complete", "isOnclustBarcodeCluster.complete"))
+        rule_complete = touch(os.path.join(config["results"], ".temp", "complete", "isONclustBarcodeCluster.complete"))
     shell:
         r"""
         isONclust \
@@ -382,7 +382,7 @@ checkpoint isONclust_cluster_merged_barcodes:
         isONclustComplete = rules.isONclust_merged_barcodes.output.rule_complete,
         barcode_reads = rules.merge_barcode_clusters.output
     output:
-        cluster_output = directory(os.path.join(config["results"], "isOnclust", "merged_barcodes", "cluster")),
+        cluster_output = directory(os.path.join(config["results"], "isONclust", "merged_barcodes", "cluster")),
         rule_complete = touch(os.path.join(config["results"], ".temp", "complete", "isONclust.cluster.merged.barcodes.complete"))
     shell:
         r"""
