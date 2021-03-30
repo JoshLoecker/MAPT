@@ -23,3 +23,4 @@ dependencies:
   - xlsxwriter=1.3.*        # required by statistics generation
   - pip:
       - isONclust
+      - NanoPlot=1.35.*
