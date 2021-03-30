@@ -1,7 +1,7 @@
 # Modify The following paths based on your input/output
 # 'barcode_files' is only required if you have set 'basecall:perform_basecall' to false
 results: "results/"
-basecall_files: "data/fast5/"
+basecall_files: "data/example_data/"
 barcode_files: "data/fastq"
 reference_database: "/project/brookings_minion/reference_databases/zymogen_reference.fasta"
 

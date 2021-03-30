@@ -113,8 +113,7 @@ if config["basecall"]["perform_basecall"]:
             --input_path {input} \
             --save_path {params.temp_output} \
             --recursive \
-            --cpu_threads_per_caller 12"
-            # --device 'cuda:0,1'"
+            --device 'cuda:0,1'"
 
             # try to resume basecalling. If this does not work, remove the output and try normally
             eval "$command --resume || (rm -rf {params.temp_output} && $command)"
@@ -189,7 +188,6 @@ rule trim:
         error_rate=config["cutadapt"]["error_rate"]
     shell:
         r"""
-        echo HERE {input}
         cutadapt \
         --revcomp \
         --adapter {params.three_prime_adapter} \
@@ -375,7 +373,7 @@ rule isONclust_merged_barcodes:
         --min_fraction {params.min_fraction} \
         --mapped_threshold {params.mapped_threshold} \
         --min_shared {params.min_shared} \
-        --t 1 \
+        --t {threads} \
         --outfolder {output.data} 
         """
 checkpoint isONclust_cluster_merged_barcodes:
