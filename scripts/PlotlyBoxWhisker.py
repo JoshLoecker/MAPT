@@ -1,17 +1,26 @@
 import pandas as pd
 import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 csv_file_paths = str(snakemake.input).split(" ")
-plot_names = ["Barcode (Guppy Barcoder)", "Trim (Cutadapt)", "Filtering (NanoFilt)", "Mapping (MiniMap)"]
+plot_names = []  # only generate plots we have data for
+color_list = []  # set a color list for easier viewing
 
-# set a color list for easier viewing
-color_list = [
-    "rgb(111, 129, 246)",  # barcode
-    "rgb(178, 178, 102)",  # cutadapt
-    "rgb(61, 194, 156)",  # nanofilt
-    "rgb(163, 113, 244)"]  # mapping
+for i, file in enumerate(csv_file_paths):
+    if "barcode" in file:
+        plot_names.append("Barcode (Guppy Barcoder)")
+        color_list.append("rgb(111, 129, 246)")
+    elif "cutadapt" in file:
+        plot_names.append("Trim (Cutadapt)")
+        color_list.append("rgb(178, 178, 102)")
+    elif "filter" in file:
+        plot_names.append("Filtering (NanoFilt)")
+        color_list.append("rgb(61, 194, 156)")
+    elif "mapping" in file:
+        plot_names.append("Mapping (MiniMap)")
+        color_list.append("rgb(163, 113, 244)")
 
-# create a list of data frames that match the follow the following list: barcode, cutadapt, nanofilt, mapping
+# create a list of data frames for our input files
 data_frames = []
 for file in csv_file_paths:
     data_frames.append(pd.read_csv(
@@ -21,9 +30,9 @@ for file in csv_file_paths:
     ))
 
 """
-We are going to iterate through each data frame generated in the list above
+We are going to iterate through each data frame in the data_frames list above
 For each data frame [frame], we are going to locate [.loc] every instance where the word `unclassified` appears in the column `barcode`
-    Then, we will take the corresponding value that is listed under the `reads` column, and extract the value only using `.tolist()[0]`
+Then, we will take the corresponding value that is listed under the `reads` column, and extract the value only using `.tolist()[0]`
 """
 unclassified_reads_value = []
 for frame in data_frames:
@@ -36,8 +45,14 @@ for frame in data_frames:
 for frame in data_frames:
     frame = frame.drop(frame.tail(1).index, inplace=True)
 
-# create a figure to hold our box plots
-box_plot = go.Figure()
+# Create a subplot figure to hold our graphs
+box_plot = make_subplots(rows=1,
+                         cols=len(plot_names),
+                         x_title="Process in Pipeline",
+                         y_title="Reads per Barcode",
+                         shared_yaxes=True,
+                         shared_xaxes=True,
+                         horizontal_spacing=0)
 
 """
 A varying number of reads can exist outside the 'whiskers' of the plot
@@ -74,7 +89,7 @@ for frame in data_frames:
 
 """
 We are now adding 'traces' to the figure
-Each trace is an additional box plot; in total there will be four traces (one for each name listed in `plot_names` above
+Each trace is an additional box plot; in total there will be four traces (or one for each name listed in `plot_names` above, if not all graphs available)
 """
 for index, name in enumerate(plot_names):
     box_plot.add_trace(
@@ -91,79 +106,57 @@ for index, name in enumerate(plot_names):
                     outlierwidth=1)),
             pointpos=0,  # ............................................... Set position of data points relative to trace
             hovertext=[label for label in hover_templates_list[index]]  # Set the text for hovering
-        ))
+        ),
+        row=1, col=index+1
+    )
 
-# modify appearance of hovering data
-hover_label = dict(
-    bgcolor="white",
-    font_size=16,
-    font_family="Rockwell")
+# remove legend from plot
+for i in range(len(plot_names)):
+    box_plot.update_traces(row=1, col=i+1, showlegend=False)
 
-# set a title, its location, and size
-title_data = dict(
-    text="Reads per Barcode after Pipeline Steps",
-    x=0.48,
-    xanchor="center",
-    font=dict(size=25)
+# add annotations
+# Subtitle annotation
+box_plot.add_annotation(
+    dict(
+        xref="paper",
+        yref="paper",
+        x=0.,
+        y=1.045,
+        showarrow=False,
+        text="Each count performed after process listed on x-axis",
+        font=dict(size=14)
+    )
 )
 
-# create a list of our annotation data; a comment is above each `dict` specifying what the annotation is for
-annotation_data = [
-    # create a sub title
-    dict(xref="paper",
-         yref="paper",
-         x=0.5,
-         y=1.031,
-         showarrow=False,
-         text="Each count performed after process listed on x-axis",
-         font=dict(size=14)),
-
-    # barcode unclassified reads
-    dict(xref="paper",
-         yref="paper",
-         x=0.07,
-         y=0.01,
-         showarrow=False,
-         text=f"Unclassified Reads: {unclassified_reads_value[0]}",
-         font=dict(size=13)),
-
-    # cutadapt unclassified reads
-    dict(xref="paper",
-         yref="paper",
-         x=0.375,
-         y=0.01,
-         showarrow=False,
-         text=f"Unclassified Reads: {unclassified_reads_value[1]}",
-         font=dict(size=13)),
-
-    # filtering unclassified reads
-    dict(xref="paper",
-         yref="paper",
-         x=0.625,
-         y=0.01,
-         showarrow=False,
-         text=f"Unclassified Reads: {unclassified_reads_value[2]}",
-         font=dict(size=13)),
-
-    # mapping unclassified reads
-    dict(xref="paper",
-         yref="paper",
-         x=0.93,
-         y=0.01,
-         showarrow=False,
-         text=f"Unclassified Reads: {unclassified_reads_value[3]}",
-         font=dict(size=13)),
-
-]
+# Unclassified reads annotations
+for i, read in enumerate(unclassified_reads_value):
+    box_plot.add_annotation(
+        dict(
+            xref=f"x{i+1}",
+            yref=f"y{i+1}",
+            x=0,
+            y=1,
+            text=f"Unclassified Reads: {read}",
+            showarrow=False
+        )
+    )
 
 # update the layout for the graph
 box_plot.update_layout(
-    hoverlabel=hover_label,
-    title=title_data,
-    annotations=annotation_data,
-    xaxis_title="Process in Pipeline",
-    yaxis_title="Reads per Barcode",
+    # set mouse-hovering data
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=16,
+        font_family="Rockwell"),
+    # set title datas
+    title=dict(
+        text="Reads per Barcode after Pipeline Steps",
+        xanchor="auto",
+        font=dict(size=25)),
     font=dict(size=16)
 )
+
+box_plot.update_yaxes(automargin=True)
+box_plot.update_xaxes(automargin=True)
 
 box_plot.write_html(str(snakemake.output))
